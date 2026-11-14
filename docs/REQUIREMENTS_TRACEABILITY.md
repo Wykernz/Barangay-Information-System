@@ -1,0 +1,23 @@
+# Requirements Traceability (Initial Structure)
+
+Status values: Draft, Approved, Implemented, Verified, Deferred.
+
+| Requirement group | Source | Design location | Planned verification | Status |
+|---|---|---|---|---|
+| IAM-001..008 | Project brief | Architecture sections 3, 5, 8; ERD Security | Model/migration, permission, session, audit, export tests | Draft |
+| PRO-001..013 | Project brief | Architecture sections 3, 6; ERD Profiling | Unit, constraints, API, duplicate, count, authorization tests | Draft |
+| APT-001..006 | Project brief | ERD Appointments | Service, transition, concurrency/conflict, API tests | Draft |
+| CAS-001..006 | Project brief | Architecture sections 5, 8; ERD Cases | Confidentiality, assignment, workflow, attachment, audit tests | Draft |
+| GIS-001..008 | Project brief | Architecture sections 6, 9; ERD GIS | Geometry/CRS validation, authorization, history, offline map tests | Draft |
+| ANA-001..003 | Project brief | Architecture section 6 | Metric fixture, effective-date, permission, suppression tests | Draft |
+| MIG-001..003 | Existing mixed records | ERD Migration | Repeatability, validation, transaction rollback, audit tests | Draft |
+| NFR-SEC/PRI | Project brief | Architecture sections 5, 8 | Threat review, automated security tests, privacy approval evidence | Draft |
+| NFR-AVL/BCK | Unreliable internet | Architecture sections 7, 10 | Internet-disconnected workflow and backup restore exercises | Draft |
+| NFR-ACC | UI/UX brief | SRS 5 | Automated checks plus keyboard/screen-reader review | Draft |
+| NFR-MNT/DAT | Architecture brief | Architecture sections 3, 6 | Lint/type/schema checks, migration and deletion tests | Draft |
+| NFR-LIC | Offline GIS requirement | Architecture sections 7, 9 | Asset inventory, license review, network-call scan | Draft |
+
+During implementation, expand each group to one row per requirement with owner,
+acceptance criterion, implementation references, test IDs/results, and approval.
+No requirement becomes `Verified` without executed evidence.
+

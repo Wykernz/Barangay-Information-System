@@ -1,0 +1,179 @@
+# Preliminary Architecture Proposal
+
+Status: **Proposed; approval required before major implementation**
+
+## 1. Context and constraints
+
+BIMS serves one barangay over a local network and must remain useful without
+internet. PostgreSQL/PostGIS is authoritative. A public portal, remote access,
+and house-coordinate collection method are separate pending decisions.
+
+Verified workspace/tool snapshot on 2026-11-14:
+
+| Item | Observed state |
+|---|---|
+| Repository | Only `README.md`; branch `feature/adrian-setup` |
+| Git | 2.55.0.windows.2 |
+| Node.js | v24.18.0 |
+| npm | Present, but PowerShell blocks `npm.ps1`; use `npm.cmd` or approve policy change |
+| Python | Launcher present but no Python runtime installed |
+| PostgreSQL client | Located under PostgreSQL 18; version verification still required |
+| Docker | Not found |
+| QGIS | Not found on PATH |
+| VS Code | Installed |
+
+This inventory reflects command discovery, not an approved production stack.
+
+## 2. System shape
+
+```text
+Staff browsers on barangay LAN
+          |
+     HTTPS/reverse proxy
+          |
+  +-------+-------------------+
+  | BIMS modular monolith     |
+  | React static application  |
+  | Django/DRF API /api/v1/   |
+  | Domain services + jobs    |
+  +-------+-----------+-------+
+          |           |
+ PostgreSQL/PostGIS   Private attachment storage
+          |
+ Encrypted local + approved off-site backups
+
+QGIS -> reviewed GeoJSON/staging import -> BIMS (not live production editing)
+```
+
+All runtime dependencies, fonts, scripts, and approved map resources are hosted
+locally. The database binds to an internal interface/firewall boundary and is
+never exposed to the public internet.
+
+## 3. Modular monolith boundaries
+
+| Django app | Responsibility |
+|---|---|
+| `accounts` | Custom user, role/permission policy, sessions, account lifecycle |
+| `audit` | Append-oriented security and business audit events |
+| `profiling` | Residents, identity, verification, duplicate candidates |
+| `households` | Households, housing units, memberships, surveys/classifications |
+| `health` | Restricted declarations and support needs (separate authorization) |
+| `gis` | Boundaries, verified locations, correction history, spatial queries |
+| `appointments` | Services, schedules, capacity, appointments, status history |
+| `cases` | Complaints, assignments, activities, evidence, restricted workflows |
+| `analytics` | Defined aggregate queries/read models; no duplicate source of truth |
+| `migration` | Staging, provenance, validation, reconciliation, import batches |
+| `common` | Narrow shared primitives; not a dumping ground for domain logic |
+
+Cross-domain changes use application services and database transactions. Views
+handle transport concerns, serializers validate representations, services own
+workflows, and models/constraints protect invariants. Domain apps must not query
+restricted tables merely for UI convenience.
+
+## 4. API conventions
+
+- Root: `/api/v1/`; JSON with UTF-8; OpenAPI generated and validated.
+- Session authentication for the same-origin staff UI; mutating requests require CSRF.
+- Default deny permissions at endpoint and object/queryset level.
+- List endpoints use pagination, allowlisted ordering/filtering, and bounded search.
+- Errors use a stable envelope with code, message, field errors, and correlation ID.
+- Dates are ISO 8601; instants are timezone-aware and stored in UTC; barangay display
+  uses `Asia/Manila`. Date-only civil facts such as birthdates remain dates.
+- Optimistic concurrency (`updated_at`/version or ETag) should protect high-conflict edits.
+- Reference numbers are unique, non-sequential where practical, and contain no PII.
+- Responses serialize only authorized fields; redaction in the browser is insufficient.
+
+## 5. Authorization model
+
+Roles are job-function bundles, not the source of truth. Permissions are named
+capabilities (for example `profiling.view_resident`, `health.view_declaration`,
+`cases.view_restricted_case`, `exports.export_resident_data`). Querysets are
+scoped before serialization. Case assignment and sensitivity may add object-level
+policy. Break-glass access, if approved, requires a reason, short duration,
+notification, and prominent audit review.
+
+The detailed proposed matrix belongs in `ROLE_PERMISSION_MATRIX.md` during the
+architecture approval pass; role labels alone must not grant sensitive access.
+
+## 6. Data and integrity
+
+- UUID/internal keys plus separate human reference numbers.
+- PostgreSQL constraints for uniqueness, valid time ranges, and compatible states.
+- PostGIS `Point` locations use an approved SRID; retain original/source CRS metadata
+  during import. Add GiST spatial indexes only to verified geometry columns queried.
+- Historical tables are append-oriented/effective-dated. Corrections add superseding
+  records or explicit audit history rather than silently erasing provenance.
+- Attachments store metadata in PostgreSQL and bytes in private storage, with random
+  server-side names, MIME/signature inspection, size limits, hashes, and malware
+  scanning strategy. Downloads pass authorization and audit checks.
+- Analytics query canonical tables using versioned metric definitions and effective dates.
+
+## 7. LAN and deployment
+
+Preferred initial topology is one dedicated, maintained on-premises server, a
+UPS, managed LAN access, local DNS/static address, reverse proxy, application
+processes, PostgreSQL/PostGIS, and private storage. A containerized or native
+Windows/Linux deployment decision remains open and must follow operator skills,
+hardware, and restore testing—not developer convenience.
+
+Remote/public access requires a new threat model and architecture decision. Do
+not port-forward the server. Approved remote administration should use a managed
+VPN or equivalent controlled channel with MFA and logging.
+
+## 8. Security and privacy architecture
+
+- Environment-provided secrets, encrypted backups, least-privilege service accounts.
+- HTTPS on LAN using a managed local certificate approach; secure, HttpOnly,
+  SameSite cookies; CSRF; CSP and other response headers.
+- Rate-limit authentication and costly/export endpoints; alert on abuse patterns.
+- Structured logs exclude sensitive payloads and use correlation IDs.
+- Audit reads/exports of sensitive records as well as modifications.
+- Separate privacy/legal approval is required for field collection, processing
+  purpose/lawful basis, notices, sharing, retention, disposal, and incident response.
+
+## 9. GIS workflow
+
+1. Inventory paper map provenance, scale, date, authority, condition, and usage rights.
+2. Scan at an archival quality and preserve the untouched master plus checksum.
+3. Obtain approved control points from an authoritative source; select CRS with a GIS reviewer.
+4. Georeference in QGIS and record transformation, residual/error metrics, and operator.
+5. Digitize boundary/purok layers separately; validate topology and attributes.
+6. Field-validate disputed features and house locations using the approved collection method.
+7. Export reviewed GeoJSON to staging, validate CRS/schema, and approve before canonical import.
+8. Serve licensed local base resources; label synthetic development layers prominently.
+
+No paper-map feature becomes “official” merely through digitization.
+
+## 10. Quality attributes and verification
+
+- Automated tests at service, constraint, API authorization, component, and workflow levels.
+- Restore drills prove backups; backup creation alone is not evidence.
+- LAN isolation testing disconnects upstream internet and exercises core workflows.
+- Dependency assets are checked for accidental CDN/network calls.
+- Load targets await record-volume/concurrency discovery; benchmark representative datasets.
+- Accessibility checks combine automation and keyboard/screen-reader review.
+
+## 11. Recommended implementation order
+
+1. Approve requirements, vocabulary, data owners, decisions, and access model.
+2. Establish toolchain, repository safeguards, CI, environment validation, custom user,
+   audit foundation, and PostgreSQL/PostGIS migrations.
+3. Implement profiling core in vertical slices: resident -> housing/household -> membership
+   history -> survey, including permissions, tests, and migration staging.
+4. Implement GIS provenance and optional verified locations after collection policy is approved.
+5. Implement staff-only appointments and its approved capacity semantics.
+6. Implement complaints only after legal workflow, confidentiality, and retention review.
+7. Add versioned analytics from accepted definitions; do not create a parallel data store early.
+8. Conduct migration rehearsal, privacy/security review, performance/accessibility testing,
+   backup restoration, isolated-LAN testing, training, and UAT before go-live.
+
+## 12. Safe work before approval
+
+Safe now: review these documents, name stakeholders, inventory data and paper maps
+without ingesting personal data into source control, prototype synthetic schemas,
+evaluate hardware/network constraints, and verify compatible dependency versions.
+
+Requires approval: major scaffolding, finalized schemas, real-data migration,
+coordinate collection, case workflow, retention automation, deployment topology,
+public/remote access, and production procurement.
+
