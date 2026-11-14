@@ -10,7 +10,17 @@ def load_environment(path: Path) -> None:
         required = ('DJANGO_SECRET_KEY', 'POSTGRES_DB', 'POSTGRES_USER', 'POSTGRES_PASSWORD')
         if all(os.environ.get(key) for key in required):
             return
-        raise SystemExit(f"Missing {path}. Copy backend/.env.example to backend/.env first.")
+        # The example contains placeholders, not working database credentials.
+        # Setup must provision the database before the server can authenticate staff.
+        raise SystemExit(
+            f"Missing local configuration: {path}\n"
+            "From the repository root, run:\n"
+            "  .\\scripts\\python.cmd scripts/setup_local.py\n"
+            "Only after setup succeeds, run migrate, createsuperuser, then runserver.\n"
+            "If PostgreSQL reports Application Control blocking plpgsql.dll, stop "
+            "and have IT repair/approve PostgreSQL. Copying .env.example alone "
+            "will not fix that block. See docs/RUNNING.md."
+        )
     for number, raw in enumerate(path.read_text(encoding="utf-8-sig").splitlines(), 1):
         line = raw.strip()
         if not line or line.startswith("#"):

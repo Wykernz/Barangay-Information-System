@@ -108,6 +108,13 @@ ongoing development and deployment. The fallback and packages are not committed.
 
 ## Troubleshooting
 
+- `Missing ... backend/.env`: database setup has not completed. Run
+  `.\scripts\python.cmd scripts/setup_local.py` from the repository root first.
+  After it succeeds, run `migrate`, `createsuperuser`, then `runserver` as shown
+  above. Do not just copy the example and leave placeholder credentials. If setup
+  reports the Application Control DLL block, resolve that with IT before continuing.
+  The previous short handoff omitted this prerequisite.
+
 - A blank 500 at `:5173/api/v1/session/` can come from Vite when Django is stopped.
   This was reproduced with port 8000 refusing connections. The development proxy
   now returns JSON with status 503 and the interface shows startup instructions.
