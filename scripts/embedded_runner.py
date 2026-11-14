@@ -1,9 +1,13 @@
 """Fallback for isolated local verification when a full Python install is unavailable."""
 import runpy
+import os
 import sys
 from pathlib import Path
 
 root = Path(__file__).resolve().parent.parent
+# Tell the Django launcher that packages were added to this process manually.
+# The embeddable interpreter does not preserve these paths in reloader children.
+os.environ['BIMS_EMBEDDED_RUNTIME'] = '1'
 sys.path.insert(0, str(root / '.tools' / 'python-packages'))
 sys.path.insert(0, str(root / 'scripts'))
 arguments = sys.argv[1:]

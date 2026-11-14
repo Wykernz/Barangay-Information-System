@@ -151,6 +151,12 @@ ongoing development and deployment. The fallback and packages are not committed.
 
 ## Troubleshooting
 
+- `ModuleNotFoundError: No module named 'django'` after `runserver` with the
+  fallback interpreter was caused by Django's auto-reloader launching a new
+  process without the fallback package paths. The launcher now automatically
+  disables auto-reload for that runtime. Use the same startup command, and restart
+  manually after backend edits. A normal virtual environment retains auto-reload.
+
 - `Missing ... backend/.env`: database setup has not completed. Run
   `.\scripts\python.cmd scripts/setup_local.py` from the repository root first.
   After it succeeds, run `migrate`, `createsuperuser`, then `runserver` as shown

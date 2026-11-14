@@ -1,5 +1,17 @@
 # Foundation progress
 
+## Fallback Django server startup fix
+
+The user completed migrations on the existing PostgreSQL service. The subsequent
+runserver failure occurred because Django's reloader launched manage.py directly,
+losing package paths injected by the embeddable runtime. The fallback runner now
+marks its runtime, and dev.py adds `--noreload` only for that runtime's runserver.
+Normal virtual environments keep auto-reload. Restart fallback servers after edits.
+
+Verification: started Django on temporary loopback port 8001; system checks passed,
+unauthenticated session returned the expected HTTP 403, and CSRF bootstrap returned
+HTTP 200. These checks establish server startup, not a full authenticated workflow.
+
 ## Existing PostgreSQL setup
 
 Added `scripts/setup_existing.py` after confirming an existing local PostgreSQL
