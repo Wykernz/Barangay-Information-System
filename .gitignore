@@ -11,3 +11,5 @@ dist/
 coverage/
 media/
 *.log
+.tools/
+.local/

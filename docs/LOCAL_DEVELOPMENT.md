@@ -1,5 +1,9 @@
 # Local development
 
+For the complete current first-time setup and daily startup procedure, use
+[RUNNING.md](RUNNING.md). The manual environment-variable approach below remains
+available for independently provisioned development databases.
+
 ## Frontend
 
 ```powershell
@@ -25,9 +29,8 @@ automatically. Use a dedicated local PostgreSQL development database and account
 ```powershell
 Set-Location C:\Users\ASUS\Barangay-Information-System\backend
 py -3.12 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m pip install -r requirements.lock
 # Set environment variables before the following commands.
-.\.venv\Scripts\python.exe manage.py makemigrations accounts
 .\.venv\Scripts\python.exe manage.py check
 .\.venv\Scripts\python.exe -m pytest
 .\.venv\Scripts\python.exe manage.py migrate
@@ -35,7 +38,7 @@ py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe manage.py runserver 127.0.0.1:8000
 ```
 
-Review and commit the generated initial user migration before applying it.
+The initial user migration is committed; review it before applying it.
 Tests require a database role allowed to create the isolated test database.
 Use only synthetic accounts locally. Account creation has no public endpoint.
 
@@ -46,6 +49,6 @@ Django's cache. The default in-memory cache is only suitable for single-process
 development. Select a shared cache or proxy enforcement before multiple workers.
 Do not trust forwarded IP headers without a reviewed proxy configuration.
 
-Audit services, initial migrations, dependency locking, full toolchain checks,
+Audit services, database integration checks, full toolchain checks,
 Tailwind/shadcn UI integration, and operational modules remain foundation work.
 No deployment or production readiness is implied by this local scaffold.

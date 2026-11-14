@@ -4,8 +4,8 @@
 
 This repository contains a production-oriented Barangay Information Management
 System (BIMS) for one Philippine barangay. Work is phased. The current baseline
-is requirements and architecture documentation; major implementation requires
-stakeholder approval of that baseline.
+includes an authorized project-foundation implementation. Domain workflows still
+require resolution of their open stakeholder decisions before implementation.
 
 ## Non-negotiable rules
 
@@ -90,4 +90,12 @@ Record actually executed checks in the phase handoff.
 6. Update documentation and the decision register when behavior changes.
 7. Ask before destructive operations, data migrations, or major implementation
    beyond the approved phase.
+
+## Commits and handoffs
+
+The user requests documentation, descriptive commits, and pushes for implementation
+increments. Include a concise conventional commit title and a body describing
+behavior, rationale, executed validation, and remaining limits. Keep related run
+instructions current. Use `docs/REVIEW_GUIDE.md` for review conventions and
+`docs/RUNNING.md` for Windows startup. Preserve unrelated worktree changes.
 

@@ -7,7 +7,7 @@ Initial backend source includes environment configuration, PostgreSQL connectivi
 a custom user model, session/CSRF middleware, authenticated session inspection,
 protected schema endpoint, and initial permission tests.
 
-Python is not installed on the workstation. Backend dependencies, migrations,
+At the initial scaffold stage, Python was not installed. Backend dependencies, migrations,
 and tests must be executed after Python 3.12+ is available. Do not migrate before
 generating and reviewing the custom user's initial migration.
 
@@ -44,3 +44,34 @@ Compatibility references checked: Django 5.2 installation FAQ,
 https://docs.djangoproject.com/en/5.2/faq/install/ ; DRF requirements,
 https://www.django-rest-framework.org/ ; Vite guide, https://vite.dev/guide/ .
 Dependency ranges are provisional until a successful resolver and test run.
+
+## Local tooling and documentation increment
+
+Added local configuration loading, a runtime launcher, database setup and test
+helpers, complete Windows startup instructions in `RUNNING.md`, and commit review
+instructions in `REVIEW_GUIDE.md`. `AGENTS.md` now records the user's requirement
+for documented implementation commits with explanatory bodies and pushes.
+
+Installed Django 5.2.19 and related backend dependencies in ignored local tooling.
+Generated and reviewed `accounts/migrations/0001_initial.py`, including the custom
+user, group membership, and permission fields. It has not been applied.
+
+Executed evidence:
+
+- Django `check`: no issues.
+- Migration drift check: no changes detected; database-history verification
+  emitted a connection-timeout warning because PostgreSQL was unavailable.
+- pytest `-q -k malformed`: 4 passed; 6 database-dependent tests deselected.
+- Python compilation of backend and scripts: passed. Git whitespace check: passed.
+- Backend dependency lockfile resolved successfully with exact package versions.
+- PostgreSQL setup: failed because Windows Application Control blocked
+  `C:/Program Files/PostgreSQL/18/lib/plpgsql.dll`; initdb automatically removed
+  its incomplete cluster. No operational data existed there. No `.env` was created.
+- Full Python managed installation: blocked by Windows directory/file policy;
+  official embeddable Python 3.12.10 used only as an isolated local fallback.
+
+Next action requiring the workstation owner/IT: repair or approve PostgreSQL's
+blocked native library, then run setup, migrate, create a synthetic account, and
+execute all database tests. Use a current full Python runtime for ongoing work.
+Audit services, role capabilities, PostGIS, UI toolkit integration, browser E2E,
+and production operations remain incomplete.

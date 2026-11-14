@@ -54,6 +54,17 @@ Statuses: `Confirmed` records supplied constraints; `Proposed` needs approval;
 
 ## Decision process
 
+### Foundation development authorization
+
+The user authorized project building after the planning handoff, followed by
+continued foundation work and documented commits/pushes. This authorizes local
+scaffolding, synthetic development setup, and verification. It does not resolve
+the outstanding operational, legal/privacy, public-access, or GIS decisions.
+
+Local development uses a separate loopback PostgreSQL cluster on port 55432 to
+avoid changing existing system databases. Its administrator role and debug
+configuration are development-only choices, not production architecture approval.
+
 Each resolved item records decision date, accountable approver, chosen option,
 rationale, consequences, and superseded decision. High-risk privacy, legal, GIS,
 and security decisions require their specialist owner, not only the software team.

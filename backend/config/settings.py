@@ -28,6 +28,7 @@ DATABASES = {'default': {
     'PASSWORD': os.environ['POSTGRES_PASSWORD'],
     'HOST': os.environ.get('POSTGRES_HOST', '127.0.0.1'),
     'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+    'OPTIONS': {'connect_timeout': 5},
 }}
 AUTH_USER_MODEL = 'accounts.User'
 AUTH_PASSWORD_VALIDATORS = [

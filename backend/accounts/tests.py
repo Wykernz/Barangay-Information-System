@@ -57,3 +57,27 @@ def test_inactive_account_cannot_login(django_user_model):
         'username': 'synthetic-inactive', 'password': 'synthetic-password',
     }, content_type='application/json')
     assert response.status_code == 401
+
+
+@pytest.mark.django_db
+def test_login_attempt_limit():
+    from django.core.cache import cache
+
+    cache.clear()
+    client = Client()
+    for _ in range(10):
+        response = client.post('/api/v1/auth/login/', data={
+            'username': 'synthetic-unknown', 'password': 'synthetic-password',
+        }, content_type='application/json')
+        assert response.status_code == 401
+    response = client.post('/api/v1/auth/login/', data={
+        'username': 'synthetic-unknown', 'password': 'synthetic-password',
+    }, content_type='application/json')
+    assert response.status_code == 429
+
+
+@pytest.mark.parametrize('payload', ['[]', 'null', '{', '{"username": 123}'])
+def test_malformed_login_rejected(payload):
+    response = Client().post('/api/v1/auth/login/', data=payload,
+                             content_type='application/json')
+    assert response.status_code == 400
