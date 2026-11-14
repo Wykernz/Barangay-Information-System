@@ -108,6 +108,15 @@ ongoing development and deployment. The fallback and packages are not committed.
 
 ## Troubleshooting
 
+- A blank 500 at `:5173/api/v1/session/` can come from Vite when Django is stopped.
+  This was reproduced with port 8000 refusing connections. The development proxy
+  now returns JSON with status 503 and the interface shows startup instructions.
+  Restart Vite after pulling proxy changes. This does not repair the PostgreSQL
+  Application Control block described above; database setup still needs IT action.
+- The React DevTools console suggestion is informational and does not cause errors.
+- Run `npm.cmd run format` in `frontend` to format TSX, TypeScript, and CSS;
+  `npm.cmd run format:check` verifies formatting without changing files.
+
 - Connection refused on port 55432: start the isolated database.
 - Port in use: inspect the owning process; do not stop an unknown database.
 - Missing `.env`: complete setup or configure a dedicated database using the

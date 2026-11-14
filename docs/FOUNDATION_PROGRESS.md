@@ -1,5 +1,19 @@
 # Foundation progress
 
+## Session proxy diagnosis and frontend readability
+
+Reproduced a blank HTTP 500 from Vite at `/api/v1/session/` while direct access
+to port 8000 refused the connection. Django was stopped. Added a proxy error
+handler returning JSON HTTP 503, development-only startup instructions, explicit
+retry behavior, and disabled session refetch on window focus. No authentication
+or database checks are bypassed.
+
+Formatted frontend TS/TSX/CSS with Prettier, added CSS section comments and
+authentication/proxy comments, and added repeatable format commands. Verified
+the live proxy returns 503 with `backend_unavailable`; frontend build, two API
+tests, and formatting check passed. PostgreSQL's Application Control block still
+prevents full local sign-in. Backend startup remains an environment prerequisite.
+
 The user authorized building the foundation after the requirements handoff.
 Open stakeholder decisions remain open.
 
