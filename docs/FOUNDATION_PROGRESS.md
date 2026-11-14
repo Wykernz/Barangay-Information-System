@@ -1,5 +1,17 @@
 # Foundation progress
 
+## Frontend module prototype
+
+Added responsive authenticated navigation, a derived dashboard, searchable editable
+synthetic directories, GIS readiness, demo CSV summaries, session activity, and
+reset settings. Shared components, typed fixtures, and commented CSS separate
+layout, state, and module concerns. Domain records remain in-memory demo data;
+login/logout use the real backend. Detailed scope and gaps: `FRONTEND.md`.
+
+Verification: frontend TypeScript/production build passed; six API/component tests
+passed. Browser E2E and real domain API integration were not verified. The full
+production frontend and all requested library integrations are not yet complete.
+
 ## Fallback Django server startup fix
 
 The user completed migrations on the existing PostgreSQL service. The subsequent

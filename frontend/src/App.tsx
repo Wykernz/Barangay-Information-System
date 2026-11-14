@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, Route, Routes } from "react-router-dom";
+import Workspace from "./Workspace";
 import { api, getSession, signIn } from "./api";
 
 function Login() {
@@ -131,65 +131,10 @@ export default function App() {
     }
   }
   return (
-    <div className="workspace">
-      <aside>
-        <Link className="brand" to="/">
-          BIMS<span>Staff workspace</span>
-        </Link>
-        <nav aria-label="Main navigation">
-          <Link to="/">Workspace overview</Link>
-        </nav>
-        <p className="sidebar-note">
-          Barangay Information
-          <br />
-          Management System
-        </p>
-      </aside>
-      <div>
-        <header>
-          <span>Administration</span>
-          <div>
-            {session.data.username}{" "}
-            <button className="secondary" onClick={logout}>
-              Sign out
-            </button>
-          </div>
-        </header>
-        <main className="content">
-          {logoutError && <p role="alert">{logoutError}</p>}
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <>
-                  <p className="eyebrow">YOUR WORKSPACE</p>
-                  <h1>Welcome, {session.data.username}</h1>
-                  <p className="muted">
-                    Your barangay office, organized in one place.
-                  </p>
-                  <section className="empty">
-                    <span className="tag">Foundation in progress</span>
-                    <h2>Your workspace is taking shape</h2>
-                    <p>
-                      Operational modules will appear here as they are
-                      implemented and access is assigned.
-                    </p>
-                  </section>
-                </>
-              }
-            />
-            <Route
-              path="*"
-              element={
-                <>
-                  <h1>Page not found</h1>
-                  <Link to="/">Return to workspace</Link>
-                </>
-              }
-            />
-          </Routes>
-        </main>
-      </div>
-    </div>
+    <Workspace
+      username={session.data.username}
+      logout={logout}
+      logoutError={logoutError}
+    />
   );
 }
