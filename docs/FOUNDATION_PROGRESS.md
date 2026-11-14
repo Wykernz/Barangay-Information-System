@@ -1,5 +1,19 @@
 # Foundation progress
 
+## Existing PostgreSQL setup
+
+Added `scripts/setup_existing.py` after confirming an existing local PostgreSQL
+server accepts connections on port 5432 and the user has administrator access.
+The interactive helper creates a dedicated non-superuser role/database, prompts
+for administrator credentials locally, and saves generated app credentials in
+ignored `.env`. It refuses existing names/files and retains a private `.env.pending`
+for recovery after partial failure. No administrator password is saved.
+
+Five isolated setup tests passed (identifier validation, existing file preservation,
+role collision, successful configuration, and partial-failure recovery). Real
+provisioning still requires the user to enter their password locally; it was not
+performed by the assistant. See `RUNNING.md` for the exact command and next steps.
+
 ## Session proxy diagnosis and frontend readability
 
 Reproduced a blank HTTP 500 from Vite at `/api/v1/session/` while direct access

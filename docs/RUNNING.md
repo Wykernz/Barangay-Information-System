@@ -7,14 +7,57 @@ resident, household, GIS, appointment, and case modules are still pending.
 
 Windows Application Control blocked PostgreSQL 18's
 `C:/Program Files/PostgreSQL/18/lib/plpgsql.dll` during verification. Database
-initialization failed and no database or staff account was created. Ask IT to
-repair or approve PostgreSQL before database setup; do not disable security controls.
+initialization of a separate cluster failed and no database or staff account was
+created by that attempt. The existing service on port 5432 is accepting connections;
+use the recommended existing-server setup below first. If it also reports a policy
+block, ask IT to repair or approve PostgreSQL; do not disable security controls.
 
 The frontend can be served now with `npm.cmd run dev` from `frontend`; sign-in
 requires a working database and API. Django configuration checks and four
 database-independent tests passed with the fallback runtime.
 
 ## First-time setup
+
+### Recommended on this workstation: use existing PostgreSQL on port 5432
+
+The existing PostgreSQL service was confirmed accepting connections. Use your
+pgAdmin administrator account through this interactive helper; do not send its
+password in chat or put it in a command:
+
+```powershell
+Set-Location C:\Users\ASUS\Barangay-Information-System
+.\scripts\python.cmd scripts/setup_existing.py
+```
+
+Accept port 5432 if that is your server's port, enter the PostgreSQL administrator
+username (usually `postgres`), choose a new database/role name, and enter the
+password at the hidden prompt. This is the PostgreSQL server password, not a
+pgAdmin master password. The helper creates a dedicated non-superuser account
+and database and saves generated application credentials in ignored `backend/.env`.
+It does not store your administrator password or overwrite existing names/files.
+
+After success:
+
+```powershell
+.\scripts\python.cmd scripts/dev.py migrate
+.\scripts\python.cmd scripts/dev.py createsuperuser
+.\scripts\python.cmd scripts/dev.py runserver 127.0.0.1:8000
+```
+
+Keep Django running and start `npm.cmd run dev` in a separate frontend terminal.
+Use the Django account you created to sign in. For this option, use your existing
+PostgreSQL service; skip the `.local/postgres` start/stop commands below.
+
+The application role deliberately lacks CREATEDB. To run database integration
+tests, have the administrator provision a separate test database owned by that
+role and run pytest with `--reuse-db`, or use a separately authorized test role.
+Do not grant production application accounts database-administration privileges.
+
+If `.env.pending` exists after failure, retain it privately and inspect the named
+database/role in pgAdmin. Complete provisioning with your administrator before
+renaming it to `.env`; do not blindly repeat setup or delete an existing database.
+
+### Alternative: provision a separate local PostgreSQL cluster
 
 Prerequisites: Node.js 24, Python 3.12 with a complete standard library, and
 PostgreSQL server tools. Use PowerShell and synthetic development data only.

@@ -15,7 +15,8 @@ def load_environment(path: Path) -> None:
         raise SystemExit(
             f"Missing local configuration: {path}\n"
             "From the repository root, run:\n"
-            "  .\\scripts\\python.cmd scripts/setup_local.py\n"
+            "  .\\scripts\\python.cmd scripts/setup_existing.py\n"
+            "Use your existing PostgreSQL administrator account at the hidden local prompt.\n"
             "Only after setup succeeds, run migrate, createsuperuser, then runserver.\n"
             "If PostgreSQL reports Application Control blocking plpgsql.dll, stop "
             "and have IT repair/approve PostgreSQL. Copying .env.example alone "
