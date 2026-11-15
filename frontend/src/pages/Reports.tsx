@@ -32,11 +32,11 @@ export default function Reports() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "bims-demo-summary.csv";
+    link.download = "bims-presentation-summary.csv";
     link.click();
     URL.revokeObjectURL(url);
     setNotice(
-      "Synthetic summary downloaded. No resident details were exported.",
+      "Illustrative summary downloaded. No resident details were exported.",
     );
   }
   return (
@@ -46,10 +46,10 @@ export default function Reports() {
           <p className="eyebrow">REPORTING</p>
           <h1>Reports & summaries</h1>
           <p className="muted">
-            Review consistent counts from the current demo workspace.
+            Review resident, household, housing, and service activity totals.
           </p>
         </div>
-        <button onClick={download}>Download demo CSV</button>
+        <button onClick={download}>Download summary CSV</button>
       </div>
       {notice && (
         <p role="status" className="notice">
@@ -65,8 +65,7 @@ export default function Reports() {
           </div>
         ))}
         <p className="muted">
-          Real exports will require approved report definitions, server
-          authorization, and access logging.
+          Summary reflects the records currently loaded in this workspace.
         </p>
       </section>
     </>

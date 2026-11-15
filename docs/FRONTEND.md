@@ -1,5 +1,22 @@
 # Staff frontend review
 
+Current handoff: FRONTEND_CHANGELOG.md and PROFILING_WORKFLOW.md consolidate the
+current implementation. Historical descriptions below predate survey deferral,
+connected profiling screens and final operational UI wording.
+
+Surveys are deferred at the user's request. Survey navigation, routes, household
+panels and dashboard links/indicators are removed from the active interface.
+Underlying synthetic survey fixtures and draft contracts are retained for later
+review; no records or backend data were deleted.
+
+The approved visual refresh adds profiling-scoped design tokens, breadcrumbs,
+icon actions, accessible feedback, readable tables and refreshed native dialogs.
+It preserves existing profiling handlers and fields. Lucide React is the only
+new runtime dependency. See PROFILING_WORKFLOW.md for validation and limitations.
+
+Profiling routes now use dedicated connected profiles and relationship history.
+See PROFILING_WORKFLOW.md and PROFILING_API_CONTRACT.md for scope and handoff.
+
 The authenticated staff workspace now contains frontend previews for resident,
 household, housing, survey, appointment, case, service, and staff directories;
 an overview dashboard; GIS readiness/directory; aggregate reports; activity;
