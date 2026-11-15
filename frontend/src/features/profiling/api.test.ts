@@ -29,15 +29,13 @@ test("registry reads preserve pagination and pass search parameters", async () =
 });
 test("transfer acquires CSRF and sends concurrency/effective-date payload unchanged", async () => {
   const csrf = vi.spyOn(api, "get").mockResolvedValue({ data: {} });
-  const send = vi
-    .spyOn(api, "request")
-    .mockResolvedValue({
-      data: {
-        ended_membership: {},
-        created_membership: {},
-        household_versions: {},
-      },
-    });
+  const send = vi.spyOn(api, "request").mockResolvedValue({
+    data: {
+      ended_membership: {},
+      created_membership: {},
+      household_versions: {},
+    },
+  });
   const input = {
     destination_household_id: "household-id",
     relationship: "member",

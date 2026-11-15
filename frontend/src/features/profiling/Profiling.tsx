@@ -74,6 +74,12 @@ export function ProfilingPage({ module }: { module: string }) {
   const householdMembers = memberships.filter(
     (item) => item.householdId === id,
   );
+  // Use one filtered collection for rows and empty states, including archive visibility.
+  const visibleRows = sorted(records[module]).filter(
+    (row) =>
+      (showArchived || row.archived !== "true") &&
+      `${display(row)} ${row.id}`.toLowerCase().includes(search.toLowerCase()),
+  );
   const returnHousehold = params.get("household");
   const unitFor = (householdId: string) =>
     records.housing.find(
@@ -183,7 +189,14 @@ export function ProfilingPage({ module }: { module: string }) {
         return;
       }
       const existing = memberships.find((item) => item.residentId === draft.id);
-      if (existing?.householdId !== draft.targetHousehold)
+      // A relationship edit within the same household must also supersede its
+      // membership segment; otherwise the form appeared to save but lost the edit.
+      if (
+        existing?.householdId !== draft.targetHousehold ||
+        (draft.relationship &&
+          draft.relationship !==
+            (existing.head ? "Head" : existing.relationship))
+      )
         next = assign(
           next,
           draft.id,
@@ -511,93 +524,84 @@ export function ProfilingPage({ module }: { module: string }) {
                 </tr>
               </thead>
               <tbody>
-                {sorted(records[module])
-                  .filter((row) => showArchived || row.archived !== "true")
-                  .filter((row) =>
-                    `${display(row)} ${row.id}`
-                      .toLowerCase()
-                      .includes(search.toLowerCase()),
-                  )
-                  .map((row) => {
-                    const member = memberships.find(
-                      (item) => item.residentId === row.id,
-                    );
-                    const head = memberships.find(
-                      (item) => item.householdId === row.id && item.head,
-                    );
-                    return (
-                      <tr key={row.id}>
-                        <td>{row.id}</td>
-                        <td>
-                          {module === "residents" ? row.surname : display(row)}
-                          {row.archived === "true" && (
-                            <span className="archived-label">Archived</span>
-                          )}
-                        </td>
-                        {module === "residents" && <td>{row.firstName}</td>}
-                        {module === "residents" && (
-                          <>
-                            <td>{ageAt(row.birthdate)}</td>
-                            <td>{row.sex}</td>
-                            <td>
-                              {member ? (
-                                <Link to={`/households/${member.householdId}`}>
-                                  {records.households.find(
-                                    (house) => house.id === member.householdId,
-                                  )?.name ?? member.householdId}
-                                </Link>
-                              ) : (
-                                "Unassigned"
-                              )}
-                            </td>
-                          </>
+                {visibleRows.map((row) => {
+                  const member = memberships.find(
+                    (item) => item.residentId === row.id,
+                  );
+                  const head = memberships.find(
+                    (item) => item.householdId === row.id && item.head,
+                  );
+                  return (
+                    <tr key={row.id}>
+                      <td>{row.id}</td>
+                      <td>
+                        {module === "residents" ? row.surname : display(row)}
+                        {row.archived === "true" && (
+                          <span className="archived-label">Archived</span>
                         )}
-                        {module === "households" && (
-                          <>
-                            <td>
-                              {records.residents.find(
-                                (person) => person.id === head?.residentId,
-                              )?.name ?? "Unassigned"}
-                            </td>
-                            <td>{row.purok ?? "Not recorded"}</td>
-                            <td>
-                              {
-                                memberships.filter(
-                                  (item) => item.householdId === row.id,
-                                ).length
-                              }
-                            </td>
-                            <td>
-                              {unitFor(row.id)?.material ?? "Not assigned"}
-                            </td>
-                          </>
-                        )}
-                        <td>
-                          <ProfileActions
-                            to={`/${module}/${row.id}`}
-                            name={display(row)}
-                            archived={row.archived === "true"}
-                            edit={() => edit(row)}
-                            remove={() => {
-                              setError("");
-                              setRemoving(row);
-                            }}
-                            restore={() =>
-                              save(module, { ...row, archived: "false" })
+                      </td>
+                      {module === "residents" && <td>{row.firstName}</td>}
+                      {module === "residents" && (
+                        <>
+                          <td>{ageAt(row.birthdate)}</td>
+                          <td>{row.sex}</td>
+                          <td>
+                            {member ? (
+                              <Link to={`/households/${member.householdId}`}>
+                                {records.households.find(
+                                  (house) => house.id === member.householdId,
+                                )?.name ?? member.householdId}
+                              </Link>
+                            ) : (
+                              "Unassigned"
+                            )}
+                          </td>
+                        </>
+                      )}
+                      {module === "households" && (
+                        <>
+                          <td>
+                            {records.residents.find(
+                              (person) => person.id === head?.residentId,
+                            )?.name ?? "Unassigned"}
+                          </td>
+                          <td>{row.purok ?? "Not recorded"}</td>
+                          <td>
+                            {
+                              memberships.filter(
+                                (item) => item.householdId === row.id,
+                              ).length
                             }
-                          />
-                        </td>
-                      </tr>
-                    );
-                  })}
+                          </td>
+                          <td>{unitFor(row.id)?.material ?? "Not assigned"}</td>
+                        </>
+                      )}
+                      <td>
+                        <ProfileActions
+                          to={`/${module}/${row.id}`}
+                          name={display(row)}
+                          archived={row.archived === "true"}
+                          edit={() => edit(row)}
+                          remove={() => {
+                            setError("");
+                            setRemoving(row);
+                          }}
+                          restore={() =>
+                            save(module, { ...row, archived: "false" })
+                          }
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
-          {!records[module].some((row) =>
-            `${display(row)} ${row.id}`
-              .toLowerCase()
-              .includes(search.toLowerCase()),
-          ) && <p>No matching records.</p>}
+          {!visibleRows.length && (
+            <p className="profile-empty">
+              No matching records. Try another search or show archived records.
+            </p>
+          )}
         </section>
       )}
       {current && (
