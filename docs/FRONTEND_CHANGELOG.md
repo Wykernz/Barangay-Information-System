@@ -1,5 +1,15 @@
 # Frontend implementation handoff — 2026-11-15
 
+## Follow-up: backend adapter preparation
+
+Added a dormant typed profiling adapter with centralized authentication/CSRF,
+versioned requests and structured error handling. Added six transport unit tests
+covering search/pagination, transfer payload/CSRF ordering, CSRF failure, field
+validation/conflicts, network failure and archive PATCH semantics. Tests mock the
+HTTP boundary; they do not prove live backend compatibility. No backend changes
+or UI storage-mode change. See PROFILING_API_CONTRACT.md for coordination details.
+Verification: TypeScript/production build and all 22 tests across seven files passed.
+
 ## Delivered changes
 
 - Dedicated resident, household and housing registries and detail routes.
