@@ -1,5 +1,10 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { catalog, type RecordRow } from "./catalog";
+import {
+  prototypeResidents,
+  prototypeHouseholds,
+  prototypeUnits,
+} from "../features/profiling/fixtures";
 
 type Change = { id: string; time: string; description: string };
 type Store = {
@@ -18,8 +23,23 @@ const initial = () =>
   );
 
 /** Session-memory demo state: never persists sensitive form input in browser storage. */
-export function DemoProvider({ children }: { children: ReactNode }) {
-  const [records, setRecords] = useState(initial);
+export function DemoProvider({
+  children,
+  profilingFixtures = false,
+}: {
+  children: ReactNode;
+  profilingFixtures?: boolean;
+}) {
+  const seeded = () =>
+    profilingFixtures
+      ? {
+          ...initial(),
+          residents: prototypeResidents.map((row) => ({ ...row })),
+          households: prototypeHouseholds.map((row) => ({ ...row })),
+          housing: prototypeUnits.map((row) => ({ ...row })),
+        }
+      : initial();
+  const [records, setRecords] = useState(seeded);
   const [history, setHistory] = useState<Change[]>([]);
   function save(module: string, row: RecordRow) {
     setRecords((current) => ({
@@ -44,7 +64,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
         history,
         save,
         reset: () => {
-          setRecords(initial());
+          setRecords(seeded());
           setHistory([]);
         },
       }}

@@ -31,7 +31,7 @@ test("editing a demo resident updates the directory without a server request", (
   fireEvent.change(screen.getByLabelText("Full name"), {
     target: { value: "Synthetic Edited Resident" },
   });
-  fireEvent.click(screen.getByText("Save demo record"));
+  fireEvent.click(screen.getByText("Save record"));
   expect(screen.getByText("Synthetic Edited Resident")).toBeTruthy();
   expect(screen.getByRole("status").textContent).toContain(
     "No server data was changed",
@@ -48,7 +48,7 @@ test("future birthdate cannot be saved", () => {
   fireEvent.change(screen.getByLabelText("Birthdate"), {
     target: { value: "2999-01-01" },
   });
-  fireEvent.click(screen.getByText("Save demo record"));
+  fireEvent.click(screen.getByText("Save record"));
   expect(screen.getByRole("alert").textContent).toContain(
     "cannot be in the future",
   );

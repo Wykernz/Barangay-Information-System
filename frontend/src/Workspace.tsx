@@ -7,16 +7,18 @@ import Dashboard from "./pages/Dashboard";
 import MapPage from "./pages/MapPage";
 import Reports from "./pages/Reports";
 import "./styles/workspace.css";
+import {
+  ProfilingProvider,
+  ProfilingPage,
+} from "./features/profiling/Profiling";
 
 function Audit() {
   const { history } = useDemo();
   return (
     <>
       <p className="eyebrow">ACCOUNTABILITY</p>
-      <h1>Demo activity</h1>
-      <p className="muted">
-        Session-only UI history. This is not the server audit log.
-      </p>
+      <h1>Activity log</h1>
+      <p className="muted">Record changes made during the current session.</p>
       <section className="panel">
         {history.length ? (
           history.map((item) => (
@@ -32,7 +34,7 @@ function Audit() {
         ) : (
           <div className="empty-state">
             <h2>No changes yet</h2>
-            <p>Changes to demo records will appear here.</p>
+            <p>Updates made during this session will appear here.</p>
           </div>
         )}
       </section>
@@ -48,20 +50,20 @@ function Settings() {
       <p className="eyebrow">WORKSPACE</p>
       <h1>Settings</h1>
       <section className="panel">
-        <h2>Demo session</h2>
+        <h2>Workspace data</h2>
         <p>
-          Demo changes live in memory and reset on reload or sign-out. Do not
-          enter real personal information.
+          Current sample-data changes reset on reload or sign-out. Do not enter
+          real personal information.
         </p>
         {notice && <p role="status">{notice}</p>}
         {confirm ? (
           <div>
-            <p>Discard all changes to synthetic demo records?</p>
+            <p>Discard all changes to presentation sample records?</p>
             <button
               onClick={() => {
                 reset();
                 setConfirm(false);
-                setNotice("Demo records restored.");
+                setNotice("Presentation sample records restored.");
               }}
             >
               Confirm reset
@@ -72,7 +74,7 @@ function Settings() {
           </div>
         ) : (
           <button className="secondary" onClick={() => setConfirm(true)}>
-            Reset demo records
+            Restore sample records
           </button>
         )}
       </section>
@@ -102,107 +104,145 @@ export default function Workspace({
     ["/residents", "Residents"],
     ["/households", "Households"],
     ["/housing", "Housing units"],
-    ["/surveys", "Surveys"],
     ["/gis", "Housing map"],
     ["/appointments", "Appointments"],
     ["/cases", "Complaints & cases"],
     ["/reports", "Reports"],
     ["/services", "Office services"],
     ["/users", "Staff & access"],
-    ["/audit", "Demo activity"],
+    ["/audit", "Activity log"],
     ["/settings", "Settings"],
   ];
   return (
-    <DemoProvider>
-      <div className="workspace staff-shell">
-        <a href="#main-content" className="skip-link">
-          Skip to main content
-        </a>
-        <aside className={menu ? "menu-open" : ""}>
-          <Link className="brand" to="/">
-            BIMS<span>Barangay Information System</span>
-          </Link>
-          <button
-            className="mobile-menu"
-            onClick={() => setMenu(!menu)}
-            aria-expanded={menu}
-            aria-controls="staff-navigation"
-          >
-            {menu ? "Close navigation" : "Open navigation"}
-          </button>
-          <nav id="staff-navigation" aria-label="Main navigation">
-            {links.map(([to, label]) => (
-              <NavLink
-                key={to}
-                end={to === "/"}
-                to={to}
-                onClick={() => setMenu(false)}
-              >
-                {label}
-              </NavLink>
-            ))}
-          </nav>
-          <p className="sidebar-note">
-            LOCAL OFFICE WORKSPACE
-            <br />
-            Community. Records. Service.
-          </p>
-        </aside>
-        <div className="main-column">
-          <header>
-            <span>Staff administration</span>
-            <div>
-              <span className="avatar" aria-hidden="true">
-                {username.slice(0, 1).toUpperCase()}
-              </span>
-              {username}
-              <button className="secondary" onClick={logout}>
-                Sign out
-              </button>
-            </div>
-          </header>
-          <div className="demo-banner">
-            <strong>Synthetic demo workspace</strong>
-            <span>
-              Module changes are session-only. Do not enter real resident
-              information.
-            </span>
-          </div>
-          <main id="main-content" className="content" tabIndex={-1}>
-            {logoutError && (
-              <p role="alert" className="error">
-                {logoutError}
-              </p>
-            )}
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              {Object.keys(catalog).map((key) => (
-                <Route
-                  key={key}
-                  path={`/${key}`}
-                  element={<RecordPage key={key} module={key} />}
-                />
+    <DemoProvider profilingFixtures>
+      <ProfilingProvider>
+        <div className="workspace staff-shell">
+          <a href="#main-content" className="skip-link">
+            Skip to main content
+          </a>
+          <aside className={menu ? "menu-open" : ""}>
+            <Link className="brand" to="/">
+              BIMS<span>Barangay Information System</span>
+            </Link>
+            <button
+              className="mobile-menu"
+              onClick={() => setMenu(!menu)}
+              aria-expanded={menu}
+              aria-controls="staff-navigation"
+            >
+              {menu ? "Close navigation" : "Open navigation"}
+            </button>
+            <nav id="staff-navigation" aria-label="Main navigation">
+              {links.map(([to, label]) => (
+                <NavLink
+                  key={to}
+                  end={to === "/"}
+                  to={to}
+                  onClick={() => setMenu(false)}
+                >
+                  {label}
+                </NavLink>
               ))}
-              <Route path="/gis" element={<MapPage />} />
-              <Route path="/reports" element={<Reports />} />
-              <Route path="/audit" element={<Audit />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route
-                path="*"
-                element={
-                  <section className="empty-state">
-                    <h1>Page not found</h1>
-                    <Link to="/">Return to overview</Link>
-                  </section>
-                }
-              />
-            </Routes>
-          </main>
-          <footer className="workspace-footer">
-            BIMS · Staff workspace <span>Asia/Manila · Frontend demo</span>
-          </footer>
+            </nav>
+            <p className="sidebar-note">
+              LOCAL OFFICE WORKSPACE
+              <br />
+              Community. Records. Service.
+            </p>
+          </aside>
+          <div className="main-column">
+            <header>
+              <div className="office-heading">
+                <strong>Barangay Information Management System</strong>
+                <span>Administration office</span>
+              </div>
+              <div>
+                <span className="avatar" aria-hidden="true">
+                  {username.slice(0, 1).toUpperCase()}
+                </span>
+                {username}
+                <button className="secondary" onClick={logout}>
+                  Sign out
+                </button>
+              </div>
+            </header>
+            <main id="main-content" className="content" tabIndex={-1}>
+              {logoutError && (
+                <p role="alert" className="error">
+                  {logoutError}
+                </p>
+              )}
+              <Routes>
+                {/* Surveys are deferred. Keep their fixtures/contracts, but expose no route. */}
+                <Route path="/" element={<Dashboard />} />
+                {["residents", "households", "housing"].map((key) => (
+                  <Route
+                    key={key}
+                    path={`/${key}/*`}
+                    element={
+                      <Routes>
+                        <Route
+                          index
+                          element={
+                            <ProfilingPage key={`${key}-list`} module={key} />
+                          }
+                        />
+                        <Route
+                          path=":id"
+                          element={
+                            <ProfilingPage key={`${key}-detail`} module={key} />
+                          }
+                        />
+                      </Routes>
+                    }
+                  />
+                ))}
+                {Object.keys(catalog)
+                  .filter(
+                    (key) =>
+                      ![
+                        "residents",
+                        "households",
+                        "housing",
+                        "surveys",
+                      ].includes(key),
+                  )
+                  .map((key) => (
+                    <Route
+                      key={key}
+                      path={`/${key}`}
+                      element={<RecordPage key={key} module={key} />}
+                    />
+                  ))}
+                <Route path="/gis" element={<MapPage />} />
+                <Route path="/reports" element={<Reports />} />
+                <Route path="/audit" element={<Audit />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route
+                  path="*"
+                  element={
+                    <section className="empty-state">
+                      <h1>Page not found</h1>
+                      <Link to="/">Return to overview</Link>
+                    </section>
+                  }
+                />
+              </Routes>
+            </main>
+            <footer className="workspace-footer">
+              BIMS · Staff workspace{" "}
+              <details className="system-status">
+                <summary>Sample records · System information</summary>
+                <p>
+                  Staff login is connected to the server. Operational module
+                  records currently use sample data in browser memory; edits are
+                  not stored in PostgreSQL and reset on reload or sign-out.
+                </p>
+              </details>
+            </footer>
+          </div>
         </div>
-      </div>
+      </ProfilingProvider>
     </DemoProvider>
   );
 }
