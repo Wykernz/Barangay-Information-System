@@ -44,7 +44,9 @@ erDiagram
 
 | Entity | Important attributes/constraints |
 |---|---|
-| Resident | UUID; approved identity/demographic fields; birthdate; residency/verification state; no stored age |
+| FormDefinition / FormField | Versioned draft/active/archived extension contract; typed keys, choices, sensitivity, and ordering; active contracts immutable |
+| Resident | UUID; provisional core identity fields pending approval; birthdate and verification state; no stored age; typed extension values tied to an active form |
+| ResidentRevision | Append-oriented resident/profile snapshot, actor, timestamp, and optional reason; access must be separately restricted |
 | ResidentIdentifier | Type/value, issuer and validity subject to minimization; scoped uniqueness; protected display |
 | DuplicateCandidate | Two distinct residents in canonical order, score/reasons, review status; never auto-merges |
 | Household | UUID/reference, active state, established/closed dates; member count derived |

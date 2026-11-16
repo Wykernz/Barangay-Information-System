@@ -49,6 +49,29 @@ All runtime dependencies, fonts, scripts, and approved map resources are hosted
 locally. The database binds to an internal interface/firewall boundary and is
 never exposed to the public internet.
 
+### Pre-capture extensibility increment
+
+The synthetic foundation now includes versioned `FormDefinition`/`FormField`
+records for proposed resident, household, housing, survey, and GIS fields. Drafts
+are editable, active versions are immutable, and only new versions can change an
+active contract. Residents accept extension values only from an active resident
+form; values are validated against the stored types and choices. Fields marked
+sensitive require separate read and write capabilities, and resident writes save
+an append-oriented revision. These mechanisms do not approve a field, lawful
+basis, vocabulary, or retention rule.
+
+Residents, households, housing units, effective-dated memberships/occupancies,
+and housing-location revisions use UUID internal keys and non-PII references.
+Domain writes produce metadata-only audit events; resident values and coordinates
+are not copied into the audit event payload. Resident revision snapshots do
+contain profile data and therefore require strict restricted access in a later
+review/export interface.
+
+`DJANGO_ENABLE_GIS=true` selects GeoDjango/PostGIS and the housing-location
+endpoints. It must remain false until host GDAL/GEOS libraries and the PostGIS
+extension are verified. This is only a development readiness gate, not a fallback
+that treats nonspatial storage as GIS.
+
 ## 3. Modular monolith boundaries
 
 | Django app | Responsibility |
