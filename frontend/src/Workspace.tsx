@@ -6,6 +6,7 @@ import RecordPage from "./components/RecordPage";
 import Dashboard from "./pages/Dashboard";
 import MapPage from "./pages/MapPage";
 import Reports from "./pages/Reports";
+import FieldPlanner from "./planner/FieldPlanner";
 import "./styles/workspace.css";
 
 function Audit() {
@@ -104,6 +105,7 @@ export default function Workspace({
     ["/housing", "Housing units"],
     ["/surveys", "Surveys"],
     ["/gis", "Housing map"],
+    ["/data-capture", "Field planner"],
     ["/appointments", "Appointments"],
     ["/cases", "Complaints & cases"],
     ["/reports", "Reports"],
@@ -164,8 +166,8 @@ export default function Workspace({
           <div className="demo-banner">
             <strong>Synthetic demo workspace</strong>
             <span>
-              Module changes are session-only. Do not enter real resident
-              information.
+              Record-module demo changes are session-only. Field planner drafts
+              save to the backend. Do not enter real resident information.
             </span>
           </div>
           <main id="main-content" className="content" tabIndex={-1}>
@@ -184,6 +186,7 @@ export default function Workspace({
                 />
               ))}
               <Route path="/gis" element={<MapPage />} />
+              <Route path="/data-capture" element={<FieldPlanner />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/audit" element={<Audit />} />
               <Route path="/settings" element={<Settings />} />
