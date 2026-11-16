@@ -45,15 +45,13 @@ export default function RecordPage({ module }: { module: string }) {
       )
     ) {
       setError(
-        "This demo service already has an appointment at that time. Choose another time.",
+        "This service already has an appointment at that time. Choose another time.",
       );
       return;
     }
     save(module, draft);
     setDraft(null);
-    setNotice(
-      "Demo record saved for this session. No server data was changed.",
-    );
+    setNotice("Record updated in this session. No server data was changed.");
   }
   function edit(row?: RecordRow) {
     setError("");
@@ -113,7 +111,7 @@ export default function RecordPage({ module }: { module: string }) {
         <div className="table-scroll">
           <table>
             <caption className="sr-only">
-              {definition.title} — synthetic demo records
+              {definition.title} — illustrative records
             </caption>
             <thead>
               <tr>
@@ -160,7 +158,7 @@ export default function RecordPage({ module }: { module: string }) {
         {!rows.length && (
           <div className="empty-state">
             <h2>No matching records</h2>
-            <p>Try another search or add a synthetic demo record.</p>
+            <p>Try another search or add a record.</p>
             <button
               className="secondary"
               onClick={() => {
@@ -173,15 +171,15 @@ export default function RecordPage({ module }: { module: string }) {
           </div>
         )}
         <footer className="table-footer">
-          Showing {rows.length} of {records[module].length} records ·
-          Session-only demo
+          Showing {rows.length} of {records[module].length} records · Current
+          records currently loaded
         </footer>
       </section>
       {draft && (
         <section className="panel editor" aria-labelledby="editor-title">
           <h2 id="editor-title">Edit {definition.singular}</h2>
           <p>
-            Use synthetic information only. Changes reset when you reload or
+            Use illustrative information only. Changes reset when you reload or
             sign out.
           </p>
           <form onSubmit={submit}>
@@ -232,7 +230,7 @@ export default function RecordPage({ module }: { module: string }) {
               </p>
             )}
             <div className="button-row">
-              <button>Save demo record</button>
+              <button>Save record</button>
               <button
                 type="button"
                 className="secondary"

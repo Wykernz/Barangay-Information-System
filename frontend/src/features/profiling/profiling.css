@@ -1,0 +1,575 @@
+/* Profiling-only tokens. Dialogs render outside the feature container. */
+.profiling,
+.profile-dialog {
+  --pf-navy: #172b4d;
+  --pf-blue: #2563eb;
+  --pf-teal: #0d9488;
+  --pf-bg: #f8fafc;
+  --pf-surface: #fff;
+  --pf-text: #0f172a;
+  --pf-muted: #475569;
+  --pf-border: #e2e8f0;
+  --pf-danger: #b91c1c;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+  color: var(--pf-text);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.profiling {
+  background: var(--pf-bg);
+  border-radius: 16px;
+  padding: 24px;
+}
+.profiling *,
+.profile-dialog * {
+  box-sizing: border-box;
+}
+.profiling h1,
+.profiling h2,
+.profiling h3,
+.profile-dialog h2 {
+  color: var(--pf-navy);
+  line-height: 1.3;
+  letter-spacing: -0.025em;
+}
+.profiling h1 {
+  font-size: 28px;
+  margin: 0;
+}
+.profiling h2,
+.profile-dialog h2 {
+  font-size: 19px;
+  margin: 0 0 16px;
+}
+.profiling h3 {
+  font-size: 16px;
+  margin: 24px 0 12px;
+}
+.profiling p {
+  line-height: 1.65;
+}
+.profiling a {
+  color: var(--pf-blue);
+  text-underline-offset: 3px;
+}
+.profiling .muted {
+  color: var(--pf-muted);
+  font-size: 14px;
+}
+.profiling .eyebrow {
+  color: var(--pf-muted);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+/* Header and breadcrumbs */
+.registry-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.registry-section-heading h2 {
+  margin: 0;
+}
+.registry-section-heading p {
+  margin: 6px 0 0;
+}
+.archived-label {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 3px 8px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 11px;
+  border-radius: 12px;
+}
+.profiling .profile-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 22px;
+  font-size: 12px;
+  color: var(--pf-muted);
+  flex-wrap: wrap;
+}
+.profiling .profile-breadcrumb a {
+  padding: 0;
+  background: none;
+  color: var(--pf-muted);
+  text-decoration: none;
+}
+.profile-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+.profile-title-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.profile-title-group p {
+  margin: 6px 0 0;
+  color: var(--pf-muted);
+}
+.profile-module-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  background: #eff6ff;
+  color: var(--pf-blue);
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+}
+.profile-demo-note {
+  color: #64748b;
+  font-size: 12px;
+  border-bottom: 1px solid var(--pf-border);
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+}
+/* Consistent controls and keyboard focus */
+.profiling button,
+.profile-dialog button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 10px 16px;
+  border: 1px solid var(--pf-blue);
+  border-radius: 8px;
+  background: var(--pf-blue);
+  color: white;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    box-shadow 0.15s;
+}
+.profiling button:hover,
+.profile-dialog button:hover {
+  background: #1d4ed8;
+}
+.profiling button:disabled,
+.profile-dialog button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.profiling button.secondary,
+.profile-dialog button.secondary {
+  background: white;
+  border-color: var(--pf-border);
+  color: var(--pf-navy);
+}
+.profiling button.secondary:hover,
+.profile-dialog button.secondary:hover {
+  background: #f1f5f9;
+}
+.profiling .danger,
+.profile-dialog .danger {
+  color: var(--pf-danger);
+  background: #fff;
+  border-color: #fecaca;
+}
+.profiling .danger:hover,
+.profile-dialog .danger:hover {
+  background: #fef2f2;
+}
+.profiling :focus-visible,
+.profile-dialog :focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 3px;
+}
+.profiling input,
+.profiling select,
+.profile-dialog input,
+.profile-dialog select {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  margin: 8px 0 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: white;
+  color: var(--pf-text);
+  font: inherit;
+  font-size: 14px;
+}
+.profiling label,
+.profile-dialog label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  margin: 12px 0;
+}
+.profiling input[type="checkbox"] {
+  width: 16px;
+  min-height: 16px;
+  margin: 0;
+  accent-color: var(--pf-blue);
+}
+.profiling .archive-filter {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+/* Directory cards and readable tables */
+.profiling .panel {
+  padding: 24px;
+  margin: 24px 0 0;
+  border: 1px solid var(--pf-border);
+  background: var(--pf-surface);
+  border-radius: 12px;
+  box-shadow: 0 2px 6px #172b4d04;
+}
+.profile-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.profile-toolbar > label:first-child {
+  flex: 1;
+  max-width: 460px;
+  min-width: 220px;
+  margin: 0;
+}
+.profiling .table-scroll {
+  overflow: auto;
+  border: 1px solid var(--pf-border);
+  border-radius: 9px;
+}
+.profiling table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.profiling th {
+  padding: 14px 16px;
+  background: var(--pf-bg);
+  color: var(--pf-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--pf-border);
+}
+.profiling td {
+  padding: 16px;
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f5f9;
+  white-space: nowrap;
+  color: #334155;
+}
+.profiling td:first-child {
+  font-size: 12px;
+  color: #64748b;
+}
+.profiling tbody tr:last-child td {
+  border-bottom: 0;
+}
+.profiling tbody tr:hover {
+  background: #f8fbff;
+}
+.profiling .profile-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.profiling .profile-actions > a,
+.profiling .profile-actions > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 8px 10px;
+  margin: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  color: #475569;
+}
+.profiling .profile-actions > :hover {
+  background: #eff6ff;
+  color: var(--pf-blue);
+}
+.profiling .profile-actions > .danger {
+  color: var(--pf-danger);
+}
+.profiling .profile-actions > .danger:hover {
+  background: #fef2f2;
+}
+.profile-count {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 20px;
+  color: #0f766e;
+  background: #f0fdfa;
+  border: 1px solid #ccfbf1;
+  font-size: 12px;
+  font-weight: 600;
+}
+.profile-empty {
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--pf-muted);
+}
+/* Identity, household summaries, members and historical segments */
+.profiling .profile-identity {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding-bottom: 24px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--pf-border);
+}
+.profiling .profile-identity h2 {
+  margin: 0;
+  font-size: 22px;
+}
+.profiling .profile-initials {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: #eff6ff;
+  color: var(--pf-blue);
+  font-size: 22px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.profiling .profile-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin: 24px 0;
+}
+.profiling dt {
+  color: #64748b;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+.profiling dd {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.profiling .household-summary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  background: var(--pf-bg);
+  border: 1px solid var(--pf-border);
+  border-radius: 10px;
+  padding: 20px;
+}
+.profiling .quality-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--pf-border);
+}
+.profiling .quality-row > a {
+  display: grid;
+  gap: 5px;
+  text-decoration: none;
+}
+.profiling .quality-row strong {
+  color: var(--pf-navy);
+  font-size: 14px;
+}
+.profiling .quality-row small {
+  color: var(--pf-muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+.profiling .button-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+/* Persistent feedback does not disappear before staff can read it. */
+.profile-feedback {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 16px;
+  margin: 20px 0;
+  border: 1px solid;
+  border-radius: 9px;
+}
+.profile-feedback svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.profile-feedback strong {
+  font-size: 13px;
+}
+.profile-feedback p {
+  margin: 4px 0 0;
+  font-size: 13px;
+}
+.profile-feedback.is-success {
+  background: #f0fdfa;
+  border-color: #99f6e4;
+  color: #115e59;
+}
+.profile-feedback.is-error,
+.profiling .error,
+.profile-dialog .error {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+.profiling .notice,
+.profile-dialog .notice {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 13px;
+}
+/* Native dialogs preserve the existing focus and Escape behavior. */
+.profile-dialog {
+  width: min(760px, calc(100vw - 32px));
+  max-height: 90dvh;
+  padding: 0;
+  border: 1px solid var(--pf-border);
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 24px 80px #172b4d33;
+}
+.profile-dialog::backdrop {
+  background: #0f172a80;
+  backdrop-filter: blur(3px);
+}
+.profile-dialog .profile-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 28px;
+  border-bottom: 1px solid var(--pf-border);
+}
+.profile-dialog .profile-dialog-header h2 {
+  margin: 0;
+}
+.profile-dialog .profile-dialog-header button {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 7px;
+  border-color: transparent;
+}
+.profile-dialog .profile-dialog-body {
+  padding: 24px 28px;
+}
+.profile-dialog .form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 24px;
+  margin: 0 0 24px;
+}
+.profile-dialog .form-grid label {
+  margin: 0;
+}
+.profile-dialog .profile-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding-top: 20px;
+  margin-top: 24px;
+  border-top: 1px solid var(--pf-border);
+}
+.profile-dialog .form-intro {
+  color: var(--pf-muted);
+  font-size: 13px;
+  margin: 0 0 24px;
+}
+@media (max-width: 1100px) {
+  .profile-page-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .profiling .household-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 760px) {
+  .profiling {
+    padding: 16px;
+  }
+  .profiling h1 {
+    font-size: 24px;
+  }
+  .profiling .panel {
+    padding: 18px;
+  }
+  .profiling .profile-details,
+  .profiling .household-summary {
+    grid-template-columns: 1fr;
+  }
+  .profiling .quality-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .profile-dialog .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .profile-dialog .profile-dialog-header,
+  .profile-dialog .profile-dialog-body {
+    padding: 20px;
+  }
+  .profile-toolbar {
+    gap: 12px;
+  }
+  .profile-toolbar > label:first-child {
+    max-width: none;
+    width: 100%;
+  }
+  .profile-title-group {
+    align-items: flex-start;
+  }
+  .profile-dialog .profile-form-actions {
+    flex-wrap: wrap;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .profiling *,
+  .profile-dialog * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

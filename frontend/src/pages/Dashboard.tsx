@@ -17,7 +17,7 @@ export default function Dashboard() {
           </p>
         </div>
         <Link className="button-link" to="/residents">
-          Register a demo resident
+          Register resident
         </Link>
       </div>
       <div className="stats-grid">
@@ -39,7 +39,7 @@ export default function Dashboard() {
           <Link className="stat-card" to={String(to)} key={label}>
             <span>{label}</span>
             <strong>{count}</strong>
-            <small>Synthetic demo records ↗</small>
+            <small>View registry →</small>
           </Link>
         ))}
       </div>
@@ -58,22 +58,13 @@ export default function Dashboard() {
             />
           </div>
           <p className="muted">
-            {verified} of {records.residents.length} demo profiles verified
+            {verified} of {records.residents.length} profiles verified
           </p>
           <div className="quality-row">
             <span>Unmapped housing units</span>
             <strong>
               {
                 records.housing.filter((row) => row.status === "Unmapped")
-                  .length
-              }
-            </strong>
-          </div>
-          <div className="quality-row">
-            <span>Surveys awaiting verification</span>
-            <strong>
-              {
-                records.surveys.filter((row) => row.status === "Unverified")
                   .length
               }
             </strong>
@@ -101,13 +92,12 @@ export default function Dashboard() {
           <h2>Quick access</h2>
           <div className="quick-links">
             <Link to="/households">Household directory →</Link>
-            <Link to="/surveys">Survey verification →</Link>
             <Link to="/gis">Housing map →</Link>
             <Link to="/reports">Reports & summaries →</Link>
           </div>
         </section>
         <section className="panel">
-          <h2>Recent demo activity</h2>
+          <h2>Recent activity</h2>
           {history.length ? (
             history.slice(0, 5).map((item) => (
               <div className="activity-row" key={item.id}>
@@ -123,8 +113,7 @@ export default function Dashboard() {
             ))
           ) : (
             <p className="muted">
-              No changes this session. Save a demo record to see its activity
-              here.
+              No changes this session. Update a record to see its activity here.
             </p>
           )}
         </section>
