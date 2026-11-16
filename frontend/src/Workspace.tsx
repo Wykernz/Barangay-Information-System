@@ -6,6 +6,7 @@ import RecordPage from "./components/RecordPage";
 import Dashboard from "./pages/Dashboard";
 import MapPage from "./pages/MapPage";
 import Reports from "./pages/Reports";
+import FieldPlanner from "./planner/FieldPlanner";
 import "./styles/workspace.css";
 import {
   ProfilingProvider,
@@ -105,6 +106,7 @@ export default function Workspace({
     ["/households", "Households"],
     ["/housing", "Housing units"],
     ["/gis", "Housing map"],
+    ["/data-capture", "Field planner"],
     ["/appointments", "Appointments"],
     ["/cases", "Complaints & cases"],
     ["/reports", "Reports"],
@@ -114,6 +116,72 @@ export default function Workspace({
     ["/settings", "Settings"],
   ];
   return (
+ feature/adrian-setup
+    <DemoProvider>
+      <div className="workspace staff-shell">
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
+        <aside className={menu ? "menu-open" : ""}>
+          <Link className="brand" to="/">
+            BIMS<span>Barangay Information System</span>
+          </Link>
+          <button
+            className="mobile-menu"
+            onClick={() => setMenu(!menu)}
+            aria-expanded={menu}
+            aria-controls="staff-navigation"
+          >
+            {menu ? "Close navigation" : "Open navigation"}
+          </button>
+          <nav id="staff-navigation" aria-label="Main navigation">
+            {links.map(([to, label]) => (
+              <NavLink
+                key={to}
+                end={to === "/"}
+                to={to}
+                onClick={() => setMenu(false)}
+              >
+                {label}
+              </NavLink>
+            ))}
+          </nav>
+          <p className="sidebar-note">
+            LOCAL OFFICE WORKSPACE
+            <br />
+            Community. Records. Service.
+          </p>
+        </aside>
+        <div className="main-column">
+          <header>
+            <span>Staff administration</span>
+            <div>
+              <span className="avatar" aria-hidden="true">
+                {username.slice(0, 1).toUpperCase()}
+              </span>
+              {username}
+              <button className="secondary" onClick={logout}>
+                Sign out
+              </button>
+            </div>
+          </header>
+          <div className="demo-banner">
+            <strong>Synthetic demo workspace</strong>
+            <span>
+              Record-module demo changes are session-only. Field planner drafts
+              save to the backend. Do not enter real resident information.
+            </span>
+          </div>
+          <main id="main-content" className="content" tabIndex={-1}>
+            {logoutError && (
+              <p role="alert" className="error">
+                {logoutError}
+              </p>
+            )}
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              {Object.keys(catalog).map((key) => (
+=======
     <DemoProvider profilingFixtures>
       <ProfilingProvider>
         <div className="workspace staff-shell">
@@ -218,6 +286,7 @@ export default function Workspace({
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/audit" element={<Audit />} />
                 <Route path="/settings" element={<Settings />} />
+feature/adrian-setup
                 <Route
                   path="*"
                   element={
@@ -227,6 +296,28 @@ export default function Workspace({
                     </section>
                   }
                 />
+ feature/adrian-setup
+              ))}
+              <Route path="/gis" element={<MapPage />} />
+              <Route path="/data-capture" element={<FieldPlanner />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/audit" element={<Audit />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route
+                path="*"
+                element={
+                  <section className="empty-state">
+                    <h1>Page not found</h1>
+                    <Link to="/">Return to overview</Link>
+                  </section>
+                }
+              />
+            </Routes>
+          </main>
+          <footer className="workspace-footer">
+            BIMS · Staff workspace <span>Asia/Manila · Frontend demo</span>
+          </footer>
+=======
               </Routes>
             </main>
             <footer className="workspace-footer">
@@ -241,6 +332,7 @@ export default function Workspace({
               </details>
             </footer>
           </div>
+ feature/adrian-setup
         </div>
       </ProfilingProvider>
     </DemoProvider>

@@ -1,5 +1,24 @@
 # Staff frontend review
 
+feature/adrian-setup
+## Backend-persisted field planner
+
+`/data-capture` is a real Django-backed workshop workspace for versioned resident,
+household, housing, survey, and GIS field definitions. Staff with the model
+capabilities can create/edit drafts, add typed fields and controlled choices,
+mark sensitivity, reorder fields, preview the possible layout, and activate or
+archive saved versions through explicit confirmation. Active/archived versions
+are read-only. New drafts accept an explicit version number so workshop changes
+can become a new contract rather than mutating an active version.
+
+TanStack Query handles list/detail states and saves; failed requests retain local
+editor changes without browser storage. The preview does not collect operational
+values. Field approval, privacy review, and permissions remain stakeholder
+responsibilities. The workspace banner distinguishes this persistent planner
+from the synthetic in-memory module previews.
+
+## Synthetic module previews
+=======
 Current handoff: FRONTEND_CHANGELOG.md and PROFILING_WORKFLOW.md consolidate the
 current implementation. Historical descriptions below predate survey deferral,
 connected profiling screens and final operational UI wording.
@@ -16,6 +35,7 @@ new runtime dependency. See PROFILING_WORKFLOW.md for validation and limitations
 
 Profiling routes now use dedicated connected profiles and relationship history.
 See PROFILING_WORKFLOW.md and PROFILING_API_CONTRACT.md for scope and handoff.
+ feature/adrian-setup
 
 The authenticated staff workspace now contains frontend previews for resident,
 household, housing, survey, appointment, case, service, and staff directories;
@@ -59,6 +79,7 @@ production-ready interface.
 - `frontend/src/demo/`: typed synthetic catalog and in-memory state adapter.
 - `frontend/src/components/RecordPage.tsx`: shared directory and inline editor.
 - `frontend/src/pages/`: dashboard, GIS readiness, reports.
+- `frontend/src/planner/`: typed API, versioned definition editor, preview, styles, tests.
 - `frontend/src/styles/workspace.css`: grouped layout, table, form, and responsive styles.
 
 Run Django and Vite as described in `RUNNING.md`, sign in, and review the routes.
