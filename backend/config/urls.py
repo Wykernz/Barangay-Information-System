@@ -1,10 +1,20 @@
 from django.urls import path
+from drf_spectacular.utils import extend_schema
+from drf_spectacular.views import SpectacularAPIView
+from rest_framework import serializers
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from drf_spectacular.views import SpectacularAPIView
+
 from accounts.views import csrf, sign_in, sign_out
 
 
+class SessionSerializer(serializers.Serializer):
+    """Public shape of the authenticated staff session response."""
+
+    username = serializers.CharField(read_only=True)
+
+
+@extend_schema(responses=SessionSerializer)
 @api_view(['GET'])
 def session(request):
     return Response({'username': request.user.username})
