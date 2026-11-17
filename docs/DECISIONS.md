@@ -25,6 +25,8 @@ Statuses: `Confirmed` records supplied constraints; `Proposed` needs approval;
 | DEC-013 | Proposed | QGIS produces reviewed GeoJSON for staged import; it does not edit production directly. | Preserves review, validation, and audit controls. |
 | DEC-014 | Proposed | Capability permissions plus scoped querysets/object policy; roles are bundles only. | Prevents over-broad administrator access. |
 | DEC-015 | Proposed | Effective-dated append-oriented history and protect/restrict deletion defaults. | Preserves accountability and historical reporting. |
+| DEC-016 | Proposed | Before the field-capture workshop, use versioned draft form definitions and explicit typed fields for proposed additions. Activate forms before resident use; do not treat draft fields as approved policy. | Supports changing workshop results without uncontrolled columns or an EAV model. Active forms are immutable; new requirements receive a new version. |
+| DEC-017 | Proposed | Keep GeoDjango behind `DJANGO_ENABLE_GIS` until PostGIS, GDAL, and GEOS are verified on the host. Core draft profiling remains available without spatial support. | Prevents a missing native GIS dependency from blocking field planning; production GIS still requires PostGIS and the complete GIS checks. |
 
 ## Open stakeholder decisions
 

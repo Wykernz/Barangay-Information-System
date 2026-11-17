@@ -1,7 +1,9 @@
 # Run BIMS on Windows
 
-The current application provides staff sign-in and a workspace shell. Operational
-resident, household, GIS, appointment, and case modules are still pending.
+The current application provides staff sign-in, a workspace shell, and a real backend
+field planner for drafting versioned profiling forms. Resident/household API
+scaffolds also exist but the other operational screens remain synthetic demos.
+GIS, appointment, and case workflows are still pending.
 
 ## Current workstation blocker
 
@@ -13,8 +15,17 @@ use the recommended existing-server setup below first. If it also reports a poli
 block, ask IT to repair or approve PostgreSQL; do not disable security controls.
 
 The frontend can be served now with `npm.cmd run dev` from `frontend`; sign-in
-requires a working database and API. Django configuration checks and four
-database-independent tests passed with the fallback runtime.
+requires a working database and API. A Python 3.12 environment exists at
+`backend/.venv`; use `.\scripts\python.cmd scripts/dev.py ...` so it is selected
+consistently. The field planner requires a staff account with form-definition
+model permissions (a superuser works for local synthetic development).
+
+The default `DJANGO_ENABLE_GIS=false` keeps the non-GIS field-planning foundation
+available on a normal PostgreSQL backend. Before enabling GIS, install/approve
+GDAL and GEOS, provision PostGIS, create the extension in the database, set
+`DJANGO_ENABLE_GIS=true`, and run the full spatial migration/integration checks.
+Do not enable it merely to test startup: the current workstation has no discoverable
+GDAL library, so GeoDjango correctly refuses to start when the flag is enabled.
 
 ## First-time setup
 

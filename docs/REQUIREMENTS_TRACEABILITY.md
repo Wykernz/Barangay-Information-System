@@ -5,10 +5,10 @@ Status values: Draft, Approved, Implemented, Verified, Deferred.
 | Requirement group | Source | Design location | Planned verification | Status |
 |---|---|---|---|---|
 | IAM-001..008 | Project brief | Architecture sections 3, 5, 8; ERD Security | Model/migration, permission, session, audit, export tests | Draft |
-| PRO-001..013 | Project brief | Architecture sections 3, 6; ERD Profiling | Unit, constraints, API, duplicate, count, authorization tests | Draft |
+| PRO-001..013 | Project brief | Architecture sections 2-3, 6; ERD Profiling; `backend/profiling`, `backend/households`; frontend `planner` | Unit, constraints, API, duplicate, count, authorization tests | Draft; extension/model scaffold only |
 | APT-001..006 | Project brief | ERD Appointments | Service, transition, concurrency/conflict, API tests | Draft |
 | CAS-001..006 | Project brief | Architecture sections 5, 8; ERD Cases | Confidentiality, assignment, workflow, attachment, audit tests | Draft |
-| GIS-001..008 | Project brief | Architecture sections 6, 9; ERD GIS | Geometry/CRS validation, authorization, history, offline map tests | Draft |
+| GIS-001..008 | Project brief | Architecture sections 2, 6, 9; ERD GIS; `backend/gis` | Geometry/CRS validation, authorization, history, offline map tests | Draft; native runtime verification blocked |
 | ANA-001..003 | Project brief | Architecture section 6 | Metric fixture, effective-date, permission, suppression tests | Draft |
 | MIG-001..003 | Existing mixed records | ERD Migration | Repeatability, validation, transaction rollback, audit tests | Draft |
 | NFR-SEC/PRI | Project brief | Architecture sections 5, 8 | Threat review, automated security tests, privacy approval evidence | Draft |

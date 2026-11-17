@@ -4,8 +4,10 @@
 
 This repository contains a production-oriented Barangay Information Management
 System (BIMS) for one Philippine barangay. Work is phased. The current baseline
-includes an authorized project-foundation implementation. Domain workflows still
-require resolution of their open stakeholder decisions before implementation.
+includes an authorized project foundation and a pre-capture field planner with
+provisional synthetic domain scaffolds. Production domain workflows and real-data
+use still require resolution of their open stakeholder decisions; draft form
+activation is not field, privacy, legal, or GIS approval.
 
 ## Non-negotiable rules
 

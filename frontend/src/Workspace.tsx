@@ -6,6 +6,7 @@ import RecordPage from "./components/RecordPage";
 import Dashboard from "./pages/Dashboard";
 import MapPage from "./pages/MapPage";
 import Reports from "./pages/Reports";
+import FieldPlanner from "./planner/FieldPlanner";
 import "./styles/workspace.css";
 import {
   ProfilingProvider,
@@ -105,6 +106,7 @@ export default function Workspace({
     ["/households", "Households"],
     ["/housing", "Housing units"],
     ["/gis", "Housing map"],
+    ["/data-capture", "Field planner"],
     ["/appointments", "Appointments"],
     ["/cases", "Complaints & cases"],
     ["/reports", "Reports"],
@@ -172,6 +174,14 @@ export default function Workspace({
                   {logoutError}
                 </p>
               )}
+              <div className="demo-banner">
+                <strong>Synthetic demo workspace</strong>
+                <span>
+                  Record-module demo changes are session-only. Field planner
+                  drafts save to the backend. Do not enter real resident
+                  information.
+                </span>
+              </div>
               <Routes>
                 {/* Surveys are deferred. Keep their fixtures/contracts, but expose no route. */}
                 <Route path="/" element={<Dashboard />} />
@@ -215,6 +225,7 @@ export default function Workspace({
                     />
                   ))}
                 <Route path="/gis" element={<MapPage />} />
+                <Route path="/data-capture" element={<FieldPlanner />} />
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/audit" element={<Audit />} />
                 <Route path="/settings" element={<Settings />} />
