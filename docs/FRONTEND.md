@@ -1,5 +1,11 @@
 # Staff frontend review
 
+The shared staff interface refresh is documented in [UI_REFRESH.md](UI_REFRESH.md).
+The overview uses classified active-resident counts, the approved age groups and
+linked category filters. The missing-birthdate card and deferred appointment/case
+metrics are removed. A locally served neutral emblem is a replaceable placeholder,
+not an official barangay seal. Runtime fonts and icons require no internet.
+
 Household family cards, member management and contextual registration are
 documented in [HOUSEHOLD_UI.md](HOUSEHOLD_UI.md). Birthdates use a single
 month/day/year control with a typed year; age groups follow [AGE_GROUPS.md](AGE_GROUPS.md).

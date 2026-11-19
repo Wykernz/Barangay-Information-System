@@ -1,4 +1,19 @@
 import { useState } from "react";
+import {
+  Activity,
+  ArrowUpRight,
+  ChartNoAxesCombined,
+  House,
+  LayoutDashboard,
+  LogOut,
+  MapPinned,
+  Menu,
+  Settings2,
+  Users,
+  UsersRound,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import { Link, NavLink, Route, Routes } from "react-router-dom";
 import { DemoProvider, useDemo } from "./demo/store";
 import { catalog } from "./demo/catalog";
@@ -6,7 +21,7 @@ import RecordPage from "./components/RecordPage";
 import Dashboard from "./pages/Dashboard";
 import MapPage from "./pages/MapPage";
 import Reports from "./pages/Reports";
-import FieldPlanner from "./planner/FieldPlanner";
+import BarangayLogo from "./components/BarangayLogo";
 import "./styles/workspace.css";
 import {
   ProfilingProvider,
@@ -100,20 +115,15 @@ export default function Workspace({
   logoutError: string;
 }) {
   const [menu, setMenu] = useState(false);
-  const links = [
-    ["/", "Overview"],
-    ["/residents", "Residents"],
-    ["/households", "Households"],
-    ["/housing", "Housing units"],
-    ["/gis", "Housing map"],
-    ["/data-capture", "Field planner"],
-    ["/appointments", "Appointments"],
-    ["/cases", "Complaints & cases"],
-    ["/reports", "Reports"],
-    ["/services", "Office services"],
-    ["/users", "Staff & access"],
-    ["/audit", "Activity log"],
-    ["/settings", "Settings"],
+  const links: [string, string, LucideIcon][] = [
+    ["/", "Overview", LayoutDashboard],
+    ["/residents", "Residents", Users],
+    ["/households", "Households", UsersRound],
+    ["/housing", "Housing units", House],
+    ["/gis", "Housing map", MapPinned],
+    ["/reports", "Reports", ChartNoAxesCombined],
+    ["/audit", "Activity log", Activity],
+    ["/settings", "Settings", Settings2],
   ];
   return (
     <DemoProvider profilingFixtures>
@@ -124,7 +134,11 @@ export default function Workspace({
           </a>
           <aside className={menu ? "menu-open" : ""}>
             <Link className="brand" to="/">
-              BIMS<span>Barangay Information System</span>
+              <BarangayLogo size={56} />
+              <span className="brand-copy">
+                <strong>BIMS</strong>
+                <span>Barangay Information System</span>
+              </span>
             </Link>
             <button
               className="mobile-menu"
@@ -132,18 +146,40 @@ export default function Workspace({
               aria-expanded={menu}
               aria-controls="staff-navigation"
             >
+              {menu ? (
+                <X size={18} aria-hidden="true" />
+              ) : (
+                <Menu size={18} aria-hidden="true" />
+              )}
               {menu ? "Close navigation" : "Open navigation"}
             </button>
             <nav id="staff-navigation" aria-label="Main navigation">
-              {links.map(([to, label]) => (
-                <NavLink
-                  key={to}
-                  end={to === "/"}
-                  to={to}
-                  onClick={() => setMenu(false)}
-                >
-                  {label}
-                </NavLink>
+              {links.map(([to, label, Icon], index) => (
+                <div className="navigation-item" key={to}>
+                  {(index === 0 || index === 1 || index === 5) && (
+                    <p className="navigation-label">
+                      {index === 0
+                        ? "Workspace"
+                        : index === 1
+                          ? "Community records"
+                          : "Management"}
+                    </p>
+                  )}
+                  <NavLink
+                    key={to}
+                    end={to === "/"}
+                    to={to}
+                    onClick={() => setMenu(false)}
+                  >
+                    <Icon size={19} strokeWidth={1.7} aria-hidden="true" />
+                    <span>{label}</span>
+                    <ArrowUpRight
+                      className="navigation-arrow"
+                      size={15}
+                      aria-hidden="true"
+                    />
+                  </NavLink>
+                </div>
               ))}
             </nav>
             <p className="sidebar-note">
@@ -158,12 +194,16 @@ export default function Workspace({
                 <strong>Barangay Information Management System</strong>
                 <span>Administration office</span>
               </div>
-              <div>
+              <div className="account-menu">
                 <span className="avatar" aria-hidden="true">
                   {username.slice(0, 1).toUpperCase()}
                 </span>
-                {username}
+                <span className="account-name">
+                  {username}
+                  <small>Staff account</small>
+                </span>
                 <button className="secondary" onClick={logout}>
+                  <LogOut size={16} aria-hidden="true" />
                   Sign out
                 </button>
               </div>
@@ -175,11 +215,13 @@ export default function Workspace({
                 </p>
               )}
               <div className="demo-banner">
-                <strong>Synthetic demo workspace</strong>
+                <strong>
+                  <span className="preview-dot" aria-hidden="true" />
+                  Preview workspace
+                </strong>
                 <span>
-                  Record-module demo changes are session-only. Field planner
-                  drafts save to the backend. Do not enter real resident
-                  information.
+                  Synthetic records only. Profile changes reset on reload or
+                  sign-out.
                 </span>
               </div>
               <Routes>
@@ -215,6 +257,10 @@ export default function Workspace({
                         "households",
                         "housing",
                         "surveys",
+                        "appointments",
+                        "cases",
+                        "services",
+                        "users",
                       ].includes(key),
                   )
                   .map((key) => (
@@ -225,7 +271,6 @@ export default function Workspace({
                     />
                   ))}
                 <Route path="/gis" element={<MapPage />} />
-                <Route path="/data-capture" element={<FieldPlanner />} />
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/audit" element={<Audit />} />
                 <Route path="/settings" element={<Settings />} />

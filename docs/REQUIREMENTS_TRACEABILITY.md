@@ -34,3 +34,8 @@ invariants, two families, transfer, cancellation/removal and registration into a
 selected family. Typecheck, production build and all 49 frontend tests pass;
 browser/accessibility acceptance and backend persistence remain outstanding.
 See `HOUSEHOLD_UI.md`.
+
+2026-11-19 NFR-ACC / NFR-MNT / ANA-002 presentation: user-authorized staff UI
+refresh implemented through `professional.css`, navigation and overview markup.
+Existing workflow tests, typecheck and production build pass; visual and assistive
+technology acceptance remain outstanding. See `UI_REFRESH.md`.

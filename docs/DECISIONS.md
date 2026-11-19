@@ -105,3 +105,21 @@ session-only synthetic records. Health symptoms, pregnancy categories, family
 planning, NHTS identifiers and insurance details require explicit sensitive-data
 permissions and agreed field definitions before operational capture. Age and
 senior status must be derived from birthdate, never maintained separately.
+
+2026-11-17 scope update: Field Planner, Office Services and Staff & Access are
+removed from active workspace navigation and routes at the user's request.
+Backend form definitions, authentication, health-role controls and dormant source
+remain intact. This does not remove real accounts or their permissions.
+
+2026-11-17 scope update: user deferred appointments and complaints to focus on
+profiling. Remove their active routes, navigation, overview and report metrics.
+Retain dormant fixtures and historical requirements; no operational data deletion.
+
+2026-11-17 user requested optional LGBT identification, PWD status and overview
+counts. Synthetic preview uses separate voluntary identification and sex fields;
+blank/declined answers remain unknown. Health and complaint counts cannot be
+inferred from fixture names or treated as zero when unavailable. Production
+identity/disability collection and aggregate visibility require explicit access
+controls. Complaint counts mean cases filed by the person, not accusations.
+
+2026-11-19 user authorized a professional UI/UX refresh of the existing staff interface (NFR-ACC / NFR-MNT). Use a consistent slate/teal palette, local system fonts, icon navigation with text labels, responsive summary cards and readable tables/forms. Preserve existing routes, validation, permissions and synthetic-data boundaries. No external assets or new runtime dependencies; visual choices are reversible implementation details.
