@@ -21,3 +21,7 @@ During implementation, expand each group to one row per requirement with owner,
 acceptance criterion, implementation references, test IDs/results, and approval.
 No requirement becomes `Verified` without executed evidence.
 
+
+2026-11-19 PRO-002 / ANA-001..002 / NFR-ACC: user-approved age-group and
+birthdate utilities are available with boundary, validity and category-filter tests.
+UI integration follows in the household and overview increments. See AGE_GROUPS.md.

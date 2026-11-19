@@ -71,3 +71,9 @@ Each resolved item records decision date, accountable approver, chosen option,
 rationale, consequences, and superseded decision. High-risk privacy, legal, GIS,
 and security decisions require their specialist owner, not only the software team.
 
+
+2026-11-19 user authorized removing the missing-birthdate indicator from Overview and simplifying birthday entry. Keep birthdate mandatory; provide direct month/day/year entry without changing stored dates or backend rules.
+
+2026-11-19 user approved mutually exclusive age groups: Early Childhood (0–5 years); Children (6–12 years); Teenagers / Adolescents (13–17 years); Young Adults (18–24 years); Adults (25–34 years); Middle Adults (35–44 years); Older Adults (45–59 years); Senior Citizens (60–74 years). Ages 75+ await a user-supplied classification. Derive completed years from birthdate at the reporting date; separate senior status remains 60+. Synthetic preview only (PRO-002, ANA-001..002); no schema change.
+
+2026-11-19 user requested a single birthdate control with directly editable year. Remove the duplicate native date picker; retain month/day selectors and a four-digit typed year with required, calendar and future-date validation. No stored dates or schema changes (PRO-002, NFR-ACC).
