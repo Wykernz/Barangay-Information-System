@@ -1,5 +1,12 @@
 # Staff frontend review
 
+Household family cards, member management and contextual registration are
+documented in [HOUSEHOLD_UI.md](HOUSEHOLD_UI.md). Birthdates use a single
+month/day/year control with a typed year; age groups follow [AGE_GROUPS.md](AGE_GROUPS.md).
+Resident classification, optional middle name and voluntary demographic fields
+are part of this synthetic preview. Profiles and relationship history remain in
+session memory and reset on reload/sign-out.
+
 ## Backend-persisted field planner
 
 `/data-capture` is a real Django-backed workshop workspace for versioned resident,

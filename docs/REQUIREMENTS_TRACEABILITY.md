@@ -25,3 +25,12 @@ No requirement becomes `Verified` without executed evidence.
 2026-11-19 PRO-002 / ANA-001..002 / NFR-ACC: user-approved age-group and
 birthdate utilities are available with boundary, validity and category-filter tests.
 UI integration follows in the household and overview increments. See AGE_GROUPS.md.
+
+2026-11-19 household usability increment (user authorized): PRO-004..008 and
+NFR-ACC are implemented in the synthetic preview through household family cards,
+explicit person selection, contextual registration and focused member actions.
+`model.test.ts` and `components/presentation.test.tsx` cover family/head/history
+invariants, two families, transfer, cancellation/removal and registration into a
+selected family. Typecheck, production build and all 49 frontend tests pass;
+browser/accessibility acceptance and backend persistence remain outstanding.
+See `HOUSEHOLD_UI.md`.

@@ -77,3 +77,31 @@ and security decisions require their specialist owner, not only the software tea
 2026-11-19 user approved mutually exclusive age groups: Early Childhood (0–5 years); Children (6–12 years); Teenagers / Adolescents (13–17 years); Young Adults (18–24 years); Adults (25–34 years); Middle Adults (35–44 years); Older Adults (45–59 years); Senior Citizens (60–74 years). Ages 75+ await a user-supplied classification. Derive completed years from birthdate at the reporting date; separate senior status remains 60+. Synthetic preview only (PRO-002, ANA-001..002); no schema change.
 
 2026-11-19 user requested a single birthdate control with directly editable year. Remove the duplicate native date picker; retain month/day selectors and a four-digit typed year with required, calendar and future-date validation. No stored dates or schema changes (PRO-002, NFR-ACC).
+
+2026-11-19 household usability increment: user requested clearer family creation
+and member management, including a second family and its members. Keep families
+within one household; a person has at most one current family there. Use family
+cards, explicit member selection, a searchable member list and focused dialogs.
+Offer existing-person assignment and new-person registration with household/family
+context. Reassignment retains membership history and household-head status; no
+family head is inferred. This remains the authorized synthetic session preview.
+
+Family grouping increment: user authorized families within a household. Groups
+have an internal ID, household ID and staff-entered label. A current household
+member may be unassigned or belong to one family group in that household;
+reassignment supersedes the membership segment to retain history. No family
+head is inferred. This increment remains a synthetic session preview.
+
+2026-11-17 household simplification: remove municipality, barangay and interviewer
+from manual household entry/display. Septic tank is a separate Yes/None/Not
+recorded observation; no automatic conversion from previous toilet categories.
+Multiple families within a household: proposed family-group child entity with
+dated person memberships. Household and physical housing unit remain separate;
+family heads would not replace the household head. Family grouping is implemented in the synthetic preview described in HOUSEHOLD_UI.md.
+
+2026-11-17 requested capture extension: residency classification, household survey
+header, demographics, water and sanitation. Current restored profile UI uses
+session-only synthetic records. Health symptoms, pregnancy categories, family
+planning, NHTS identifiers and insurance details require explicit sensitive-data
+permissions and agreed field definitions before operational capture. Age and
+senior status must be derived from birthdate, never maintained separately.

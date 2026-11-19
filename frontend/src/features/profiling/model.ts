@@ -7,6 +7,7 @@ export type Membership = {
   start: string;
   end: string | null;
   head: boolean;
+  familyId?: string;
 };
 export type Occupancy = {
   id: string;
@@ -16,6 +17,7 @@ export type Occupancy = {
   end: string | null;
 };
 export type Relationships = {
+  families?: { id: string; householdId: string; label: string }[];
   memberships: Membership[];
   occupancies: Occupancy[];
 };
@@ -74,6 +76,8 @@ export function assign(
               start: date,
               end: null,
               head: false,
+              familyId: active.find((item) => item.householdId === householdId)
+                ?.familyId,
             },
           ]
         : []),
@@ -110,6 +114,40 @@ export function selectHead(
         head: item.residentId === residentId,
         end: null,
       })),
+    ],
+  };
+}
+
+/** Supersede one membership without changing household, relationship or head. */
+export function assignFamily(
+  state: Relationships,
+  membershipId: string,
+  familyId: string | undefined,
+  date: string,
+  id: string,
+): Relationships {
+  const member = state.memberships.find(
+    (item) => item.id === membershipId && !item.end,
+  );
+  if (!member) throw new Error("Choose a current household member.");
+  if (
+    familyId &&
+    !state.families?.some(
+      (family) =>
+        family.id === familyId && family.householdId === member.householdId,
+    )
+  )
+    throw new Error("Choose a family in this household.");
+  if (date < member.start)
+    throw new Error("Family assignment cannot precede membership.");
+  if (member.familyId === familyId) return state;
+  return {
+    ...state,
+    memberships: [
+      ...state.memberships.map((item) =>
+        item.id === member.id ? { ...item, end: date } : item,
+      ),
+      { ...member, id, familyId, start: date, end: null },
     ],
   };
 }

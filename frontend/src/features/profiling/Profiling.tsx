@@ -16,6 +16,7 @@ import { useDemo } from "../../demo/store";
 import { ageAt, catalog, type RecordRow } from "../../demo/catalog";
 import {
   assign,
+  assignFamily,
   initialRelationships,
   selectHead,
   type Relationships,
@@ -25,6 +26,10 @@ import { ProfilePageHeader } from "./components/ProfilePageHeader";
 import { ProfileActions } from "./components/ProfileActions";
 import { ProfileFeedback } from "./components/ProfileFeedback";
 import { ProfileDialog } from "./ProfileDialog";
+import { AGE_GROUPS, ageGroups } from "./ageGroups";
+import { matchesCategory } from "./categoryFilter";
+import { BirthdateInput } from "./components/BirthdateInput";
+import { HouseholdMembers } from "./components/HouseholdMembers";
 
 const Context = createContext<{
   state: Relationships;
@@ -55,16 +60,22 @@ export function ProfilingPage({ module }: { module: string }) {
   const { records, save } = useDemo();
   const { state, change } = useProfiling();
   const { id } = useParams();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [classificationFilter, setClassificationFilter] = useState("");
+  useEffect(() => {
+    const value = params.get("classification");
+    setClassificationFilter(
+      value === "Resident" || value === "Non-resident" ? value : "",
+    );
+  }, [params]);
   const [draft, setDraft] = useState<RecordRow | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [candidate, setCandidate] = useState("");
-  const [relationship, setRelationship] = useState("Member");
   const [effective, setEffective] = useState(today);
-  const [action, setAction] = useState<"assign" | "end" | "head" | null>(null);
+  const [action, setAction] = useState<"end" | "head" | null>(null);
   const [removing, setRemoving] = useState<RecordRow | null>(null);
   const [showArchived, setShowArchived] = useState(false);
   const [unit, setUnit] = useState("");
@@ -78,9 +89,16 @@ export function ProfilingPage({ module }: { module: string }) {
   const visibleRows = sorted(records[module]).filter(
     (row) =>
       (showArchived || row.archived !== "true") &&
-      `${display(row)} ${row.id}`.toLowerCase().includes(search.toLowerCase()),
+      matchesCategory(row, params.get("category") ?? "", today()) &&
+      (module !== "residents" ||
+        !classificationFilter ||
+        row.residencyClassification === classificationFilter) &&
+      `${display(row)} ${row.middleName ?? ""} ${row.id}`
+        .toLowerCase()
+        .includes(search.toLowerCase()),
   );
   const returnHousehold = params.get("household");
+  const returnFamily = params.get("family");
   const unitFor = (householdId: string) =>
     records.housing.find(
       (row) =>
@@ -135,6 +153,7 @@ export function ProfilingPage({ module }: { module: string }) {
               ...value,
               householdId: returnHousehold,
               targetHousehold: returnHousehold,
+              targetFamily: returnFamily ?? "",
             }
           : value,
       );
@@ -144,6 +163,15 @@ export function ProfilingPage({ module }: { module: string }) {
     // This adapter is not a database transaction; the backend contract requires one.
     event.preventDefault();
     if (!draft) return;
+    if (
+      module === "residents" &&
+      !["Resident", "Non-resident"].includes(
+        draft.residencyClassification ?? "",
+      )
+    ) {
+      setError("Choose Resident or Non-resident.");
+      return;
+    }
     if (
       module === "residents" &&
       (!draft.firstName?.trim() ||
@@ -156,6 +184,19 @@ export function ProfilingPage({ module }: { module: string }) {
       );
       return;
     }
+    const missing = fields.filter((field) => {
+      if ("optional" in field && field.optional) return false;
+      const value =
+        draft[field.key] ?? ("options" in field ? field.options?.[0] : "");
+      return !value?.trim() || value === "Choose classification";
+    });
+    if (missing.length) {
+      setError(
+        `Complete required fields: ${missing.map((field) => field.label).join(", ")}.`,
+      );
+      return;
+    }
+    if (!event.currentTarget.reportValidity()) return;
     const row =
       module === "residents"
         ? {
@@ -222,6 +263,33 @@ export function ProfilingPage({ module }: { module: string }) {
         next = selectHead(next, draft.targetHousehold, draft.id, today());
       }
     }
+    if (module === "residents" && draft.targetFamily !== undefined) {
+      const member = next.memberships.find(
+        (item) =>
+          item.residentId === draft.id &&
+          !item.end &&
+          item.householdId ===
+            (draft.targetHousehold ||
+              memberships.find(
+                (membership) => membership.residentId === draft.id,
+              )?.householdId),
+      );
+      try {
+        if (!member && draft.targetFamily)
+          throw new Error("Choose this household before assigning its family.");
+        if (member)
+          next = assignFamily(
+            next,
+            member.id,
+            draft.targetFamily || undefined,
+            today(),
+            crypto.randomUUID(),
+          );
+      } catch (caught) {
+        setError((caught as Error).message);
+        return;
+      }
+    }
     if (module === "households" && draft.headId) {
       const existing = memberships.find(
         (item) => item.residentId === draft.headId,
@@ -271,6 +339,7 @@ export function ProfilingPage({ module }: { module: string }) {
     }
     // Temporary form selections are relationships, not duplicated resident fields.
     delete row.targetHousehold;
+    delete row.targetFamily;
     delete row.relationship;
     delete row.headId;
     delete row.unitId;
@@ -278,7 +347,12 @@ export function ProfilingPage({ module }: { module: string }) {
     save(module, row);
     setDraft(null);
     setMessage("Profile updated in this session.");
-    if (!id) navigate(`/${module}/${row.id}`);
+    if (!id)
+      navigate(
+        module === "residents" && returnHousehold
+          ? `/households/${returnHousehold}`
+          : `/${module}/${row.id}`,
+      );
   }
   function confirmAction() {
     try {
@@ -290,8 +364,8 @@ export function ProfilingPage({ module }: { module: string }) {
           : assign(
               state,
               candidate,
-              action === "end" ? null : id!,
-              relationship,
+              null,
+              "Member",
               effective,
               crypto.randomUUID(),
             );
@@ -308,6 +382,22 @@ export function ProfilingPage({ module }: { module: string }) {
       ? [
           { key: "firstName", label: "First name" },
           { key: "surname", label: "Surname" },
+          { key: "middleName", label: "Middle name", optional: true },
+          {
+            key: "lgbtIdentification",
+            label: "LGBT identification (voluntary)",
+            options: ["Not recorded", "Yes", "No", "Prefer not to say"],
+          },
+          {
+            key: "pwdStatus",
+            label: "PWD status",
+            options: ["Not recorded", "Yes", "No", "Prefer not to say"],
+          },
+          {
+            key: "residencyClassification",
+            label: "Residency classification",
+            options: ["Choose classification", "Resident", "Non-resident"],
+          },
           ...catalog.residents.fields
             .filter((field) => field.key !== "name")
             .map((field) =>
@@ -380,6 +470,36 @@ export function ProfilingPage({ module }: { module: string }) {
                   key: "purok",
                   label: "Purok",
                   options: ["Purok 1", "Purok 2", "Purok 3", "Not recorded"],
+                },
+                {
+                  key: "surveyDate",
+                  label: "Survey date",
+                  type: "date",
+                  optional: true,
+                },
+                {
+                  key: "waterSupply",
+                  label: "Water supply",
+                  options: Array.from(
+                    new Set([
+                      "Not recorded",
+                      "Piped water",
+                      "Communal faucet",
+                      "Deep well",
+                      "Shallow well",
+                      "Spring",
+                      "Rainwater",
+                      "Delivered water",
+                      "Bottled / refilling station",
+                      "Other",
+                      ...(draft?.waterSupply ? [draft.waterSupply] : []),
+                    ]),
+                  ),
+                },
+                {
+                  key: "septicTank",
+                  label: "Does this household have a septic tank?",
+                  options: ["Not recorded", "Yes", "None"],
                 },
               ]
             : []),
@@ -457,7 +577,7 @@ export function ProfilingPage({ module }: { module: string }) {
         <p role="alert">Record not found. Return to the directory.</p>
       )}
       {message && <ProfileFeedback message={message} />}
-      {error && <ProfileFeedback message={error} error />}
+      {error && !action && <ProfileFeedback message={error} error />}
       {!id && (
         <section className="panel">
           <div className="registry-section-heading">
@@ -473,13 +593,44 @@ export function ProfilingPage({ module }: { module: string }) {
             </span>
           </div>
           <div className="profile-toolbar">
+            {params.get("category") && (
+              <div role="status">
+                Filtered: {params.get("category")}{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = new URLSearchParams(params);
+                    next.delete("category");
+                    setParams(next);
+                  }}
+                >
+                  Clear category
+                </button>
+              </div>
+            )}
             <label>
               Search {catalog[module].title.toLowerCase()}
               <input
+                placeholder="Name or reference number"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
               />
             </label>
+            {module === "residents" && (
+              <label>
+                Filter by residency
+                <select
+                  value={classificationFilter}
+                  onChange={(event) =>
+                    setClassificationFilter(event.target.value)
+                  }
+                >
+                  <option value="">All classifications</option>
+                  <option value="Resident">Resident</option>
+                  <option value="Non-resident">Non-resident</option>
+                </select>
+              </label>
+            )}
             <label className="archive-filter">
               <input
                 type="checkbox"
@@ -509,6 +660,7 @@ export function ProfilingPage({ module }: { module: string }) {
                     <>
                       <th scope="col">Age</th>
                       <th scope="col">Sex</th>
+                      <th scope="col">Residency</th>
                       <th scope="col">Household</th>
                     </>
                   )}
@@ -545,6 +697,11 @@ export function ProfilingPage({ module }: { module: string }) {
                         <>
                           <td>{ageAt(row.birthdate)}</td>
                           <td>{row.sex}</td>
+                          <td>
+                            <span className="badge">
+                              {row.residencyClassification ?? "Not classified"}
+                            </span>
+                          </td>
                           <td>
                             {member ? (
                               <Link to={`/households/${member.householdId}`}>
@@ -621,21 +778,23 @@ export function ProfilingPage({ module }: { module: string }) {
               </div>
             </div>
           )}
-          {current.archived === "true" ? (
-            <p className="notice">
-              Archived record. Restore it from the directory before active use.
-            </p>
-          ) : (
-            <button
-              className="secondary danger"
-              onClick={() => {
-                setError("");
-                setRemoving(current);
-              }}
-            >
-              Delete {catalog[module].singular}
-            </button>
-          )}
+          {module !== "households" &&
+            (current.archived === "true" ? (
+              <p className="notice">
+                Archived record. Restore it from the directory before active
+                use.
+              </p>
+            ) : (
+              <button
+                className="secondary danger"
+                onClick={() => {
+                  setError("");
+                  setRemoving(current);
+                }}
+              >
+                Delete {catalog[module].singular}
+              </button>
+            ))}
           <h2>
             {module === "households"
               ? "Household information"
@@ -666,41 +825,95 @@ export function ProfilingPage({ module }: { module: string }) {
             </dl>
           )}
           {module === "households" && (
-            <dl className="profile-details household-summary">
-              {[
-                ["Household head", householdHead(current.id)],
-                ["Purok", current.purok ?? "Not recorded"],
-                [
-                  "Housing material",
-                  unitFor(current.id)?.material ?? "Not assigned",
-                ],
-                ["Water source", unitFor(current.id)?.water ?? "Not recorded"],
-                [
-                  "Toilet / CR",
-                  unitFor(current.id)?.sanitation ?? "Not recorded",
-                ],
-                ["Total members", String(householdMembers.length)],
-              ].map(([label, value]) => (
-                <div key={label}>
-                  <dt>{label}</dt>
-                  <dd>{value}</dd>
-                </div>
-              ))}
-              {unitFor(current.id) && (
+            <>
+              <dl className="profile-details household-summary household-quick-facts">
                 <div>
-                  <dt>Physical housing unit</dt>
+                  <dt>Household head</dt>
+                  <dd>{householdHead(current.id)}</dd>
+                </div>
+                <div>
+                  <dt>Members</dt>
+                  <dd>{householdMembers.length}</dd>
+                </div>
+                <div>
+                  <dt>Families</dt>
                   <dd>
-                    <Link to={`/housing/${unitFor(current.id)!.id}`}>
-                      {unitFor(current.id)!.name}
-                    </Link>
+                    {
+                      (state.families ?? []).filter(
+                        (family) => family.householdId === current.id,
+                      ).length
+                    }
                   </dd>
                 </div>
-              )}
-            </dl>
+                <div>
+                  <dt>Purok</dt>
+                  <dd>{current.purok || "Not recorded"}</dd>
+                </div>
+                <div>
+                  <dt>Housing unit</dt>
+                  <dd>
+                    {unitFor(current.id) ? (
+                      <Link to={`/housing/${unitFor(current.id)!.id}`}>
+                        {unitFor(current.id)!.name}
+                      </Link>
+                    ) : (
+                      "Not assigned"
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Status</dt>
+                  <dd>
+                    <span className="badge positive">
+                      {current.status || "Not recorded"}
+                    </span>
+                  </dd>
+                </div>
+              </dl>
+              <details className="household-secondary-panel">
+                <summary>
+                  Water, sanitation & survey details
+                  <span>View household and housing observations</span>
+                </summary>
+                <dl className="profile-details household-summary">
+                  {[
+                    ["Survey date", current.surveyDate || "Not recorded"],
+                    ["Water supply", current.waterSupply || "Not recorded"],
+                    ["Septic tank", current.septicTank || "Not recorded"],
+                    [
+                      "Housing material",
+                      unitFor(current.id)?.material || "Not recorded",
+                    ],
+                    [
+                      "Water source",
+                      unitFor(current.id)?.water || "Not recorded",
+                    ],
+                    [
+                      "Toilet / CR",
+                      unitFor(current.id)?.sanitation || "Not recorded",
+                    ],
+                  ].map(([label, value]) => (
+                    <div key={label}>
+                      <dt>{label}</dt>
+                      <dd>{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </details>
+            </>
           )}
           {module === "residents" && (
             <>
               <p>Age: {ageAt(current.birthdate)}</p>
+              <p>
+                Age groups:{" "}
+                {ageGroups(current.birthdate, today()).join(", ") ||
+                  "No listed age group / birthdate unavailable"}
+              </p>
+              <p>
+                Residency classification:{" "}
+                {current.residencyClassification ?? "Not classified"}
+              </p>
               <h3>Household memberships</h3>
               {state.memberships
                 .filter((item) => item.residentId === id)
@@ -723,118 +936,142 @@ export function ProfilingPage({ module }: { module: string }) {
       )}
       {current && module === "households" && (
         <>
-          <section className="panel">
-            <h2>Household members ({householdMembers.length})</h2>
-            <p>
-              Head:{" "}
-              {records.residents.find(
-                (row) =>
-                  row.id ===
-                  householdMembers.find((item) => item.head)?.residentId,
-              )?.name ?? "Unassigned"}
-            </p>
-            <div className="button-row">
-              <Link to={`/residents?household=${id}`}>
-                Register a new resident
-              </Link>
-            </div>
-            <label>
-              Existing resident
-              <select
-                value={candidate}
-                onChange={(event) => setCandidate(event.target.value)}
-              >
-                <option value="">Choose a resident</option>
-                {sorted(records.residents)
-                  .filter((row) => row.archived !== "true")
-                  .map((row) => (
-                    <option key={row.id} value={row.id}>
-                      {display(row)}
-                    </option>
-                  ))}
-              </select>
-            </label>
-            <label>
-              Relationship
-              <input
-                value={relationship}
-                onChange={(event) => setRelationship(event.target.value)}
-              />
-            </label>
-            <button
-              disabled={
-                !candidate ||
-                householdMembers.some((item) => item.residentId === candidate)
-              }
-              onClick={() => {
-                setError("");
-                setAction("assign");
-              }}
-            >
-              Assign / transfer resident
-            </button>
-            {householdMembers.map((item) => {
-              const person = records.residents.find(
-                (row) => row.id === item.residentId,
-              );
-              return (
-                <div className="quality-row" key={item.id}>
-                  <Link to={`/residents/${item.residentId}?household=${id}`}>
-                    <strong>
-                      {person ? display(person) : "Unknown resident"}
-                    </strong>
-                    <small>
-                      {item.head ? "Head" : item.relationship} ·{" "}
-                      {person ? ageAt(person.birthdate) : "—"} years
-                    </small>
-                  </Link>
-                  <div className="profile-actions">
-                    <Link to={`/residents/${item.residentId}?household=${id}`}>
-                      View
-                    </Link>
-                    <Link
-                      to={`/residents/${item.residentId}?household=${id}&edit=1`}
-                    >
-                      Edit
-                    </Link>
-                    <button
-                      className="text-button"
-                      onClick={() => {
-                        setCandidate(item.residentId);
-                        setAction("head");
-                      }}
-                    >
-                      Select head
-                    </button>
-                    <button
-                      className="secondary"
-                      onClick={() => {
-                        setCandidate(item.residentId);
-                        setAction("end");
-                      }}
-                    >
-                      Unassign
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </section>
-          <section className="panel">
-            <h2>Membership history</h2>
-            {state.memberships
-              .filter((item) => item.householdId === id)
-              .map((item) => (
-                <p key={item.id}>
-                  {
-                    records.residents.find((row) => row.id === item.residentId)
-                      ?.name
-                  }{" "}
-                  · {item.head ? "Head" : item.relationship} · {item.start} →{" "}
-                  {item.end ?? "Current"}
+          <HouseholdMembers
+            key={current.id}
+            householdId={current.id}
+            residents={records.residents}
+            households={records.households}
+            state={state}
+            date={today()}
+            archived={current.archived === "true"}
+            update={(next, notice) => {
+              change(next);
+              setMessage(notice);
+              setError("");
+            }}
+            onAction={(nextAction, residentId) => {
+              setCandidate(residentId);
+              setEffective(today());
+              setError("");
+              setAction(nextAction);
+            }}
+          />
+          <details className="panel household-secondary-panel">
+            <summary>
+              Age-group summary<span>View age counts for current members</span>
+            </summary>{" "}
+            {module === "households" && (
+              <section aria-label="Household demographic summary">
+                <h3>Household demographic summary</h3>
+                <p>
+                  Current members only. Age bands are mutually exclusive;
+                  birthdates determine the counts.
                 </p>
-              ))}
-          </section>
+                <dl className="profile-details">
+                  {AGE_GROUPS.map(({ label }) => label).map((group) => (
+                    <div key={group}>
+                      <dt>{group}</dt>
+                      <dd>
+                        {
+                          householdMembers.filter((member) => {
+                            const person = records.residents.find(
+                              (row) => row.id === member.residentId,
+                            );
+                            return (
+                              person &&
+                              ageGroups(person.birthdate, today()).includes(
+                                group,
+                              )
+                            );
+                          }).length
+                        }
+                      </dd>
+                    </div>
+                  ))}
+                  <div>
+                    <dt>Birthdate missing</dt>
+                    <dd>
+                      {
+                        householdMembers.filter(
+                          (member) =>
+                            !records.residents.find(
+                              (row) => row.id === member.residentId,
+                            )?.birthdate,
+                        ).length
+                      }
+                    </dd>
+                  </div>
+                </dl>
+              </section>
+            )}
+          </details>
+          <details className="panel household-secondary-panel">
+            <summary>
+              Membership history
+              <span>View family changes and previous assignments</span>
+            </summary>
+            <div className="table-scroll">
+              <table>
+                <caption className="sr-only">
+                  Household membership history
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Member</th>
+                    <th scope="col">Relationship</th>
+                    <th scope="col">Family</th>
+                    <th scope="col">From</th>
+                    <th scope="col">Until</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {state.memberships
+                    .filter((item) => item.householdId === id)
+                    .map((item) => (
+                      <tr key={item.id}>
+                        <td>
+                          {records.residents.find(
+                            (row) => row.id === item.residentId,
+                          )?.name ?? "Person unavailable"}
+                        </td>
+                        <td>{item.head ? "Head" : item.relationship}</td>
+                        <td>
+                          {state.families?.find(
+                            (family) => family.id === item.familyId,
+                          )?.label ?? "Not assigned"}
+                        </td>
+                        <td>{item.start}</td>
+                        <td>{item.end ?? "Current"}</td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
+          <details className="panel household-secondary-panel household-record-actions">
+            <summary>
+              Household actions<span>Archive this household</span>
+            </summary>
+            {current.archived === "true" ? (
+              <p className="notice">This household is archived.</p>
+            ) : (
+              <>
+                <p className="muted">
+                  Active members must be transferred or unassigned before
+                  archival. History is retained.
+                </p>
+                <button
+                  className="secondary danger"
+                  onClick={() => {
+                    setError("");
+                    setRemoving(current);
+                  }}
+                >
+                  Archive household
+                </button>
+              </>
+            )}
+          </details>
         </>
       )}
       {current && ["households", "housing"].includes(module) && (
@@ -885,34 +1122,59 @@ export function ProfilingPage({ module }: { module: string }) {
         </section>
       )}
       {action && (
-        <section className="panel">
-          <h2>
-            Confirm{" "}
-            {action === "assign"
-              ? "assignment / transfer"
-              : action === "head"
-                ? "head selection"
-                : "unassignment"}
-          </h2>
-          <p>
-            {records.residents.find((row) => row.id === candidate)?.name}.
-            Current membership segments will be retained. A transferring head
-            leaves the previous household without a head.
+        <ProfileDialog
+          title={
+            action === "head"
+              ? "Change household head"
+              : "Remove household member"
+          }
+          close={() => setAction(null)}
+        >
+          <p>{records.residents.find((row) => row.id === candidate)?.name}</p>
+          <p className="form-intro">
+            {action === "head"
+              ? "This person will become the household head. The previous head remains a household member."
+              : "This ends the person's membership in this household. Their resident profile remains available."}{" "}
+            Previous assignments stay in history.
           </p>
-          <label>
-            Effective date
-            <input
-              type="date"
-              value={effective}
-              max={today()}
-              onChange={(event) => setEffective(event.target.value)}
-            />
-          </label>
-          <button onClick={confirmAction}>Confirm change</button>
-          <button className="secondary" onClick={() => setAction(null)}>
-            Cancel
-          </button>
-        </section>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              confirmAction();
+            }}
+          >
+            <label>
+              Effective date
+              <input
+                required
+                type="date"
+                value={effective}
+                max={today()}
+                onChange={(event) => setEffective(event.target.value)}
+              />
+            </label>
+            {error && (
+              <p role="alert" className="error">
+                {error}
+              </p>
+            )}
+            <div className="profile-form-actions">
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => setAction(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className={action === "end" ? "danger" : undefined}
+              >
+                Confirm change
+              </button>
+            </div>
+          </form>
+        </ProfileDialog>
       )}
       {draft && (
         <ProfileDialog
@@ -924,24 +1186,59 @@ export function ProfilingPage({ module }: { module: string }) {
             before saving.
           </p>
           <form onSubmit={submit}>
+            {module === "residents" && draft.birthdate && (
+              <div className="notice" role="status">
+                Calculated age: {ageAt(draft.birthdate)} years. Age groups:{" "}
+                {ageGroups(draft.birthdate, today()).join(", ") ||
+                  "No listed age group"}
+                . Calculated automatically from birthdate.
+              </div>
+            )}
             <div className="form-grid">
               {fields.map((field) => (
                 <label key={field.key}>
                   {field.label}
                   {"options" in field && field.options ? (
                     <select
-                      value={draft[field.key] ?? field.options[0]}
+                      required={!("optional" in field && field.optional)}
+                      aria-label={field.label}
+                      value={
+                        draft[field.key] ??
+                        (field.key === "residencyClassification"
+                          ? ""
+                          : field.options[0])
+                      }
+                      aria-describedby={
+                        field.key === "residencyClassification"
+                          ? "residency-requirement"
+                          : undefined
+                      }
                       onChange={(event) =>
                         setDraft({ ...draft, [field.key]: event.target.value })
                       }
                     >
                       {field.options.map((option) => (
-                        <option key={option}>{option}</option>
+                        <option
+                          key={option}
+                          value={
+                            option === "Choose classification" ? "" : option
+                          }
+                        >
+                          {option}
+                        </option>
                       ))}
                     </select>
+                  ) : field.key === "birthdate" ? (
+                    <BirthdateInput
+                      value={draft.birthdate ?? ""}
+                      max={today()}
+                      onChange={(value) =>
+                        setDraft({ ...draft, birthdate: value })
+                      }
+                    />
                   ) : (
                     <input
-                      required
+                      required={!("optional" in field && field.optional)}
                       type={"type" in field ? field.type : "text"}
                       maxLength={150}
                       value={draft[field.key] ?? ""}
@@ -949,6 +1246,11 @@ export function ProfilingPage({ module }: { module: string }) {
                         setDraft({ ...draft, [field.key]: event.target.value })
                       }
                     />
+                  )}
+                  {field.key === "residencyClassification" && (
+                    <small id="residency-requirement">
+                      Required. Choose Resident or Non-resident before saving.
+                    </small>
                   )}
                 </label>
               ))}
@@ -967,6 +1269,7 @@ export function ProfilingPage({ module }: { module: string }) {
                         setDraft({
                           ...draft,
                           targetHousehold: event.target.value,
+                          targetFamily: "",
                         })
                       }
                     >
@@ -976,6 +1279,36 @@ export function ProfilingPage({ module }: { module: string }) {
                         .map((row) => (
                           <option key={row.id} value={row.id}>
                             {row.name}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                  <label>
+                    Family
+                    <select
+                      value={
+                        draft.targetFamily ??
+                        memberships.find((item) => item.residentId === draft.id)
+                          ?.familyId ??
+                        ""
+                      }
+                      onChange={(event) =>
+                        setDraft({ ...draft, targetFamily: event.target.value })
+                      }
+                    >
+                      <option value="">Not assigned to a family</option>
+                      {(state.families ?? [])
+                        .filter(
+                          (family) =>
+                            family.householdId ===
+                            (draft.targetHousehold ||
+                              memberships.find(
+                                (item) => item.residentId === draft.id,
+                              )?.householdId),
+                        )
+                        .map((family) => (
+                          <option key={family.id} value={family.id}>
+                            {family.label}
                           </option>
                         ))}
                     </select>
