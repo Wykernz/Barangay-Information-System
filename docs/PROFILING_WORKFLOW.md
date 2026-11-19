@@ -20,6 +20,13 @@ profiles retain a household return link.
 
 ## Household and housing workflow
 
+The 2026-11-19 household usability update is documented in
+[HOUSEHOLD_UI.md](HOUSEHOLD_UI.md), including how to add a second family and its
+members. Family cards and a searchable member list replace inline family dropdowns
+and crowded per-person actions. New-person registration preserves household/family
+context and returns to the household on save. Family and membership history remain
+available; less-used summary sections are expandable.
+
 Registry shows head, purok, member count and housing material. Details summarize
 head, purok, housing, water, toilet/CR and members. Add/edit selects eligible heads
 and separate housing units. Assignment/transfer/unassignment and head changes use

@@ -71,3 +71,55 @@ Each resolved item records decision date, accountable approver, chosen option,
 rationale, consequences, and superseded decision. High-risk privacy, legal, GIS,
 and security decisions require their specialist owner, not only the software team.
 
+
+2026-11-19 user authorized removing the missing-birthdate indicator from Overview and simplifying birthday entry. Keep birthdate mandatory; provide direct month/day/year entry without changing stored dates or backend rules.
+
+2026-11-19 user approved mutually exclusive age groups: Early Childhood (0–5 years); Children (6–12 years); Teenagers / Adolescents (13–17 years); Young Adults (18–24 years); Adults (25–34 years); Middle Adults (35–44 years); Older Adults (45–59 years); Senior Citizens (60–74 years). Ages 75+ await a user-supplied classification. Derive completed years from birthdate at the reporting date; separate senior status remains 60+. Synthetic preview only (PRO-002, ANA-001..002); no schema change.
+
+2026-11-19 user requested a single birthdate control with directly editable year. Remove the duplicate native date picker; retain month/day selectors and a four-digit typed year with required, calendar and future-date validation. No stored dates or schema changes (PRO-002, NFR-ACC).
+
+2026-11-19 household usability increment: user requested clearer family creation
+and member management, including a second family and its members. Keep families
+within one household; a person has at most one current family there. Use family
+cards, explicit member selection, a searchable member list and focused dialogs.
+Offer existing-person assignment and new-person registration with household/family
+context. Reassignment retains membership history and household-head status; no
+family head is inferred. This remains the authorized synthetic session preview.
+
+Family grouping increment: user authorized families within a household. Groups
+have an internal ID, household ID and staff-entered label. A current household
+member may be unassigned or belong to one family group in that household;
+reassignment supersedes the membership segment to retain history. No family
+head is inferred. This increment remains a synthetic session preview.
+
+2026-11-17 household simplification: remove municipality, barangay and interviewer
+from manual household entry/display. Septic tank is a separate Yes/None/Not
+recorded observation; no automatic conversion from previous toilet categories.
+Multiple families within a household: proposed family-group child entity with
+dated person memberships. Household and physical housing unit remain separate;
+family heads would not replace the household head. Family grouping is implemented in the synthetic preview described in HOUSEHOLD_UI.md.
+
+2026-11-17 requested capture extension: residency classification, household survey
+header, demographics, water and sanitation. Current restored profile UI uses
+session-only synthetic records. Health symptoms, pregnancy categories, family
+planning, NHTS identifiers and insurance details require explicit sensitive-data
+permissions and agreed field definitions before operational capture. Age and
+senior status must be derived from birthdate, never maintained separately.
+
+2026-11-17 scope update: Field Planner, Office Services and Staff & Access are
+removed from active workspace navigation and routes at the user's request.
+Backend form definitions, authentication, health-role controls and dormant source
+remain intact. This does not remove real accounts or their permissions.
+
+2026-11-17 scope update: user deferred appointments and complaints to focus on
+profiling. Remove their active routes, navigation, overview and report metrics.
+Retain dormant fixtures and historical requirements; no operational data deletion.
+
+2026-11-17 user requested optional LGBT identification, PWD status and overview
+counts. Synthetic preview uses separate voluntary identification and sex fields;
+blank/declined answers remain unknown. Health and complaint counts cannot be
+inferred from fixture names or treated as zero when unavailable. Production
+identity/disability collection and aggregate visibility require explicit access
+controls. Complaint counts mean cases filed by the person, not accusations.
+
+2026-11-19 user authorized a professional UI/UX refresh of the existing staff interface (NFR-ACC / NFR-MNT). Use a consistent slate/teal palette, local system fonts, icon navigation with text labels, responsive summary cards and readable tables/forms. Preserve existing routes, validation, permissions and synthetic-data boundaries. No external assets or new runtime dependencies; visual choices are reversible implementation details.

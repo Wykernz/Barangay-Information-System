@@ -1,6 +1,18 @@
 # Staff frontend review
 
-feature/adrian-setup
+The shared staff interface refresh is documented in [UI_REFRESH.md](UI_REFRESH.md).
+The overview uses classified active-resident counts, the approved age groups and
+linked category filters. The missing-birthdate card and deferred appointment/case
+metrics are removed. A locally served neutral emblem is a replaceable placeholder,
+not an official barangay seal. Runtime fonts and icons require no internet.
+
+Household family cards, member management and contextual registration are
+documented in [HOUSEHOLD_UI.md](HOUSEHOLD_UI.md). Birthdates use a single
+month/day/year control with a typed year; age groups follow [AGE_GROUPS.md](AGE_GROUPS.md).
+Resident classification, optional middle name and voluntary demographic fields
+are part of this synthetic preview. Profiles and relationship history remain in
+session memory and reset on reload/sign-out.
+
 ## Backend-persisted field planner
 
 `/data-capture` is a real Django-backed workshop workspace for versioned resident,
@@ -18,7 +30,6 @@ responsibilities. The workspace banner distinguishes this persistent planner
 from the synthetic in-memory module previews.
 
 ## Synthetic module previews
-=======
 Current handoff: FRONTEND_CHANGELOG.md and PROFILING_WORKFLOW.md consolidate the
 current implementation. Historical descriptions below predate survey deferral,
 connected profiling screens and final operational UI wording.
@@ -35,7 +46,6 @@ new runtime dependency. See PROFILING_WORKFLOW.md for validation and limitations
 
 Profiling routes now use dedicated connected profiles and relationship history.
 See PROFILING_WORKFLOW.md and PROFILING_API_CONTRACT.md for scope and handoff.
- feature/adrian-setup
 
 The authenticated staff workspace now contains frontend previews for resident,
 household, housing, survey, appointment, case, service, and staff directories;

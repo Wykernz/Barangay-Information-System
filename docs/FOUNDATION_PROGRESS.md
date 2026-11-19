@@ -32,6 +32,22 @@ integration, browser E2E, full authorization workflows, and spatial checks were
 not executed. The field planner still needs the documented PostgreSQL `.env`,
 migrations, and an appropriately permitted staff account.
 
+## Explicit session schema and backend revalidation
+
+Declared the authenticated session response for drf-spectacular so the generated
+OpenAPI document no longer omits `/api/v1/session/`. This is documentation of the
+existing username-only response; it does not add fields, permissions, or domain
+behavior. A database-independent regression test verifies the response component.
+
+Revalidation on 2026-11-16 reached the configured PostgreSQL server. Migration
+drift check reported no changes. The full backend suite could not create its
+isolated `test_bims_dev` database because the application role intentionally lacks
+`CREATEDB`; all ten database tests therefore stopped during setup. Provision a
+separate authorized test database/role or temporarily grant the documented test
+capability before treating the suite as executed evidence. Deployment checks also
+retain the expected local-development HTTPS, secure-cookie, HSTS, and DEBUG
+warnings; production values remain a deployment decision.
+
 ## Frontend module prototype
 
 Added responsive authenticated navigation, a derived dashboard, searchable editable

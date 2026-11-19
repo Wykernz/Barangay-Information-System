@@ -15,10 +15,6 @@ export default function Reports() {
       "Unverified residents",
       records.residents.filter((row) => row.status === "Unverified").length,
     ],
-    [
-      "Pending appointments",
-      records.appointments.filter((row) => row.status === "Pending").length,
-    ],
   ];
   function download() {
     // Only fixed aggregate names and numeric demo counts leave the browser.
@@ -46,7 +42,7 @@ export default function Reports() {
           <p className="eyebrow">REPORTING</p>
           <h1>Reports & summaries</h1>
           <p className="muted">
-            Review resident, household, housing, and service activity totals.
+            Review resident, household, and housing totals.
           </p>
         </div>
         <button onClick={download}>Download summary CSV</button>

@@ -1,5 +1,10 @@
 import { expect, test } from "vitest";
-import { assign, initialRelationships, selectHead } from "./model";
+import {
+  assign,
+  assignFamily,
+  initialRelationships,
+  selectHead,
+} from "./model";
 
 test("transfer preserves history and only one current demo membership", () => {
   const initial = initialRelationships();
@@ -69,4 +74,93 @@ test("cannot backdate before current membership", () => {
       "new",
     ),
   ).toThrow("precedes");
+});
+
+test("family reassignment retains the head, history and one current membership", () => {
+  const state = {
+    ...initialRelationships(),
+    families: [
+      { id: "a", householdId: "DEMO-H001", label: "Synthetic A" },
+      { id: "b", householdId: "DEMO-H001", label: "Synthetic B" },
+      { id: "other", householdId: "DEMO-H002", label: "Other household" },
+    ],
+  };
+  const first = assignFamily(state, "DEMO-M1", "a", "2026-11-19", "family-a");
+  const second = assignFamily(first, "family-a", "b", "2026-11-19", "family-b");
+  expect(
+    second.memberships.filter(
+      (member) => !member.end && member.residentId === "DEMO-R001",
+    ),
+  ).toEqual([
+    expect.objectContaining({
+      familyId: "b",
+      head: true,
+      householdId: "DEMO-H001",
+    }),
+  ]);
+  expect(
+    second.memberships.find((member) => member.id === "family-a"),
+  ).toMatchObject({ familyId: "a", end: "2026-11-19" });
+  expect(state.memberships[0].end).toBeNull();
+  expect(() =>
+    assignFamily(second, "family-b", "other", "2026-11-19", "invalid"),
+  ).toThrow("in this household");
+  expect(() =>
+    assignFamily(second, "family-b", "a", "2026-01-01", "invalid"),
+  ).toThrow("precede");
+  expect(() =>
+    assignFamily(second, "DEMO-M1", "a", "2026-11-19", "invalid"),
+  ).toThrow("current household member");
+});
+
+test("relationship edits retain a family while household transfers clear it", () => {
+  const initial = {
+    ...initialRelationships(),
+    families: [{ id: "a", householdId: "DEMO-H001", label: "Synthetic A" }],
+  };
+  const grouped = assignFamily(
+    initial,
+    "DEMO-M2",
+    "a",
+    "2026-11-19",
+    "grouped",
+  );
+  const edited = assign(
+    grouped,
+    "DEMO-R002",
+    "DEMO-H001",
+    "Sibling",
+    "2026-11-19",
+    "edited",
+  );
+  expect(
+    edited.memberships.find((member) => member.id === "edited")?.familyId,
+  ).toBe("a");
+  const transferred = assign(
+    edited,
+    "DEMO-R002",
+    "DEMO-H002",
+    "Member",
+    "2026-11-19",
+    "transferred",
+  );
+  expect(
+    transferred.memberships.find((member) => member.id === "transferred")
+      ?.familyId,
+  ).toBeUndefined();
+  const ungrouped = assignFamily(
+    edited,
+    "edited",
+    undefined,
+    "2026-11-19",
+    "ungrouped",
+  );
+  expect(
+    ungrouped.memberships.filter(
+      (member) => !member.end && member.householdId === "DEMO-H001",
+    ),
+  ).toHaveLength(3);
+  expect(
+    ungrouped.memberships.find((member) => member.id === "ungrouped")?.familyId,
+  ).toBeUndefined();
 });
