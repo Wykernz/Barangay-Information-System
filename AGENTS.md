@@ -24,7 +24,9 @@ activation is not field, privacy, legal, or GIS approval.
   administrative role.
 - PostgreSQL/PostGIS is authoritative. Do not expose it or the application
   server directly to the public internet.
-- LAN operation must not depend on an internet service or CDN.
+- Target online use by authorized staff only (user confirmed 2026-11-20).
+  Serve production through HTTPS ingress; keep database/private storage private.
+  Offline operation is optional. Localhost commands are development only.
 - Record unresolved choices in `docs/DECISIONS.md` before coding assumptions.
 
 ## Intended architecture

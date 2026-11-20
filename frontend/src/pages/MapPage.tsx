@@ -3,6 +3,12 @@ import { Link, useSearchParams } from "react-router-dom";
 import type { GeoJsonObject } from "geojson";
 import axios from "axios";
 import GeographicMap from "../features/gis/GeographicMap";
+import HouseNumberEditor from "../features/gis/HouseNumberEditor";
+import Directions from "../features/gis/Directions";
+import {
+  HazardLayerControls,
+  useHazardLayers,
+} from "../features/gis/HazardLayers";
 import {
   gisApi,
   householdUrl,
@@ -22,6 +28,7 @@ type Boundary = GeoJsonObject & {
 };
 
 export default function MapPage() {
+  const hazards = useHazardLayers();
   const [params, setParams] = useSearchParams();
   const [configuration, setConfiguration] = useState<MapConfiguration | null>(
     null,
@@ -30,6 +37,8 @@ export default function MapPage() {
   const [boundary, setBoundary] = useState<Boundary | null>(null);
   const [boundaryFocus, setBoundaryFocus] = useState(0);
   const [boundaryError, setBoundaryError] = useState("");
+  const [configurationError, setConfigurationError] = useState("");
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [providerId, setProviderId] = useState("street");
@@ -55,10 +64,16 @@ export default function MapPage() {
   const [unmapped, setUnmapped] = useState(false);
   useEffect(() => {
     let active = true;
+    let configured = false;
+    setConfigurationError("");
+    setBoundaryError("");
+    setError("");
     gisApi
       .config()
       .then((config) => {
+        configured = true;
         if (active) setConfiguration(config);
+        if (active) setProviderId(config.default_provider ?? "street");
         return fetch(config.boundary_url);
       })
       .then(async (response) => {
@@ -72,11 +87,22 @@ export default function MapPage() {
         }
         if (active) setBoundary(data);
       })
-      .catch(() => {
-        if (active)
-          setBoundaryError(
-            "Map configuration or boundary unavailable. No boundary has been inferred.",
+      .catch((failure: unknown) => {
+        if (!active) return;
+        if (!configured) {
+          const status = axios.isAxiosError(failure)
+            ? failure.response?.status
+            : undefined;
+          setConfigurationError(
+            status === 404
+              ? "The running backend does not have the GIS endpoints. Restart the backend, then retry the map."
+              : "Cannot load the map service. Check your connection and sign-in, then retry the map.",
           );
+        } else {
+          setBoundaryError(
+            "Boundary unavailable. No boundary has been inferred.",
+          );
+        }
       });
     gisApi
       .households()
@@ -92,7 +118,7 @@ export default function MapPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [loadAttempt]);
   useEffect(() => {
     setEditing(false);
     setDraft(null);
@@ -147,12 +173,50 @@ export default function MapPage() {
         </p>
       )}
       {message && <p role="status">{message}</p>}
-      {!configuration && !boundaryError && (
+      {configurationError && (
+        <section className="panel" role="alert">
+          <p>{configurationError}</p>
+          {import.meta.env.DEV && (
+            <pre>
+              <code>
+                {
+                  ".\\scripts\\python.cmd scripts/dev.py runserver 127.0.0.1:8000"
+                }
+              </code>
+            </pre>
+          )}
+          <button onClick={() => setLoadAttempt((attempt) => attempt + 1)}>
+            Retry map
+          </button>
+        </section>
+      )}
+      {!configuration && !configurationError && !boundaryError && (
         <p role="status">Loading map configuration…</p>
       )}
       {boundaryError && <p role="status">{boundaryError}</p>}
       {configuration && (
         <section className="panel">
+          <details className="assignment-guide">
+            <summary>How to assign a house</summary>
+            <ol>
+              <li>Select a database household from the map directory.</li>
+              <li>
+                Use Assign house number to record its existing number.
+                Households sharing a house share its number.
+              </li>
+              <li>
+                Choose Set house location, click the actual house and adjust the
+                pin, then save with a location source.
+              </li>
+            </ol>
+            <p>
+              Pin saving requires GIS storage and location permissions. If no
+              housing unit is assigned, link the household to its housing unit
+              first. Sample profiling records are separate from database
+              households.
+            </p>
+          </details>
+          <HazardLayerControls state={hazards} />
           <div className="toolbar">
             {boundary && (
               <button
@@ -172,9 +236,15 @@ export default function MapPage() {
                 }}
               >
                 {configuration.providers.map((item) => (
-                  <option key={item.id} value={item.id}>
+                  <option
+                    key={item.id}
+                    value={item.id}
+                    disabled={item.available === false}
+                  >
                     {item.label}
-                    {item.url ? "" : " — setup required"}
+                    {item.url || (item.engine === "esri" && item.available)
+                      ? ""
+                      : " — setup required"}
                   </option>
                 ))}
               </select>
@@ -185,14 +255,40 @@ export default function MapPage() {
                 : "Online tiles — internet required"}
             </span>
           </div>
-          {!provider?.url && (
+          {configuration.providers.some(
+            (item) => item.id === "hybrid" && item.available === false,
+          ) && (
+            <p role="status">
+              Hybrid imagery and labels are ready for setup. An administrator
+              must configure a licensed ArcGIS browser key; the street map
+              remains available.
+            </p>
+          )}
+          {!provider?.url && provider?.engine !== "esri" && (
             <p role="status">
               Satellite tiles require a licensed provider or licensed local tile
               package. Ask your administrator to configure this layer.
             </p>
           )}
           {provider?.note && <p role="status">{provider.note}</p>}
-          {tileError && (
+          {tileError && provider?.engine === "esri" && (
+            <div role="alert">
+              <p>
+                Hybrid could not load. Check the ArcGIS key's validity,
+                expiration, basemap permissions and allowed website settings.
+              </p>
+              <button
+                className="secondary"
+                onClick={() => {
+                  setProviderId("street");
+                  setTileError(false);
+                }}
+              >
+                Use Street map
+              </button>
+            </div>
+          )}
+          {tileError && provider?.engine !== "esri" && (
             <p role="status">
               Some tiles could not load. Check connectivity, provider access or
               local coverage.
@@ -229,6 +325,11 @@ export default function MapPage() {
               }
               boundary={boundary}
               boundaryFocus={boundaryFocus}
+              hazard={
+                hazards.data && hazards.selected
+                  ? { data: hazards.data, layer: hazards.selected }
+                  : null
+              }
               onSelect={select}
               onPosition={setDraft}
               onTileError={() => setTileError(true)}
@@ -248,6 +349,26 @@ export default function MapPage() {
                 <>
                   <h2>{selected.label}</h2>
                   <p>{selected.reference}</p>
+                  {configuration.can_number_houses && selected.housing_unit ? (
+                    <HouseNumberEditor
+                      key={selected.housing_unit}
+                      unitId={selected.housing_unit}
+                      number={selected.house_number ?? ""}
+                      onSaved={(number) =>
+                        setHouseholds((rows) =>
+                          rows.map((row) =>
+                            row.housing_unit === selected.housing_unit
+                              ? { ...row, house_number: number }
+                              : row,
+                          ),
+                        )
+                      }
+                    />
+                  ) : (
+                    <p>
+                      House number: {selected.house_number || "Not numbered"}
+                    </p>
+                  )}
                   <p>
                     Housing unit: {selected.housing_label ?? "Not assigned"}
                   </p>
@@ -267,6 +388,7 @@ export default function MapPage() {
                   <Link to={householdUrl(selected.id)}>
                     View household details
                   </Link>
+                  <Directions location={selected.location} />
                   {households
                     .filter(
                       (row) =>
@@ -308,6 +430,22 @@ export default function MapPage() {
                       >
                         Set house location
                       </button>
+                    )}
+                  {!configuration.can_edit &&
+                    configuration.can_number_houses &&
+                    selected.housing_unit &&
+                    selected.is_active &&
+                    !selected.occupancy_conflict && (
+                      <div>
+                        <button className="secondary" disabled>
+                          Set house location
+                        </button>
+                        <p role="status">
+                          {!configuration.gis_enabled
+                            ? "Location saving is not configured on this server. Complete the one-time PostGIS setup first. After that, the admin can place and save house pins here without changing code."
+                            : "Your account needs location capture and correction permissions to assign this house."}
+                        </p>
+                      </div>
                     )}
                   {editing && (
                     <form

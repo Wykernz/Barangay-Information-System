@@ -6,6 +6,8 @@ import {
   householdUrl,
   type MapHousehold,
 } from "./api";
+import HouseNumberEditor from "./HouseNumberEditor";
+import Directions from "./Directions";
 
 export function DatabaseHouseholdDirectory() {
   const [rows, setRows] = useState<MapHousehold[]>([]);
@@ -54,11 +56,20 @@ export function DatabaseHouseholdDirectory() {
 export function DatabaseHouseholdDetail() {
   const { id = "" } = useParams();
   const [row, setRow] = useState<MapHousehold | null>(null);
+  const [canNumber, setCanNumber] = useState(false);
   const [error, setError] = useState("");
   useEffect(() => {
     let active = true;
     setRow(null);
     setError("");
+    gisApi
+      .config()
+      .then((config) => {
+        if (active) setCanNumber(!!config.can_number_houses);
+      })
+      .catch(() => {
+        if (active) setCanNumber(false);
+      });
     gisApi
       .household(id)
       .then((value) => {
@@ -114,9 +125,24 @@ export function DatabaseHouseholdDetail() {
               Multiple current housing assignments need review.
             </p>
           )}
+          {canNumber && row.housing_unit ? (
+            <HouseNumberEditor
+              key={row.housing_unit}
+              unitId={row.housing_unit}
+              number={row.house_number ?? ""}
+              onSaved={(number) =>
+                setRow((current) =>
+                  current ? { ...current, house_number: number } : current,
+                )
+              }
+            />
+          ) : (
+            <p>House number: {row.house_number || "Not numbered"}</p>
+          )}
           <Link className="button" to={householdMapUrl(row.id)}>
             View on Map
           </Link>
+          <Directions location={row.location} />
         </section>
       )}
     </>

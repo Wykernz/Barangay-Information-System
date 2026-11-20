@@ -54,6 +54,7 @@ class MapHouseholdOutput(serializers.Serializer):
     is_active = serializers.BooleanField()
     housing_unit = serializers.UUIDField(allow_null=True)
     housing_label = serializers.CharField(allow_null=True)
+    house_number = serializers.CharField(allow_blank=True)
     occupancy_conflict = serializers.BooleanField()
     location = MapPointOutput(allow_null=True)
 
@@ -111,6 +112,7 @@ def household_map_row(household: Household) -> dict:
         "is_active": household.is_active,
         "housing_unit": str(occupancy.housing_unit_id) if occupancy else None,
         "housing_label": occupancy.housing_unit.label if occupancy else None,
+        "house_number": occupancy.housing_unit.house_number if occupancy else "",
         "occupancy_conflict": len(occupancies) > 1,
         "location": location,
     }
@@ -122,10 +124,12 @@ def household_map_row(household: Household) -> dict:
         fields={
             "gis_enabled": serializers.BooleanField(),
             "can_edit": serializers.BooleanField(),
+            "can_number_houses": serializers.BooleanField(),
             "center": serializers.ListField(child=serializers.FloatField()),
             "zoom": serializers.IntegerField(),
             "providers": serializers.ListField(),
             "boundary_url": serializers.CharField(),
+            "default_provider": serializers.CharField(),
         },
     )
 )
@@ -136,6 +140,14 @@ def configuration(request):
         {
             **map_config(),
             "gis_enabled": settings.GIS_ENABLED,
+            "can_number_houses": request.user.has_perms(
+                [
+                    "households.view_household",
+                    "households.view_householdoccupancy",
+                    "households.view_housingunit",
+                    "households.change_housingunit",
+                ]
+            ),
             "can_edit": settings.GIS_ENABLED
             and request.user.has_perms(
                 [

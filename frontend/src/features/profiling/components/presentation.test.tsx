@@ -11,6 +11,23 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { DemoProvider } from "../../../demo/store";
 import { ProfilingPage, ProfilingProvider } from "../Profiling";
 
+test("sample housing supports optional text house numbers without inventing one", () => {
+  page("/housing/DEMO-U001", "housing");
+  expect(
+    screen.getByText("House number", { selector: "dt" }).nextElementSibling
+      ?.textContent,
+  ).toBe("Not numbered");
+  fireEvent.click(screen.getByRole("button", { name: "Edit details" }));
+  const input = screen.getByLabelText("House number") as HTMLInputElement;
+  expect(input.required).toBe(false);
+  fireEvent.change(input, { target: { value: "12-A" } });
+  fireEvent.click(screen.getByRole("button", { name: "Save profile" }));
+  expect(
+    screen.getByText("House number", { selector: "dt" }).nextElementSibling
+      ?.textContent,
+  ).toBe("12-A");
+});
+
 test.each(["Residential", "Commercial", "Mixed-Use", "Institutional", "Other"])(
   "building use %s saves, displays and reopens without changing occupancy",
   (buildingUse) => {

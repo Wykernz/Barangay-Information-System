@@ -46,6 +46,30 @@ def test_no_bulk_caching_public_osm(monkeypatch):
         map_config()
 
 
+def test_hybrid_without_key_preserves_street_map(monkeypatch):
+    monkeypatch.delenv("GIS_ESRI_BROWSER_KEY", raising=False)
+    config = map_config()
+    hybrid = next(layer for layer in config["providers"] if layer["id"] == "hybrid")
+    assert config["default_provider"] == "street"
+    assert hybrid["available"] is False
+    assert hybrid["access_token"] == ""
+
+
+def test_hybrid_with_browser_key_becomes_default(monkeypatch):
+    monkeypatch.setenv("GIS_ESRI_BROWSER_KEY", "synthetic-test-only")
+    config = map_config()
+    hybrid = next(layer for layer in config["providers"] if layer["id"] == "hybrid")
+    assert config["default_provider"] == "hybrid"
+    assert hybrid["available"] is True
+    assert hybrid["engine"] == "esri"
+
+
+def test_hybrid_rejects_whitespace_in_credential(monkeypatch):
+    monkeypatch.setenv("GIS_ESRI_BROWSER_KEY", "synthetic invalid")
+    with pytest.raises(ImproperlyConfigured, match="browser-scoped"):
+        map_config()
+
+
 def test_offline_requires_licence_and_local_source(monkeypatch):
     monkeypatch.setenv("GIS_STREET_URL", "/api/v1/gis/tiles/street/{z}/{x}/{y}.png")
     monkeypatch.setenv("GIS_STREET_OFFLINE", "true")
@@ -99,6 +123,13 @@ def test_unauthenticated_config_is_denied():
 def test_disabled_gis_cannot_claim_save_success():
     response = household_location(request("post", {}, allowed=True), pk="unused")
     assert response.status_code == 503
+
+
+@override_settings(GIS_ENABLED=False)
+def test_house_number_permission_is_independent_of_native_gis_storage():
+    response = configuration(request(allowed=True))
+    assert response.data["can_number_houses"] is True
+    assert response.data["can_edit"] is False
 
 
 @override_settings(GIS_ENABLED=True)

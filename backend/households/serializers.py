@@ -29,6 +29,7 @@ class HousingUnitSerializer(serializers.ModelSerializer):
             "id",
             "reference",
             "label",
+            "house_number",
             "address_text",
             "is_active",
             "created_at",

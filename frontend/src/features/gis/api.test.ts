@@ -3,6 +3,19 @@ import { api } from "../../api";
 import { gisApi, type MapHousehold } from "./api";
 
 afterEach(() => vi.restoreAllMocks());
+test("house numbering patches only the physical housing unit with a fresh CSRF cookie", async () => {
+  const get = vi.spyOn(api, "get").mockResolvedValue({ data: {} });
+  const patch = vi
+    .spyOn(api, "patch")
+    .mockResolvedValue({ data: { house_number: "12-A" } });
+  expect(await gisApi.numberHouse("synthetic-unit", "12-A")).toEqual({
+    house_number: "12-A",
+  });
+  expect(get).toHaveBeenCalledWith("auth/csrf/");
+  expect(patch).toHaveBeenCalledWith("housing-units/synthetic-unit/", {
+    house_number: "12-A",
+  });
+});
 test("save uses authenticated same-origin API, fresh CSRF and expected house/location", async () => {
   const get = vi.spyOn(api, "get").mockResolvedValue({ data: {} });
   const post = vi

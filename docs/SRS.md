@@ -8,8 +8,9 @@ Scope: One barangay in the Philippines
 
 BIMS will support authorized barangay personnel in maintaining resident,
 household, housing, appointment, complaint, GIS, and operational analytics data.
-It is intended for actual office operations on a local network where internet
-service may be unreliable or absent.
+The target is an online application accessible only to authorized staff (user
+confirmed 2026-11-20). A resident/public portal is not approved. Offline operation
+is optional; production hosting and operational readiness remain separate work.
 
 This draft separates confirmed needs from proposals and open decisions. It is
 not an assertion of legal compliance or production readiness.
@@ -42,14 +43,14 @@ Named owners, approvers, and escalation contacts remain to be assigned.
 - Dashboards derived from consistent authoritative definitions
 - Centralized staff roles, permissions, audit logs, and protected exports
 - Paper/digital data migration staging and quality review
-- LAN deployment that can operate without internet
+- Online HTTPS deployment for authenticated, authorized staff
 
 ### 3.2 Explicitly out of scope until approved
 
 - Public resident portal or self-registration
 - Public appointment booking
 - Payment processing
-- Internet exposure of the local server or database
+- Direct internet exposure of the development server, database or private files
 - Invented mediation rules, legal deadlines, jurisdiction rules, retention periods,
   official boundaries, or real coordinates
 - A PWA as a substitute for an available local application server
@@ -123,8 +124,9 @@ system, not permission to implement before phase approval.
 | GIS-004 | Location corrections shall preserve history rather than overwrite provenance. | Must |
 | GIS-005 | Authorized maps shall filter approved housing, water, and sanitation classifications. | Should |
 | GIS-006 | Geographic statistics shall be aggregated and respect access/small-cell disclosure rules. | Must |
-| GIS-007 | Runtime maps shall work using locally hosted, licensed resources without internet. | Must |
+| GIS-007 | Runtime maps shall use properly licensed online resources; locally hosted/offline tile support is optional under the online staff-only deployment decision of 2026-11-20. | Must |
 | GIS-008 | Development geographic data shall be clearly labeled synthetic and shall not imply official accuracy. | Must |
+| GIS-009 | Flood and fire susceptibility overlays shall use sourced, licensed polygons and original source classifications, with a legend, date and review status. Missing coverage remains unassessed. Static susceptibility must not be presented as live water levels. User authorized 2026-11-20; sources pending. | Must |
 
 ### 4.6 Analytics and data quality
 
@@ -143,7 +145,7 @@ system, not permission to implement before phase approval.
 |---|---|
 | NFR-SEC-001 | Default-deny authorization, least privilege, server-side validation, safe uploads, protected secrets, and dependency/security review shall be used. |
 | NFR-PRI-001 | The project shall support data minimization, purpose/lawful-basis review, privacy notices, access logs, retention/disposal planning, incident response, and PIA preparation; privacy/legal owners must approve them. |
-| NFR-AVL-001 | Staff workflows shall function on the barangay LAN without internet; recovery objectives and availability target remain open. |
+| NFR-AVL-001 | Staff workflows shall be available through an online HTTPS application restricted to authorized staff; recovery objectives and availability targets remain open. Offline operation is optional. |
 | NFR-PER-001 | Performance targets shall be established after device, concurrency, and record-volume discovery. |
 | NFR-ACC-001 | Staff UI shall target WCAG 2.2 AA with keyboard access, programmatic labels, visible focus, and understandable errors. |
 | NFR-MNT-001 | The system shall use modular boundaries, migrations, automated tests, versioned APIs, structured logs, and documented operations. |
@@ -175,7 +177,8 @@ system, not permission to implement before phase approval.
 
 Acceptance is traceable in `REQUIREMENTS_TRACEABILITY.md`. Evidence will include
 unit, API, constraint, permission, frontend, end-to-end, backup restoration, and
-LAN-without-internet tests. No phase is production-ready merely because code or
+online HTTPS/access-control and production recovery tests. Optional offline map
+tests apply only where provisioned. No phase is production-ready merely because code or
 documentation exists.
 
 ## 9. Assumptions and dependencies

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, render, waitFor } from "@testing-library/react";
 import GeographicMap from "./GeographicMap";
 import type { MapConfiguration, MapHousehold } from "./api";
 
@@ -13,8 +13,13 @@ const state = vi.hoisted(() => ({
     draggable: boolean;
   }[],
   tiles: vi.fn(),
+  tooltips: vi.fn(),
+  hybrid: vi.fn(),
+  hybridAdd: vi.fn(),
+  hybridRemove: vi.fn(),
   remove: vi.fn(),
 }));
+vi.mock("./EsriHybrid", () => ({ createHybridLayer: state.hybrid }));
 vi.mock("leaflet", () => {
   const layer = () => ({
     addTo: vi.fn().mockReturnThis(),
@@ -49,6 +54,9 @@ vi.mock("leaflet", () => {
         });
         return {
           addTo: vi.fn().mockReturnThis(),
+          bindTooltip: (...args: unknown[]) => {
+            state.tooltips(...args);
+          },
           on: (event: string, cb: () => void) => {
             events[event] = cb;
           },
@@ -95,6 +103,13 @@ const household: MapHousehold = {
   },
 };
 beforeEach(() => {
+  const hybrid = {
+    addTo: state.hybridAdd,
+    on: vi.fn(),
+    remove: state.hybridRemove,
+  };
+  state.hybridAdd.mockReturnValue(hybrid);
+  state.hybrid.mockResolvedValue(hybrid);
   state.markers.length = 0;
   vi.stubGlobal(
     "ResizeObserver",
@@ -103,6 +118,35 @@ beforeEach(() => {
       disconnect() {}
     },
   );
+});
+
+test("switching from hybrid to street removes both hybrid imagery and labels", async () => {
+  const props = {
+    configuration: config,
+    households: [],
+    selected: undefined,
+    draft: null,
+    editing: false,
+    boundary: null,
+    onSelect: vi.fn(),
+    onPosition: vi.fn(),
+    onTileError: vi.fn(),
+  };
+  const view = render(
+    <GeographicMap
+      {...props}
+      provider={{
+        ...config.providers[0],
+        engine: "esri",
+        available: true,
+        access_token: "synthetic-test-only",
+        url: null,
+      }}
+    />,
+  );
+  await waitFor(() => expect(state.hybridAdd).toHaveBeenCalled());
+  view.rerender(<GeographicMap {...props} provider={config.providers[0]} />);
+  expect(state.hybridRemove).toHaveBeenCalledOnce();
 });
 afterEach(() => {
   cleanup();
@@ -159,4 +203,25 @@ test("map clicking and marker dragging update a draft; readonly map clicks do no
   view.rerender(<GeographicMap {...props} editing={false} />);
   state.events.click({ latlng: { lat: 9, lng: 10 } });
   expect(position).not.toHaveBeenCalled();
+});
+
+test("assigned house number is a permanent plain-text marker label", () => {
+  render(
+    <GeographicMap
+      configuration={config}
+      provider={config.providers[0]}
+      households={[{ ...household, house_number: "12-A" }]}
+      selected={undefined}
+      draft={null}
+      editing={false}
+      boundary={null}
+      onSelect={vi.fn()}
+      onPosition={vi.fn()}
+      onTileError={vi.fn()}
+    />,
+  );
+  expect((state.tooltips.mock.calls[0][0] as HTMLElement).textContent).toBe(
+    "12-A",
+  );
+  expect(state.tooltips.mock.calls[0][1]).toMatchObject({ permanent: true });
 });

@@ -64,7 +64,35 @@ def map_config() -> dict:
                 "note": note,
             }
         )
+    esri_key = os.environ.get("GIS_ESRI_BROWSER_KEY", "").strip()
+    if esri_key and (len(esri_key) > 4096 or any(character.isspace() for character in esri_key)):
+        raise ImproperlyConfigured(
+            "GIS_ESRI_BROWSER_KEY must be a valid browser-scoped ArcGIS key."
+        )
+    providers.append(
+        {
+            "id": "hybrid",
+            "label": "Hybrid · Esri imagery + labels",
+            "engine": "esri",
+            "style": "arcgis/imagery",
+            "available": bool(esri_key),
+            "access_token": esri_key,
+            "url": None,
+            "attribution": "Esri and imagery/data contributors (dynamic credits on map)",
+            "licence": "https://developers.arcgis.com/esri-leaflet/",
+            "offline": False,
+            "max_native_zoom": 18,
+            "note": (
+                "Esri imagery with matching road and place labels. "
+                "Imagery date and detail vary by location."
+                if esri_key
+                else "Hybrid needs an entitled, browser-scoped ArcGIS key "
+                "configured by the administrator."
+            ),
+        }
+    )
     return {
+        "default_provider": "hybrid" if esri_key else "street",
         "center": [12.0715, 124.5922],
         "zoom": 18,
         "providers": providers,

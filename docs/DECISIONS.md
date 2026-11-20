@@ -5,6 +5,64 @@ Statuses: `Confirmed` records supplied constraints; `Proposed` needs approval;
 
 ## Confirmed constraints
 
+2026-11-20 publication handoff: user explicitly requested committing the GIS,
+house-number, hazard-layer, directions, hybrid and online staff-only increment
+and pushing it to their fork. Verified destination is
+adrianjoseph840-ship-it/Barangay-Information-System, branch feature/adrian-setup;
+upstream Wykernz is not the push target. This supersedes the earlier request to
+leave these task changes uncommitted. Preserve unrelated health work and keep
+all environment values, credentials and local diagnostic files out of Git.
+
+2026-11-20 user approved the recommended hybrid-map implementation. Retain the
+existing Leaflet integration; use Esri's supported arcgis/imagery style with its
+matching raster labels and source attribution using Esri Leaflet's authenticated
+World Imagery layer and Esri's Static Basemap Tiles labels endpoint. An
+appropriately entitled browser-scoped ArcGIS Location Platform key is an operator input,
+not inferred from public tile accessibility. No credential is committed. Hybrid
+becomes the default only when configured; otherwise retain the working street
+map and show setup status. Preserve household/hazard/directions layers and leave
+changes uncommitted for review. This does not resolve native GIS or schema drift.
+
+2026-11-20 deployment direction supersedes the previous offline/LAN-first target:
+user confirmed an online application for authorized staff only. No resident
+portal, public registration or anonymous operational-record access is approved.
+Serve the staff application over HTTPS through a reverse proxy/managed ingress;
+keep application processes, PostgreSQL/PostGIS and private attachments behind
+appropriate private network/access boundaries. Online map providers and external
+Google Maps directions are permitted subject to licensing. Offline tile support
+is optional, not a core acceptance requirement. Localhost remains development
+only. Hosting, domain, deployment region, production threat model, privileged
+access, monitoring, backup/recovery and rollout require concrete deployment
+decisions before go-live. This does not authorize publication of synthetic
+scaffolds as production workflows, real resident capture or a deployment now.
+
+2026-11-20 user requested a Google Maps-style Directions action. Add an explicit
+external Google Maps directions link for saved, non-rejected house coordinates.
+Send only destination latitude/longitude on the staff member's click, with no
+resident names, household identifiers, origin tracking or automatic external
+request. Google Maps handles starting point, travel mode and routing. No API key,
+embedded routing service, offline routing or hazard-aware route claim is assumed.
+Absent, invalid or rejected coordinates cannot be used for directions. Keep
+unverified points labeled and leave these changes uncommitted for review.
+
+2026-11-20 user requested flood/high-water and fire-prone area colors and clearer
+house assignment. Prepare independently selectable, source-backed polygon
+overlays with legends and provenance. No flood/fire dataset or classification
+thresholds have been supplied or approved; loaded absence means unassessed, not
+safe. Static flood susceptibility must not be presented as live water depth.
+No inference from imagery, elevation, building materials, or house proximity is
+authorized. Accept reviewed source categories as supplied, with an explicit
+category-to-color legend. Only public licensed GIS zone files belong in frontend
+assets; no household/resident data or private assessments. Original source and
+local review status must remain visible. Official boundary approval is separate
+from hazard-layer review. User clarified both house-number entry and map pins,
+with risk-layer support first and source datasets pending. House numbers are
+optional text (up to 50 characters) on the physical HousingUnit, shared by its
+occupying households; preserve existing records with a blank default. No
+automatic numbering scheme or uniqueness assumption is approved. Existing
+server housing-unit change permission controls edits. Number entry does not
+verify the house location or imply official address assignment.
+
 2026-11-20 GIS increment authorized by the user: real Payahan map centered at
 12.0715, 124.5922, zoom 18; street/satellite layers, sourced boundary, staff
 point selection/dragging, database persistence, and bidirectional household links.
@@ -27,7 +85,7 @@ outside this synthetic development increment.
 | DEC-001 | Confirmed | Deployment serves one barangay. | No premature multi-tenant design. |
 | DEC-002 | Confirmed | Authorized office personnel register residents. | No self-registration workflow. |
 | DEC-003 | Confirmed | Source records are mixed paper and digital. | Staging, provenance, reconciliation, and manual QA are required. |
-| DEC-004 | Confirmed | Internet can be unreliable or absent. | Core runtime and assets must operate on the LAN. |
+| DEC-004 | Superseded 2026-11-20 | Earlier offline/LAN-first requirement replaced by user-confirmed online, authorized-staff-only use. | HTTPS-hosted staff app; offline assets optional; production hosting/security decisions remain open. |
 | DEC-005 | Confirmed | Existing GIS source is a paper map. | Scan/georeference/digitize/validate workflow; no invented geometry. |
 | DEC-006 | Confirmed | Public resident/appointment access is not decided. | Staff-only boundary until a later approved architecture. |
 | DEC-007 | Confirmed | Modular monolith with Django/DRF/GeoDjango, React/TypeScript, and PostgreSQL/PostGIS. | Domain modules share one deployable system and authoritative database. |
@@ -36,9 +94,9 @@ outside this synthetic development increment.
 
 | ID | Status | Proposal | Rationale / approval needed |
 |---|---|---|---|
-| DEC-010 | Proposed | Same-origin session authentication for the LAN staff web app. | Strong Django CSRF/session support; approve with security owner. |
+| DEC-010 | Proposed | Same-origin session authentication for the online staff web app. | Preserve Django CSRF/session support and secure production cookies; review deployment security. |
 | DEC-011 | Proposed | UUID internal identifiers and separate non-PII human references. | Reduces enumeration/PII leakage; confirm operational usability. |
-| DEC-012 | Proposed | Dedicated on-premises server, reverse proxy, UPS, private DB/storage, encrypted backup workflow. | Practical offline topology; choose OS/container strategy after discovery. |
+| DEC-012 | Superseded 2026-11-20 | Earlier mandatory on-premises/offline topology replaced by online staff-only deployment. | Select hosting, HTTPS ingress, private DB/storage and backup/recovery before go-live. |
 | DEC-013 | Proposed | QGIS produces reviewed GeoJSON for staged import; it does not edit production directly. | Preserves review, validation, and audit controls. |
 | DEC-014 | Proposed | Capability permissions plus scoped querysets/object policy; roles are bundles only. | Prevents over-broad administrator access. |
 | DEC-015 | Proposed | Effective-dated append-oriented history and protect/restrict deletion defaults. | Preserves accountability and historical reporting. |

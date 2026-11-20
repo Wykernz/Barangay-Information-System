@@ -486,6 +486,9 @@ export function ProfilingPage({ module }: { module: string }) {
                       }
                     : field,
             ),
+          ...(module === "housing"
+            ? [{ key: "houseNumber", label: "House number", optional: true }]
+            : []),
           ...(module === "households"
             ? [
                 {
@@ -852,6 +855,7 @@ export function ProfilingPage({ module }: { module: string }) {
                 module === "housing"
                   ? {
                       ...current,
+                      houseNumber: current.houseNumber || "Not numbered",
                       buildingUse: current.buildingUse || "Not recorded",
                     }
                   : current,
@@ -880,6 +884,10 @@ export function ProfilingPage({ module }: { module: string }) {
           {module === "households" && (
             <>
               <dl className="profile-details household-summary household-quick-facts">
+                <div>
+                  <dt>House number</dt>
+                  <dd>{unitFor(current.id)?.houseNumber || "Not numbered"}</dd>
+                </div>
                 <div>
                   <dt>Household head</dt>
                   <dd>{householdHead(current.id)}</dd>
@@ -1295,7 +1303,7 @@ export function ProfilingPage({ module }: { module: string }) {
                     <input
                       required={!("optional" in field && field.optional)}
                       type={"type" in field ? field.type : "text"}
-                      maxLength={150}
+                      maxLength={field.key === "houseNumber" ? 50 : 150}
                       value={draft[field.key] ?? ""}
                       onChange={(event) =>
                         setDraft({ ...draft, [field.key]: event.target.value })

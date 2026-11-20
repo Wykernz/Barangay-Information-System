@@ -14,10 +14,15 @@ export type MapHousehold = {
   is_active: boolean;
   housing_unit: string | null;
   housing_label: string | null;
+  house_number?: string;
   occupancy_conflict: boolean;
   location: HouseholdLocation | null;
 };
 export type Provider = {
+  engine?: "esri";
+  available?: boolean;
+  access_token?: string;
+  style?: string;
   id: string;
   label: string;
   url: string | null;
@@ -28,10 +33,12 @@ export type Provider = {
   note: string;
 };
 export type MapConfiguration = {
+  default_provider?: string;
   center: [number, number];
   zoom: number;
   gis_enabled: boolean;
   can_edit: boolean;
+  can_number_houses?: boolean;
   providers: Provider[];
   boundary_url: string;
 };
@@ -40,6 +47,17 @@ export const householdMapUrl = (id: string) =>
 export const householdUrl = (id: string) =>
   `/households/${encodeURIComponent(id)}`;
 export const gisApi = {
+  numberHouse: async (unitId: string, houseNumber: string) => {
+    await api.get("auth/csrf/");
+    return (
+      await api.patch<{ house_number: string }>(
+        `housing-units/${encodeURIComponent(unitId)}/`,
+        {
+          house_number: houseNumber,
+        },
+      )
+    ).data;
+  },
   config: async () => (await api.get<MapConfiguration>("gis/config/")).data,
   households: async () => {
     const result: MapHousehold[] = [];

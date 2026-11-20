@@ -4,6 +4,7 @@ import type { GeoJsonObject } from "geojson";
 import "leaflet/dist/leaflet.css";
 import "./gis.css";
 import type { MapConfiguration, MapHousehold, Position, Provider } from "./api";
+import type { HazardCollection, HazardLayer } from "./hazards";
 
 type Props = {
   configuration: MapConfiguration;
@@ -14,6 +15,7 @@ type Props = {
   editing: boolean;
   boundary: GeoJsonObject | null;
   boundaryFocus?: number;
+  hazard?: { data: HazardCollection; layer: HazardLayer } | null;
   onSelect: (id: string) => void;
   onPosition: (position: Position) => void;
   onTileError: () => void;
@@ -55,7 +57,40 @@ export default function GeographicMap(props: Props) {
   }, []);
   useEffect(() => {
     const instance = map.current;
-    if (!instance || !props.provider?.url) return;
+    if (!instance || !props.provider) return;
+    if (props.provider.engine === "esri") {
+      if (!props.provider.available || !props.provider.access_token) return;
+      let active = true;
+      let hybrid: L.Layer | undefined;
+      const controller = new AbortController();
+      const token = props.provider.access_token;
+      import("./EsriHybrid")
+        .then(async ({ createHybridLayer }) => {
+          if (!active) return;
+          const layer = await createHybridLayer(
+            instance,
+            token,
+            () => {
+              if (active) latest.current.onTileError();
+            },
+            controller.signal,
+          );
+          if (!active) return;
+          hybrid = layer.addTo(instance);
+          hybrid.on("error", () => {
+            if (active) latest.current.onTileError();
+          });
+        })
+        .catch(() => {
+          if (active) latest.current.onTileError();
+        });
+      return () => {
+        active = false;
+        controller.abort();
+        hybrid?.remove();
+      };
+    }
+    if (!props.provider.url) return;
     // Attribution strings are plain text; Leaflet's HTML surface receives escaped text.
     const credit = document.createElement("span");
     const link = document.createElement("a");
@@ -91,6 +126,29 @@ export default function GeographicMap(props: Props) {
       layer.remove();
     };
   }, [props.boundary]);
+  useEffect(() => {
+    if (!map.current || !props.hazard) return;
+    const { data, layer: metadata } = props.hazard;
+    const overlay = L.geoJSON(data, {
+      interactive: false,
+      style: (feature) => {
+        const color =
+          metadata.legend.find(
+            (entry) => entry.value === feature?.properties.risk_class,
+          )?.color ?? "#808080";
+        return {
+          color,
+          fillColor: color,
+          weight: 2,
+          fillOpacity: 0.3,
+          dashArray: metadata.status === "indicative" ? "5 4" : undefined,
+        };
+      },
+    }).addTo(map.current);
+    return () => {
+      overlay.remove();
+    };
+  }, [props.hazard]);
   useEffect(() => {
     if (!map.current || !props.boundary || !props.boundaryFocus) return;
     const bounds = L.geoJSON(props.boundary).getBounds();
@@ -129,6 +187,13 @@ export default function GeographicMap(props: Props) {
           title: household.housing_label ?? "House",
         },
       ).addTo(layer);
+      const label = document.createElement("span");
+      label.textContent = household.house_number || "Not numbered";
+      marker.bindTooltip(label, {
+        permanent: true,
+        direction: "top",
+        offset: [0, -30],
+      });
       marker.on("click", () => latest.current.onSelect(household.id));
     }
     if (props.editing && props.draft) {

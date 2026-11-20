@@ -15,6 +15,42 @@
   max-height: 650px;
   overflow: auto;
 }
+.hazard-controls {
+  border-bottom: 1px solid #dde5df;
+  padding: 12px 0;
+  margin-bottom: 18px;
+}
+.hazard-controls label {
+  display: block;
+  max-width: 420px;
+}
+.hazard-legend {
+  display: flex;
+  flex-wrap: wrap;
+  list-style: none;
+  gap: 18px;
+  padding: 0;
+}
+.hazard-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hazard-swatch {
+  display: inline-block;
+  width: 20px;
+  height: 14px;
+  border: 1px solid #555;
+}
+.assignment-guide {
+  padding: 12px 0;
+}
+.house-directions {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  margin: 14px 0;
+}
 .gis-sidebar label {
   display: grid;
   gap: 5px;
