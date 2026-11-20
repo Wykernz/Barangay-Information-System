@@ -8,6 +8,7 @@ from rest_framework.routers import DefaultRouter
 
 from accounts.serializers import StaffSessionSerializer
 from accounts.views import csrf, sign_in, sign_out
+from households import map_views
 from households.views import (
     HouseholdMembershipViewSet,
     HouseholdOccupancyViewSet,
@@ -36,6 +37,11 @@ if settings.GIS_ENABLED:
     router.register("housing-locations", HousingLocationViewSet, basename="housing-location")
 
 urlpatterns = [
+    path("api/v1/gis/config/", map_views.configuration),
+    path("api/v1/gis/tiles/<str:style>/<int:z>/<int:x>/<str:filename>", map_views.local_tile),
+    path("api/v1/gis/households/", map_views.household_directory),
+    path("api/v1/gis/households/<uuid:pk>/", map_views.household_detail),
+    path("api/v1/gis/households/<uuid:pk>/location/", map_views.household_location),
     path("api/v1/auth/csrf/", csrf),
     path("api/v1/auth/login/", sign_in),
     path("api/v1/auth/logout/", sign_out),

@@ -1,0 +1,167 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "adm4_name": "Payahan",
+        "adm4_name1": null,
+        "adm4_name2": null,
+        "adm4_name3": null,
+        "adm4_pcode": "PH0806003173",
+        "adm3_name": "Calbayog City",
+        "adm3_name1": null,
+        "adm3_name2": null,
+        "adm3_name3": null,
+        "adm3_pcode": "PH0806003",
+        "adm2_name": "Samar (Western Samar)",
+        "adm2_name1": null,
+        "adm2_name2": null,
+        "adm2_name3": null,
+        "adm2_pcode": "PH08060",
+        "adm1_name": "Region VIII (Eastern Visayas)",
+        "adm1_name1": null,
+        "adm1_name2": null,
+        "adm1_name3": null,
+        "adm1_pcode": "PH08",
+        "adm0_name": "Philippines",
+        "adm0_name1": null,
+        "adm0_name2": null,
+        "adm0_name3": null,
+        "adm0_pcode": "PH",
+        "valid_on": "2025-02-13",
+        "valid_to": null,
+        "area_sqkm": 1.09456798,
+        "version": "v03",
+        "lang": "en",
+        "lang1": null,
+        "lang2": null,
+        "lang3": null,
+        "adm4_ref_name": "Payahan",
+        "center_lat": 12.08690621,
+        "center_lon": 124.579553
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              124.57480828900009,
+              12.092062905000148
+            ],
+            [
+              124.57448829200007,
+              12.092633867000131
+            ],
+            [
+              124.5739392390002,
+              12.082221582000045
+            ],
+            [
+              124.57394265200003,
+              12.082221852000089
+            ],
+            [
+              124.58609320900018,
+              12.080936609000048
+            ],
+            [
+              124.58592423100004,
+              12.084996332000117
+            ],
+            [
+              124.58564023400027,
+              12.085523297000123
+            ],
+            [
+              124.58519324000008,
+              12.086580227000184
+            ],
+            [
+              124.58464624500004,
+              12.087232185000119
+            ],
+            [
+              124.58364925,
+              12.087928142000067
+            ],
+            [
+              124.58275125500006,
+              12.088527106000072
+            ],
+            [
+              124.58219925900005,
+              12.089166065000086
+            ],
+            [
+              124.58129626000004,
+              12.089011081000024
+            ],
+            [
+              124.58030126400013,
+              12.089474053000174
+            ],
+            [
+              124.57921126700012,
+              12.089643048000028
+            ],
+            [
+              124.57874626900002,
+              12.089721045000147
+            ],
+            [
+              124.5777552720001,
+              12.08986903900012
+            ],
+            [
+              124.57734927600018,
+              12.0904330030001
+            ],
+            [
+              124.57674827700009,
+              12.09049700200012
+            ],
+            [
+              124.57607227900007,
+              12.090608998000164
+            ],
+            [
+              124.5756102820003,
+              12.090985974000091
+            ],
+            [
+              124.575312284,
+              12.091233958000032
+            ],
+            [
+              124.57480828900009,
+              12.092062905000148
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "bbox": [
+    124.5739392390002,
+    12.080936609000048,
+    124.58609320900018,
+    12.092633867000131
+  ],
+  "metadata": {
+    "name": "Payahan, Calbayog City, Samar, Philippines",
+    "status": "indicative",
+    "officially_verified": false,
+    "source_url": "https://data.humdata.org/dataset/cod-ab-phl",
+    "source_download_url": "https://data.humdata.org/dataset/caf116df-f984-4deb-85ca-41b349d3f313/resource/0120c30e-ba8b-487d-83f5-a664eddd3a8e/download/phl_admin_boundaries.geojson.zip",
+    "source_archive": "hdx-original.zip",
+    "source_member": "phl_admin4.geojson",
+    "archive_sha256": "032db5d91fcb8a13aef378d6b4453da7225ef7f0fb9c0a1c3bf3c2205d0010d6",
+    "source_date": "2025-02-13",
+    "licence": "CC BY 3.0 IGO",
+    "licence_url": "https://creativecommons.org/licenses/by/3.0/igo/",
+    "attribution": "NAMRIA / Philippine Statistics Authority; distributed by OCHA HDX",
+    "processing": "Single feature extracted unchanged. No simplification or approximation.",
+    "local_verification": "Pending barangay/LGU GIS review; not an official cadastral boundary."
+  }
+}

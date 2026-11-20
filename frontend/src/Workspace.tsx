@@ -14,7 +14,11 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { Link, NavLink, Route, Routes } from "react-router-dom";
+import { Link, NavLink, Route, Routes, useParams } from "react-router-dom";
+import {
+  DatabaseHouseholdDetail,
+  DatabaseHouseholdDirectory,
+} from "./features/gis/HouseholdLocation";
 import { DemoProvider, useDemo } from "./demo/store";
 import { catalog } from "./demo/catalog";
 import RecordPage from "./components/RecordPage";
@@ -27,6 +31,23 @@ import {
   ProfilingProvider,
   ProfilingPage,
 } from "./features/profiling/Profiling";
+
+function HouseholdProfileRoute({ module }: { module: string }) {
+  const { id } = useParams();
+  if (
+    module === "households" &&
+    id &&
+    /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id)
+  ) {
+    return <DatabaseHouseholdDetail />;
+  }
+  return (
+    <>
+      <ProfilingPage module={module} />
+      {module === "households" && !id && <DatabaseHouseholdDirectory />}
+    </>
+  );
+}
 
 function Audit() {
   const { history } = useDemo();
@@ -220,8 +241,8 @@ export default function Workspace({
                   Preview workspace
                 </strong>
                 <span>
-                  Synthetic records only. Profile changes reset on reload or
-                  sign-out.
+                  Synthetic records only. Sample profile changes reset on reload
+                  or sign-out. Database map locations are saved separately.
                 </span>
               </div>
               <Routes>
@@ -236,13 +257,19 @@ export default function Workspace({
                         <Route
                           index
                           element={
-                            <ProfilingPage key={`${key}-list`} module={key} />
+                            <HouseholdProfileRoute
+                              key={`${key}-list`}
+                              module={key}
+                            />
                           }
                         />
                         <Route
                           path=":id"
                           element={
-                            <ProfilingPage key={`${key}-detail`} module={key} />
+                            <HouseholdProfileRoute
+                              key={`${key}-detail`}
+                              module={key}
+                            />
                           }
                         />
                       </Routes>
@@ -290,9 +317,9 @@ export default function Workspace({
               <details className="system-status">
                 <summary>Sample records · System information</summary>
                 <p>
-                  Staff login is connected to the server. Operational module
-                  records currently use sample data in browser memory; edits are
-                  not stored in PostgreSQL and reset on reload or sign-out.
+                  Staff login and database household map locations are connected
+                  to the server. Sample profiling records use browser memory and
+                  reset on reload or sign-out.
                 </p>
               </details>
             </footer>

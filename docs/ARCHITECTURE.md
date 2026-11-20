@@ -156,6 +156,16 @@ VPN or equivalent controlled channel with MFA and logging.
 
 ## 9. GIS workflow
 
+The authorized Payahan map increment is documented in [GIS.md](GIS.md).
+Leaflet renders licensed real tile layers and an unchanged, provenance-bearing
+HDX polygon labeled indicative. The user-supplied initial center is preserved
+even though it lies outside the published polygon extent. Household links use
+effective occupancies and existing PostGIS point revisions; the frontend keeps
+database household locations explicitly separate from session-only profile
+fixtures. Local licensed XYZ files can be served over the LAN. GIS saves remain
+gated on verified native dependencies; online providers are optional basemaps,
+not dependencies of local household storage.
+
 1. Inventory paper map provenance, scale, date, authority, condition, and usage rights.
 2. Scan at an archival quality and preserve the untouched master plus checksum.
 3. Obtain approved control points from an authoritative source; select CRS with a GIS reviewer.

@@ -4,6 +4,7 @@ Status values: Draft, Approved, Implemented, Verified, Deferred.
 
 | Requirement group | Source | Design location | Planned verification | Status |
 |---|---|---|---|---|
+| GIS Payahan increment: center, providers, sourced boundary, location revisions, household/map navigation, unmapped state, offline layers | User request 2026-11-20; GIS-001..008 | `docs/GIS.md`; `backend/gis`; `frontend/src/features/gis` | 24 backend checks passed, 2 native integration tests skipped; 68 frontend tests passed; boundary extraction and provider requests checked | Implemented; live PostGIS validation, official boundary sign-off, licensed high-resolution satellite and offline assets remain pending |
 | IAM-001..008 | Project brief | Architecture sections 3, 5, 8; ERD Security | Model/migration, permission, session, audit, export tests | Draft |
 | PRO-001..013 | Project brief | Architecture sections 2-3, 6; ERD Profiling; `backend/profiling`, `backend/households`; frontend `planner` | Unit, constraints, API, duplicate, count, authorization tests | Draft; extension/model scaffold only |
 | APT-001..006 | Project brief | ERD Appointments | Service, transition, concurrency/conflict, API tests | Draft |

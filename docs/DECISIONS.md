@@ -5,6 +5,23 @@ Statuses: `Confirmed` records supplied constraints; `Proposed` needs approval;
 
 ## Confirmed constraints
 
+2026-11-20 GIS increment authorized by the user: real Payahan map centered at
+12.0715, 124.5922, zoom 18; street/satellite layers, sourced boundary, staff
+point selection/dragging, database persistence, and bidirectional household links.
+Use existing HousingLocation revisions and effective HouseholdOccupancy rather
+than duplicating coordinates on households. No existing records are migrated.
+Current profiling fixtures are session-only, not canonical database records:
+never silently match them by name or create database households from fixtures.
+Expose database household details alongside the preview, with explicit labels.
+Map selection records an unverified location, never automatic verification.
+Boundary provenance, version, licence and indicative/official status must be
+visible; no fabricated fallback polygon. Official sign-off remains OPN-008.
+Provider credentials/paid entitlements and licensed offline assets are operator
+inputs; public OSM tiles must never be bulk downloaded or service-worker cached.
+Keep GIS native dependency gate; a disabled GIS backend must report unavailability
+and never claim that browser-only edits were saved. Real resident capture remains
+outside this synthetic development increment.
+
 | ID | Status | Decision/constraint | Consequence |
 |---|---|---|---|
 | DEC-001 | Confirmed | Deployment serves one barangay. | No premature multi-tenant design. |
