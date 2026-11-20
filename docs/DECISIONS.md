@@ -131,3 +131,9 @@ family changes and historical membership segments. Household water capture and
 display use one Water source field (existing synthetic waterSupply value); remove
 the duplicate housing-water row from household details. Housing units retain
 their independent attributes. No production data or migrations are involved.
+
+2026-11-20 user supplied replacement demo names. Treat these as sample display
+aliases only, without attributing real demographic facts to anyone. Preserve the
+first six synthetic profiles' IDs and fictional attributes; add the seventh as
+an unassigned sample with demographic values not recorded. Update household-head
+labels consistently, without inferring new family relationships or real data.

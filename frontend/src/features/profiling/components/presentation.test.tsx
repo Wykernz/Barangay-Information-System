@@ -52,11 +52,17 @@ function page(path: string, module: string) {
 test("registry keeps labeled actions and delete cancellation preserves records", () => {
   page("/residents", "residents");
   expect(screen.getByRole("navigation", { name: "Breadcrumb" })).toBeTruthy();
-  expect(screen.getByRole("link", { name: "View Santos, Maria" })).toBeTruthy();
-  fireEvent.click(screen.getByRole("button", { name: "Delete Santos, Maria" }));
+  expect(
+    screen.getByRole("link", { name: "View Bayonon, Adrian Joseph" }),
+  ).toBeTruthy();
+  fireEvent.click(
+    screen.getByRole("button", { name: "Delete Bayonon, Adrian Joseph" }),
+  );
   expect(screen.getByLabelText("Confirm record removal")).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
-  expect(screen.getByRole("link", { name: "View Santos, Maria" })).toBeTruthy();
+  expect(
+    screen.getByRole("link", { name: "View Bayonon, Adrian Joseph" }),
+  ).toBeTruthy();
 });
 
 test("residency filter offers only the two classifications and preserves old records in All", () => {
@@ -64,11 +70,15 @@ test("residency filter offers only the two classifications and preserves old rec
   fireEvent.change(screen.getByLabelText("Filter by residency"), {
     target: { value: "Resident" },
   });
-  expect(screen.queryByRole("link", { name: "View Santos, Maria" })).toBeNull();
+  expect(
+    screen.queryByRole("link", { name: "View Bayonon, Adrian Joseph" }),
+  ).toBeNull();
   fireEvent.change(screen.getByLabelText("Filter by residency"), {
     target: { value: "" },
   });
-  expect(screen.getByRole("link", { name: "View Santos, Maria" })).toBeTruthy();
+  expect(
+    screen.getByRole("link", { name: "View Bayonon, Adrian Joseph" }),
+  ).toBeTruthy();
   expect(screen.queryByRole("option", { name: "Not classified" })).toBeNull();
 });
 test("resident create and edit save profile fields", () => {
@@ -137,17 +147,19 @@ test.each(["Resident", "Non-resident"])(
 test("archive search shows an empty state and restore does not reopen membership", () => {
   page("/residents", "residents");
   fireEvent.change(screen.getByLabelText("Search residents"), {
-    target: { value: "Maria" },
+    target: { value: "Adrian Joseph" },
   });
-  fireEvent.click(screen.getByRole("button", { name: "Delete Santos, Maria" }));
+  fireEvent.click(
+    screen.getByRole("button", { name: "Delete Bayonon, Adrian Joseph" }),
+  );
   fireEvent.click(screen.getByRole("button", { name: "Confirm delete" }));
   expect(screen.getByText(/No matching records/)).toBeTruthy();
   fireEvent.click(screen.getByLabelText("Show archived records"));
   fireEvent.click(
-    screen.getByRole("button", { name: "Restore Santos, Maria" }),
+    screen.getByRole("button", { name: "Restore Bayonon, Adrian Joseph" }),
   );
   const row = screen
-    .getByRole("link", { name: "View Santos, Maria" })
+    .getByRole("link", { name: "View Bayonon, Adrian Joseph" })
     .closest("tr")!;
   expect(within(row).getByText("Unassigned")).toBeTruthy();
 });
@@ -316,7 +328,7 @@ test("a second family shows its selected members without changing household tota
       "3 members",
     ),
   ).toBeTruthy();
-  createFamily("Synthetic Family B", [/Santos, Rosa/]);
+  createFamily("Synthetic Family B", [/Doinog, MIko/]);
   const first = within(screen.getByRole("article", { name: "Family 1" }));
   const second = within(
     screen.getByRole("article", { name: "Synthetic Family B" }),
@@ -324,7 +336,7 @@ test("a second family shows its selected members without changing household tota
   expect(first.getByText("2 members")).toBeTruthy();
   expect(first.getByText("Household head")).toBeTruthy();
   expect(second.getByText("1 member")).toBeTruthy();
-  expect(second.getByRole("link", { name: "Santos, Rosa" })).toBeTruthy();
+  expect(second.getByRole("link", { name: "Doinog, MIko" })).toBeTruthy();
   expect(screen.getAllByRole("article")).toHaveLength(2);
   expect(
     screen.getByRole("heading", { name: "Household members (3)" }),
@@ -337,7 +349,7 @@ test("a second family shows its selected members without changing household tota
 
 test("choosing members moves family assignment and preserves the household head", () => {
   page("/households/DEMO-H001", "households");
-  createFamily("Synthetic A", [/Santos, Maria/]);
+  createFamily("Synthetic A", [/Bayonon, Adrian Joseph/]);
   createFamily("Synthetic B");
   fireEvent.click(
     within(screen.getByRole("article", { name: "Synthetic B" })).getByRole(
@@ -347,7 +359,7 @@ test("choosing members moves family assignment and preserves the household head"
   );
   fireEvent.click(
     within(screen.getByRole("dialog")).getByRole("checkbox", {
-      name: /Santos, Maria/,
+      name: /Bayonon, Adrian Joseph/,
     }),
   );
   fireEvent.click(screen.getByRole("button", { name: "Save members" }));
@@ -390,7 +402,7 @@ test("existing people transfer into the selected family with an explicit warning
     }),
   );
   const dialog = within(screen.getByRole("dialog"));
-  fireEvent.click(dialog.getByRole("radio", { name: /Reyes, Jose/ }));
+  fireEvent.click(dialog.getByRole("radio", { name: /Ardidon, Paul Vincent/ }));
   expect(
     dialog.getByText(/previous household will be left without a head/),
   ).toBeTruthy();
@@ -404,9 +416,11 @@ test("existing people transfer into the selected family with an explicit warning
   expect(
     within(
       screen.getByRole("article", { name: "Synthetic Second Family" }),
-    ).getByRole("link", { name: "Reyes, Jose" }),
+    ).getByRole("link", { name: "Ardidon, Paul Vincent" }),
   ).toBeTruthy();
-  fireEvent.click(screen.getByRole("button", { name: "Manage Reyes, Jose" }));
+  fireEvent.click(
+    screen.getByRole("button", { name: "Manage Ardidon, Paul Vincent" }),
+  );
   fireEvent.click(
     screen.getByRole("button", { name: "Remove from household" }),
   );
@@ -418,7 +432,7 @@ test("existing people transfer into the selected family with an explicit warning
 
 test("membership removal is confirmed and leaves the resident profile available", () => {
   page("/households/DEMO-H001", "households");
-  fireEvent.click(screen.getByRole("button", { name: "Manage Santos, Juan" }));
+  fireEvent.click(screen.getByRole("button", { name: "Manage General, Renz" }));
   fireEvent.click(
     screen.getByRole("button", { name: "Remove from household" }),
   );
@@ -433,7 +447,7 @@ test("membership removal is confirmed and leaves the resident profile available"
   expect(
     within(
       screen.getByRole("table", { name: "Household membership history" }),
-    ).getByText("Juan Santos"),
+    ).getByText("Renz General"),
   ).toBeTruthy();
 });
 

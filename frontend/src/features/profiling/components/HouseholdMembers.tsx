@@ -522,7 +522,7 @@ export function HouseholdMembers({
                   required
                   maxLength={100}
                   autoFocus
-                  placeholder="e.g. Santos family"
+                  placeholder="e.g. Family 2"
                   value={familyEditor.label}
                   onChange={(event) =>
                     setFamilyEditor({

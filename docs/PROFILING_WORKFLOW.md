@@ -33,7 +33,15 @@ and separate housing units. Assignment/transfer/unassignment and head changes us
 confirmations and preserve historical segments. Occupancy moves retain previous
 assignments. Units remain separate and may accommodate multiple households.
 
-The fictional reference data contains six residents and four households/units.
+The fictional sample data contains seven profiles and four households/units.
+The user-supplied demo aliases replace the previous display names. The original
+six profiles retain fictional attributes and relationships; the seventh starts
+unassigned with demographic details not recorded. These are not real resident
+records or assertions about the people whose names were supplied.
+Demo-alias validation (2026-11-20): typecheck passed using the reduced-memory Node
+command documented in `HOUSEHOLD_UI.md`; the single-worker Vitest suite passed
+11 files / 53 tests. The four modified TypeScript files were formatted with
+Prettier. Existing relationships and synthetic attributes were retained.
 No screen-position coordinates are imported; all locations remain unmapped.
 
 ## Removal and recovery
