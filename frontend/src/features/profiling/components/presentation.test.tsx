@@ -224,16 +224,21 @@ test("household capture details save and reopen in the same session", () => {
   fireEvent.click(screen.getByRole("button", { name: "Edit details" }));
   for (const [label, value] of [
     ["Survey date", "2026-11-17"],
-    ["Water supply", "Communal faucet"],
+    ["Water source", "Communal faucet"],
     ["Does this household have a septic tank?", "Yes"],
   ]) {
     fireEvent.change(screen.getByLabelText(label), { target: { value } });
   }
   fireEvent.click(screen.getByRole("button", { name: "Save profile" }));
   expect(screen.getByText("Yes")).toBeTruthy();
+  fireEvent.click(screen.getByText("Water, sanitation & survey details"));
+  expect(screen.getAllByText("Water source", { selector: "dt" })).toHaveLength(
+    1,
+  );
+  expect(screen.queryByText("Water supply")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Edit details" }));
   expect(
-    (screen.getByLabelText("Water supply") as HTMLSelectElement).value,
+    (screen.getByLabelText("Water source") as HTMLSelectElement).value,
   ).toBe("Communal faucet");
   expect(screen.queryByLabelText("Barangay")).toBeNull();
   expect(
@@ -243,6 +248,52 @@ test("household capture details save and reopen in the same session", () => {
       ) as HTMLSelectElement
     ).value,
   ).toBe("Yes");
+});
+
+test("new households start with Family 1 and the first added family is Family 2", () => {
+  page("/households", "households");
+  fireEvent.click(screen.getByRole("button", { name: "Add household" }));
+  fireEvent.change(screen.getByLabelText("Household label"), {
+    target: { value: "Synthetic New Household" },
+  });
+  expect(screen.getAllByLabelText("Water source")).toHaveLength(1);
+  expect(screen.queryByLabelText("Water supply")).toBeNull();
+  fireEvent.change(screen.getByLabelText("Water source"), {
+    target: { value: "Rainwater" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Save profile" }));
+  expect(screen.getByRole("article", { name: "Family 1" })).toBeTruthy();
+  expect(screen.getAllByRole("article")).toHaveLength(1);
+  fireEvent.click(screen.getByRole("button", { name: "Edit details" }));
+  expect(
+    (screen.getByLabelText("Water source") as HTMLSelectElement).value,
+  ).toBe("Rainwater");
+  fireEvent.click(screen.getByRole("button", { name: "Save profile" }));
+  expect(screen.getAllByRole("article")).toHaveLength(1);
+  fireEvent.click(screen.getByRole("button", { name: "Add family" }));
+  expect((screen.getByLabelText("Family name") as HTMLInputElement).value).toBe(
+    "Family 2",
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Create family" }));
+  expect(screen.getByRole("article", { name: "Family 2" })).toBeTruthy();
+  expect(screen.getAllByRole("article")).toHaveLength(2);
+});
+
+test("adding a person to a single-family household defaults to Family 1", () => {
+  page("/households/DEMO-H001", "households");
+  fireEvent.click(screen.getByRole("button", { name: "Add member" }));
+  const dialog = within(screen.getByRole("dialog"));
+  expect(
+    (dialog.getByLabelText("Family") as HTMLSelectElement).selectedOptions[0]
+      .text,
+  ).toBe("Family 1");
+  fireEvent.click(
+    dialog.getByRole("link", { name: /Register a new resident/ }),
+  );
+  expect(
+    (screen.getByLabelText("Family") as HTMLSelectElement).selectedOptions[0]
+      .text,
+  ).toBe("Family 1");
 });
 
 function createFamily(name: string, people: RegExp[] = []) {
@@ -260,11 +311,13 @@ function createFamily(name: string, people: RegExp[] = []) {
 
 test("a second family shows its selected members without changing household totals", () => {
   page("/households/DEMO-H001", "households");
-  createFamily("Synthetic Family A", [/Santos, Maria/, /Santos, Juan/]);
+  expect(
+    within(screen.getByRole("article", { name: "Family 1" })).getByText(
+      "3 members",
+    ),
+  ).toBeTruthy();
   createFamily("Synthetic Family B", [/Santos, Rosa/]);
-  const first = within(
-    screen.getByRole("article", { name: "Synthetic Family A" }),
-  );
+  const first = within(screen.getByRole("article", { name: "Family 1" }));
   const second = within(
     screen.getByRole("article", { name: "Synthetic Family B" }),
   );
@@ -272,6 +325,7 @@ test("a second family shows its selected members without changing household tota
   expect(first.getByText("Household head")).toBeTruthy();
   expect(second.getByText("1 member")).toBeTruthy();
   expect(second.getByRole("link", { name: "Santos, Rosa" })).toBeTruthy();
+  expect(screen.getAllByRole("article")).toHaveLength(2);
   expect(
     screen.getByRole("heading", { name: "Household members (3)" }),
   ).toBeTruthy();
@@ -313,7 +367,7 @@ test("choosing members moves family assignment and preserves the household head"
   fireEvent.change(screen.getByLabelText("Filter by family"), {
     target: { value: "unassigned" },
   });
-  expect(screen.getByText("Showing 2 of 3 household members")).toBeTruthy();
+  expect(screen.getByText("Showing 0 of 3 household members")).toBeTruthy();
 });
 
 test("duplicate family names are rejected and cancel does not create a family", () => {
@@ -324,7 +378,7 @@ test("duplicate family names are rejected and cancel does not create a family", 
     within(screen.getByRole("dialog")).getByRole("alert").textContent,
   ).toContain("already has a family");
   fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
-  expect(screen.getAllByRole("article")).toHaveLength(1);
+  expect(screen.getAllByRole("article")).toHaveLength(2);
 });
 
 test("existing people transfer into the selected family with an explicit warning", () => {

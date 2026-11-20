@@ -123,3 +123,11 @@ identity/disability collection and aggregate visibility require explicit access
 controls. Complaint counts mean cases filed by the person, not accusations.
 
 2026-11-19 user authorized a professional UI/UX refresh of the existing staff interface (NFR-ACC / NFR-MNT). Use a consistent slate/teal palette, local system fonts, icon navigation with text labels, responsive summary cards and readable tables/forms. Preserve existing routes, validation, permissions and synthetic-data boundaries. No external assets or new runtime dependencies; visual choices are reversible implementation details.
+
+2026-11-20 user requested one automatic family per household: seed each synthetic
+household with Family 1 and its current members; creating a household creates
+Family 1, so the first added family brings the count to two. Preserve explicit
+family changes and historical membership segments. Household water capture and
+display use one Water source field (existing synthetic waterSupply value); remove
+the duplicate housing-water row from household details. Housing units retain
+their independent attributes. No production data or migrations are involved.

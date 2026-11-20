@@ -105,7 +105,7 @@ export function HouseholdMembers({
         ),
     );
 
-  function openAdd(familyId = "") {
+  function openAdd(familyId = families.length === 1 ? families[0].id : "") {
     setError("");
     setCandidate("");
     setResidentSearch("");
@@ -118,7 +118,7 @@ export function HouseholdMembers({
     const family = families.find((item) => item.id === familyId);
     setFamilyEditor({
       id: familyId,
-      label: family?.label ?? "",
+      label: family?.label ?? `Family ${families.length + 1}`,
       selected: members
         .filter((item) => familyId && item.familyId === familyId)
         .map((item) => item.residentId),
@@ -204,14 +204,13 @@ export function HouseholdMembers({
         effective,
         membershipId,
       );
-      if (targetFamily)
-        next = assignFamily(
-          next,
-          membershipId,
-          targetFamily,
-          effective,
-          crypto.randomUUID(),
-        );
+      next = assignFamily(
+        next,
+        membershipId,
+        targetFamily || undefined,
+        effective,
+        crypto.randomUUID(),
+      );
       update(
         next,
         `${personName(selectedPerson)} added to this household. Previous membership history is retained.`,
@@ -236,8 +235,8 @@ export function HouseholdMembers({
               <span className="household-count">{families.length}</span>
             </h2>
             <p className="muted">
-              Create a family, then choose the people who belong to it. You can
-              add more than one family.
+              Family 1 is created automatically. Add another family and choose
+              its members when more than one family lives here.
             </p>
           </div>
           {!archived && (

@@ -6,16 +6,29 @@ PostgreSQL. Changes reset on reload/sign-out; use synthetic data only.
 ## Add a second family
 
 1. Open **Households**, then **View** the household.
-2. Select **Add family**, enter a family name and check the household members
-   who belong to it. Select **Create family**.
-3. Select **Add family** again to create another family. Each family gets its
-   own card showing its name, member count and people.
+2. Every household already has **Family 1**. Existing synthetic members belong
+   to that family; a new household starts with an empty Family 1.
+3. Select **Add family** to add the second family. The name starts as **Family 2**;
+   edit it if needed, check its members and select **Create family**. The household
+   now has two families, each with its own card and member count.
 
 **Choose members** on a family card changes the selection of current household
 members. Selecting someone from another family reassigns them; unchecking someone
 keeps them in the household without that family assignment. Duplicate family
 names in the same household are rejected without regard to case/outer spaces.
 A family may be created empty and populated afterward.
+
+Editing a household never adds another default family. New people default to the
+family when the household has exactly one; an explicit choice to leave someone
+unassigned is preserved. No surname or family-head inference is performed.
+
+## Water source
+
+Household entry and details show one **Water source** field. The former Water
+supply label and the duplicate housing-water detail are removed. Its existing
+synthetic `waterSupply` value remains intact, including previously selected
+options. Housing units keep their separate attributes on the housing-unit page;
+household edits do not overwrite a shared unit's water observation.
 
 ## Add people to a family
 
@@ -72,3 +85,18 @@ browser-based accessibility conformance is claimed. No backend changes or data
 migrations were made in this increment. Unrelated worktree changes are preserved;
 this increment is recorded in a dedicated frontend commit. Push requires explicit
 destination authorization following an automatic approval-review rejection.
+
+### Default-family / single-water-field validation (2026-11-20)
+
+The first normal typecheck/test run encountered Node memory exhaustion and worker
+startup failures. Validation was rerun with a 256 MB heap, 4 MB semi-space and one
+test worker:
+
+- `node --max-old-space-size=256 --max-semi-space-size=4 node_modules/typescript/bin/tsc --noEmit`: passed.
+- `node --max-old-space-size=256 --max-semi-space-size=4 node_modules/vitest/vitest.mjs run --configLoader runner --maxWorkers=1`: 11 files / 53 tests passed.
+- `node --max-old-space-size=256 --max-semi-space-size=4 node_modules/vite/bin/vite.js build --configLoader runner`: passed.
+- Targeted `npx.cmd prettier --check` for the five changed TypeScript files: passed.
+
+Coverage includes automatic Family 1 for existing/new households, keeping exactly
+one default family on edit, creating Family 2, default new-person context, explicit
+family unassignment and one Water source field with preserved selections.

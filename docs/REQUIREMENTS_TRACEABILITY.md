@@ -39,3 +39,10 @@ See `HOUSEHOLD_UI.md`.
 refresh implemented through `professional.css`, navigation and overview markup.
 Existing workflow tests, typecheck and production build pass; visual and assistive
 technology acceptance remain outstanding. See `UI_REFRESH.md`.
+
+2026-11-20 PRO-004..009 / NFR-ACC: user approved automatic Family 1 for each
+synthetic household and one Water source field in household forms/details.
+Initial fixture memberships use Family 1; household creation is idempotent on
+edit, and the first additional family brings the count to two. Tests cover these
+defaults, explicit family unassignment, new-person context and water-value
+preservation. See `HOUSEHOLD_UI.md`; no backend/data migration is included.

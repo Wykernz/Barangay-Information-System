@@ -17,6 +17,7 @@ import { ageAt, catalog, type RecordRow } from "../../demo/catalog";
 import {
   assign,
   assignFamily,
+  ensureHouseholdFamily,
   initialRelationships,
   selectHead,
   type Relationships,
@@ -153,7 +154,15 @@ export function ProfilingPage({ module }: { module: string }) {
               ...value,
               householdId: returnHousehold,
               targetHousehold: returnHousehold,
-              targetFamily: returnFamily ?? "",
+              targetFamily:
+                returnFamily ??
+                ((state.families ?? []).filter(
+                  (family) => family.householdId === returnHousehold,
+                ).length === 1
+                  ? (state.families?.find(
+                      (family) => family.householdId === returnHousehold,
+                    )?.id ?? "")
+                  : ""),
             }
           : value,
       );
@@ -218,7 +227,8 @@ export function ProfilingPage({ module }: { module: string }) {
         (item) => item.id === householdId,
       )!.name;
     }
-    let next = state;
+    let next =
+      module === "households" ? ensureHouseholdFamily(state, draft.id) : state;
     if (module === "residents" && draft.targetHousehold) {
       if (
         !records.households.some(
@@ -479,7 +489,7 @@ export function ProfilingPage({ module }: { module: string }) {
                 },
                 {
                   key: "waterSupply",
-                  label: "Water supply",
+                  label: "Water source",
                   options: Array.from(
                     new Set([
                       "Not recorded",
@@ -878,15 +888,11 @@ export function ProfilingPage({ module }: { module: string }) {
                 <dl className="profile-details household-summary">
                   {[
                     ["Survey date", current.surveyDate || "Not recorded"],
-                    ["Water supply", current.waterSupply || "Not recorded"],
+                    ["Water source", current.waterSupply || "Not recorded"],
                     ["Septic tank", current.septicTank || "Not recorded"],
                     [
                       "Housing material",
                       unitFor(current.id)?.material || "Not recorded",
-                    ],
-                    [
-                      "Water source",
-                      unitFor(current.id)?.water || "Not recorded",
                     ],
                     [
                       "Toilet / CR",
@@ -1269,7 +1275,16 @@ export function ProfilingPage({ module }: { module: string }) {
                         setDraft({
                           ...draft,
                           targetHousehold: event.target.value,
-                          targetFamily: "",
+                          targetFamily:
+                            (state.families ?? []).filter(
+                              (family) =>
+                                family.householdId === event.target.value,
+                            ).length === 1
+                              ? (state.families?.find(
+                                  (family) =>
+                                    family.householdId === event.target.value,
+                                )?.id ?? "")
+                              : "",
                         })
                       }
                     >
