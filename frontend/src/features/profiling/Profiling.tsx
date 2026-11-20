@@ -31,6 +31,7 @@ import { AGE_GROUPS, ageGroups } from "./ageGroups";
 import { matchesCategory } from "./categoryFilter";
 import { BirthdateInput } from "./components/BirthdateInput";
 import { HouseholdMembers } from "./components/HouseholdMembers";
+import { BUILDING_USES, BUILDING_USE_OPTIONS } from "./buildingUses";
 
 const Context = createContext<{
   state: Relationships;
@@ -65,6 +66,7 @@ export function ProfilingPage({ module }: { module: string }) {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [classificationFilter, setClassificationFilter] = useState("");
+  const [buildingUseFilter, setBuildingUseFilter] = useState("");
   useEffect(() => {
     const value = params.get("classification");
     setClassificationFilter(
@@ -91,6 +93,9 @@ export function ProfilingPage({ module }: { module: string }) {
     (row) =>
       (showArchived || row.archived !== "true") &&
       matchesCategory(row, params.get("category") ?? "", today()) &&
+      (module !== "housing" ||
+        !buildingUseFilter ||
+        (row.buildingUse || "Not recorded") === buildingUseFilter) &&
       (module !== "residents" ||
         !classificationFilter ||
         row.residencyClassification === classificationFilter) &&
@@ -172,6 +177,13 @@ export function ProfilingPage({ module }: { module: string }) {
     // This adapter is not a database transaction; the backend contract requires one.
     event.preventDefault();
     if (!draft) return;
+    if (
+      module === "housing" &&
+      !BUILDING_USE_OPTIONS.includes(draft.buildingUse || "Not recorded")
+    ) {
+      setError("Choose a listed building use.");
+      return;
+    }
     if (
       module === "residents" &&
       !["Resident", "Non-resident"].includes(
@@ -641,6 +653,22 @@ export function ProfilingPage({ module }: { module: string }) {
                 </select>
               </label>
             )}
+            {module === "housing" && (
+              <label>
+                Filter by building use
+                <select
+                  value={buildingUseFilter}
+                  onChange={(event) => setBuildingUseFilter(event.target.value)}
+                >
+                  <option value="">All building uses</option>
+                  {BUILDING_USE_OPTIONS.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             <label className="archive-filter">
               <input
                 type="checkbox"
@@ -682,6 +710,7 @@ export function ProfilingPage({ module }: { module: string }) {
                       <th scope="col">Housing</th>
                     </>
                   )}
+                  {module === "housing" && <th scope="col">Building use</th>}
                   <th scope="col">Actions</th>
                 </tr>
               </thead>
@@ -742,6 +771,13 @@ export function ProfilingPage({ module }: { module: string }) {
                           </td>
                           <td>{unitFor(row.id)?.material ?? "Not assigned"}</td>
                         </>
+                      )}
+                      {module === "housing" && (
+                        <td>
+                          <span className="badge">
+                            {row.buildingUse || "Not recorded"}
+                          </span>
+                        </td>
                       )}
                       <td>
                         <ProfileActions
@@ -812,7 +848,14 @@ export function ProfilingPage({ module }: { module: string }) {
           </h2>
           {module !== "households" && (
             <dl className="profile-details">
-              {Object.entries(current)
+              {Object.entries(
+                module === "housing"
+                  ? {
+                      ...current,
+                      buildingUse: current.buildingUse || "Not recorded",
+                    }
+                  : current,
+              )
                 .filter(([key]) => !["head", "housing"].includes(key))
                 .map(([key, value]) => (
                   <div key={key}>
@@ -890,6 +933,10 @@ export function ProfilingPage({ module }: { module: string }) {
                     ["Survey date", current.surveyDate || "Not recorded"],
                     ["Water source", current.waterSupply || "Not recorded"],
                     ["Septic tank", current.septicTank || "Not recorded"],
+                    [
+                      "Building use",
+                      unitFor(current.id)?.buildingUse || "Not recorded",
+                    ],
                     [
                       "Housing material",
                       unitFor(current.id)?.material || "Not recorded",
@@ -1217,7 +1264,9 @@ export function ProfilingPage({ module }: { module: string }) {
                       aria-describedby={
                         field.key === "residencyClassification"
                           ? "residency-requirement"
-                          : undefined
+                          : field.key === "buildingUse"
+                            ? "building-use-help"
+                            : undefined
                       }
                       onChange={(event) =>
                         setDraft({ ...draft, [field.key]: event.target.value })
@@ -1252,6 +1301,14 @@ export function ProfilingPage({ module }: { module: string }) {
                         setDraft({ ...draft, [field.key]: event.target.value })
                       }
                     />
+                  )}
+                  {field.key === "buildingUse" && (
+                    <small id="building-use-help">
+                      {BUILDING_USES.find(
+                        ({ value }) => value === draft.buildingUse,
+                      )?.description ??
+                        "Choose how this building is used. Leave Not recorded if unknown."}
+                    </small>
                   )}
                   {field.key === "residencyClassification" && (
                     <small id="residency-requirement">

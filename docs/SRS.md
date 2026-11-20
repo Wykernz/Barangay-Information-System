@@ -89,6 +89,7 @@ system, not permission to implement before phase approval.
 | PRO-011 | Health declarations and support needs shall be restricted and minimized. | Must |
 | PRO-012 | Duplicate detection shall flag candidates for human review and shall never merge automatically. | Must |
 | PRO-013 | Authorized users shall generate approved reports and exports. | Should |
+| PRO-014 | Physical building/housing-unit records shall support staff-selected Building use: Residential, Commercial, Mixed-Use, Institutional or Other; unknown values remain Not recorded without inference from occupancy. User approved 2026-11-20; current implementation is a synthetic frontend preview. | Must |
 
 ### 4.3 Appointments
 

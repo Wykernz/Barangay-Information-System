@@ -46,3 +46,9 @@ Initial fixture memberships use Family 1; household creation is idempotent on
 edit, and the first additional family brings the count to two. Tests cover these
 defaults, explicit family unassignment, new-person context and water-value
 preservation. See `HOUSEHOLD_UI.md`; no backend/data migration is included.
+
+2026-11-20 PRO-014 (user approved): Building use categories are implemented in
+`buildingUses.ts`, shared housing fields, profiling form/list/details, household
+observations and the unmapped directory. Existing values remain Not recorded.
+Frontend tests exercise each category's save/reopen flow, occupancy preservation
+and filters; backend persistence and browser acceptance remain outstanding.

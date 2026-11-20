@@ -137,3 +137,10 @@ aliases only, without attributing real demographic facts to anyone. Preserve the
 first six synthetic profiles' IDs and fictional attributes; add the seventh as
 an unassigned sample with demographic values not recorded. Update household-head
 labels consistently, without inferring new family relationships or real data.
+
+2026-11-20 user approved Building use choices for physical building/housing-unit
+records: Residential, Commercial, Mixed-Use, Institutional and Other, with the
+examples supplied in the request. Unknown existing values remain Not recorded;
+household occupancy does not infer a category. Add capture, display and filters
+in the synthetic frontend. This is descriptive use, not official zoning, permits
+or legal classification. Backend persistence and schema remain a later increment.

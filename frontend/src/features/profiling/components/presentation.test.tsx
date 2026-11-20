@@ -11,6 +11,69 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { DemoProvider } from "../../../demo/store";
 import { ProfilingPage, ProfilingProvider } from "../Profiling";
 
+test.each(["Residential", "Commercial", "Mixed-Use", "Institutional", "Other"])(
+  "building use %s saves, displays and reopens without changing occupancy",
+  (buildingUse) => {
+    page("/housing/DEMO-U001", "housing");
+    expect(
+      screen.getByText("Building use", { selector: "dt" }).nextElementSibling
+        ?.textContent,
+    ).toBe("Not recorded");
+    fireEvent.click(screen.getByRole("button", { name: "Edit details" }));
+    expect(
+      (screen.getByLabelText("Building use") as HTMLSelectElement).value,
+    ).toBe("Not recorded");
+    fireEvent.change(screen.getByLabelText("Building use"), {
+      target: { value: buildingUse },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save profile" }));
+    expect(
+      screen.getByText("Building use", { selector: "dt" }).nextElementSibling
+        ?.textContent,
+    ).toBe(buildingUse);
+    expect(screen.getByRole("link", { name: "DEMO-H001" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Edit details" }));
+    expect(
+      (screen.getByLabelText("Building use") as HTMLSelectElement).value,
+    ).toBe(buildingUse);
+  },
+);
+
+test("housing use filters do not infer residential use from occupancy", () => {
+  page("/housing", "housing");
+  fireEvent.change(screen.getByLabelText("Filter by building use"), {
+    target: { value: "Residential" },
+  });
+  expect(screen.getByText(/No matching records/)).toBeTruthy();
+  fireEvent.change(screen.getByLabelText("Filter by building use"), {
+    target: { value: "Not recorded" },
+  });
+  expect(
+    screen.getAllByRole("link", { name: /^View Housing unit/ }),
+  ).toHaveLength(4);
+  fireEvent.click(
+    screen.getByRole("button", { name: "Edit Housing unit 001" }),
+  );
+  fireEvent.change(screen.getByLabelText("Building use"), {
+    target: { value: "Mixed-Use" },
+  });
+  expect(screen.getByText(/sari-sari store/)).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Save profile" }));
+  fireEvent.click(screen.getByRole("link", { name: /Back to directory/ }));
+  fireEvent.change(screen.getByLabelText("Filter by building use"), {
+    target: { value: "Not recorded" },
+  });
+  expect(
+    screen.queryByRole("link", { name: "View Housing unit 001" }),
+  ).toBeNull();
+  fireEvent.change(screen.getByLabelText("Filter by building use"), {
+    target: { value: "Mixed-Use" },
+  });
+  expect(
+    screen.getByRole("link", { name: "View Housing unit 001" }),
+  ).toBeTruthy();
+});
+
 beforeEach(() => {
   // jsdom does not implement native dialog visibility; reflect browser behavior.
   HTMLDialogElement.prototype.showModal = vi.fn(function (
