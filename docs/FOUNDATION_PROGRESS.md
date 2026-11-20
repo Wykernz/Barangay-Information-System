@@ -1,5 +1,53 @@
 # Foundation progress
 
+## Pre-capture profiling and GIS-ready foundation
+
+Added a versioned field-definition API and real React **Field planner** for the
+field-capture workshop. Drafts support explicit versions, typed fields, choices,
+required/sensitive markers, ordering, and schema-driven preview. Activation and
+archiving are explicit server-checked transitions; active forms are immutable.
+Only active resident forms can supply validated resident extension values.
+
+Added provisional UUID-based resident, household, housing, effective-dated
+membership/occupancy, resident-revision, metadata-only audit-event, and optional
+GeoDjango housing-location models/migrations. Resident verification records the
+requesting verifier/time. Location corrections append revisions, and verification
+records the requesting verifier/time. The remaining operational screens are still
+synthetic and are not connected to these APIs.
+
+GeoDjango is intentionally gated by `DJANGO_ENABLE_GIS` because GDAL is not
+available on this workstation. Normal profiling checks/migrations run with the
+flag off. PostGIS/GDAL/GEOS and spatial integration tests are unresolved; the
+migration under `backend/gis` has not been applied or drift-checked against a
+spatial database. Do not treat this as a production GIS verification.
+
+`docs/DATA_CAPTURE_WORKSHOP.md` records tomorrow's workshop scope and open
+approvals. No real resident fields, coordinates, exports, or data were added.
+
+Verification: Ruff, non-GIS Django checks, migration drift (with the known test
+credential connection warning), OpenAPI validation, eight profiling/household
+unit tests plus four database-independent auth rejection tests, frontend strict
+TypeScript, 13 frontend tests, and the production frontend build passed. Database
+integration, browser E2E, full authorization workflows, and spatial checks were
+not executed. The field planner still needs the documented PostgreSQL `.env`,
+migrations, and an appropriately permitted staff account.
+
+## Explicit session schema and backend revalidation
+
+Declared the authenticated session response for drf-spectacular so the generated
+OpenAPI document no longer omits `/api/v1/session/`. This is documentation of the
+existing username-only response; it does not add fields, permissions, or domain
+behavior. A database-independent regression test verifies the response component.
+
+Revalidation on 2026-11-16 reached the configured PostgreSQL server. Migration
+drift check reported no changes. The full backend suite could not create its
+isolated `test_bims_dev` database because the application role intentionally lacks
+`CREATEDB`; all ten database tests therefore stopped during setup. Provision a
+separate authorized test database/role or temporarily grant the documented test
+capability before treating the suite as executed evidence. Deployment checks also
+retain the expected local-development HTTPS, secure-cookie, HSTS, and DEBUG
+warnings; production values remain a deployment decision.
+
 ## Frontend module prototype
 
 Added responsive authenticated navigation, a derived dashboard, searchable editable

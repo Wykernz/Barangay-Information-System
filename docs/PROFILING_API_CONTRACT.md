@@ -4,6 +4,30 @@ Status: coordination draft for the backend developer. Current backend routes are
 authentication/session/schema only. No profiling API is called or implemented.
 Future integration must reuse the centralized Axios client in frontend/src/api.ts.
 
+## Frontend adapter prepared
+
+`frontend/src/features/profiling/api.ts` now defines proposed wire types and API
+functions using the shared Axios client. It is not imported by active screens.
+The API is still a coordination draft; no live backend compatibility is claimed.
+TypeScript declarations are not runtime response validation.
+
+The adapter acquires CSRF before mutations, preserves field errors and rejects
+permission/conflict/network failures without sample-data fallback. Archive/restore
+is proposed as PATCH `{archived, expected_version}` on a detail endpoint, not DELETE.
+Backend must explicitly agree to these semantics and enforce dependency guards.
+
+Wire fields use snake_case. Resident inputs exclude client-generated IDs; list
+responses use count/next/previous/results. Transfer returns ended_membership,
+created_membership and household_versions. Head selection proposes a paginated
+membership response; occupancy change returns ended_occupancy/created_occupancy.
+Confirm these exact field names before implementing the backend or enabling UI calls.
+
+Enablement sequence: agree contract → implement permission/transaction-tested
+backend endpoints → validate real response schemas → map wire types to frontend
+view models → connect query/mutation hooks and cache invalidation → verify complete
+workflows against a separate synthetic test database. Do not automatically fall
+back to in-memory records when a live save fails. Surveys remain deferred.
+
 Models: Resident (server UUID/reference, structured names, birthdate, approved
 demographics), Household, HouseholdMembership (IDs, relationship, effective dates),
 head assignment history, HousingUnit, HouseholdOccupancy, HouseholdSurvey

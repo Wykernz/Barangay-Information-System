@@ -1,5 +1,17 @@
 import pytest
 from django.test import Client
+from drf_spectacular.generators import SchemaGenerator
+
+
+def test_session_schema_is_explicit():
+    schema = SchemaGenerator().get_schema(request=None, public=True)
+
+    response = schema['paths']['/api/v1/session/']['get']['responses']['200']
+    reference = response['content']['application/json']['schema']['$ref']
+    assert reference == '#/components/schemas/Session'
+    assert schema['components']['schemas']['Session']['properties'] == {
+        'username': {'type': 'string', 'readOnly': True},
+    }
 
 
 @pytest.mark.django_db

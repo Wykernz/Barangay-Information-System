@@ -1,5 +1,35 @@
 # Staff frontend review
 
+The shared staff interface refresh is documented in [UI_REFRESH.md](UI_REFRESH.md).
+The overview uses classified active-resident counts, the approved age groups and
+linked category filters. The missing-birthdate card and deferred appointment/case
+metrics are removed. A locally served neutral emblem is a replaceable placeholder,
+not an official barangay seal. Runtime fonts and icons require no internet.
+
+Household family cards, member management and contextual registration are
+documented in [HOUSEHOLD_UI.md](HOUSEHOLD_UI.md). Birthdates use a single
+month/day/year control with a typed year; age groups follow [AGE_GROUPS.md](AGE_GROUPS.md).
+Resident classification, optional middle name and voluntary demographic fields
+are part of this synthetic preview. Profiles and relationship history remain in
+session memory and reset on reload/sign-out.
+
+## Backend-persisted field planner
+
+`/data-capture` is a real Django-backed workshop workspace for versioned resident,
+household, housing, survey, and GIS field definitions. Staff with the model
+capabilities can create/edit drafts, add typed fields and controlled choices,
+mark sensitivity, reorder fields, preview the possible layout, and activate or
+archive saved versions through explicit confirmation. Active/archived versions
+are read-only. New drafts accept an explicit version number so workshop changes
+can become a new contract rather than mutating an active version.
+
+TanStack Query handles list/detail states and saves; failed requests retain local
+editor changes without browser storage. The preview does not collect operational
+values. Field approval, privacy review, and permissions remain stakeholder
+responsibilities. The workspace banner distinguishes this persistent planner
+from the synthetic in-memory module previews.
+
+## Synthetic module previews
 Current handoff: FRONTEND_CHANGELOG.md and PROFILING_WORKFLOW.md consolidate the
 current implementation. Historical descriptions below predate survey deferral,
 connected profiling screens and final operational UI wording.
@@ -59,6 +89,7 @@ production-ready interface.
 - `frontend/src/demo/`: typed synthetic catalog and in-memory state adapter.
 - `frontend/src/components/RecordPage.tsx`: shared directory and inline editor.
 - `frontend/src/pages/`: dashboard, GIS readiness, reports.
+- `frontend/src/planner/`: typed API, versioned definition editor, preview, styles, tests.
 - `frontend/src/styles/workspace.css`: grouped layout, table, form, and responsive styles.
 
 Run Django and Vite as described in `RUNNING.md`, sign in, and review the routes.

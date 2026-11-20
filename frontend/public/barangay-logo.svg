@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <circle cx="60" cy="60" r="57" fill="#f8fbf8" stroke="#b99b43" stroke-width="4"/>
+  <circle cx="60" cy="60" r="48" fill="#e5f1ed" stroke="#0a414a" stroke-width="2"/>
+  <path d="M31 58 60 35 89 58M39 54v31h42V54M53 85V65h14v20" fill="none" stroke="#0a414a" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M29 93h62" stroke="#b99b43" stroke-width="3" stroke-linecap="round"/>
+  <text x="60" y="28" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="bold" fill="#0a414a">BIMS</text>
+</svg>
