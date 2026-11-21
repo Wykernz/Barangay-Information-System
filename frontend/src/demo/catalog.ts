@@ -1,4 +1,5 @@
 /** Synthetic UI fixtures only. Domain APIs will replace this adapter later. */
+import { BUILDING_USE_OPTIONS } from "../features/profiling/buildingUses";
 export type RecordRow = { id: string; [field: string]: string };
 export type Field = {
   key: string;
@@ -99,9 +100,10 @@ export const catalog: Record<string, Module> = {
     title: "Housing units",
     singular: "housing unit",
     description:
-      "Record construction, water, and sanitation independently of household membership.",
+      "Record building use, construction, water, and sanitation independently of household membership.",
     fields: [
       field("name", "Unit label"),
+      field("buildingUse", "Building use", BUILDING_USE_OPTIONS),
       field("material", "Construction", [
         "Concrete",
         "Wood",

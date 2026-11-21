@@ -8,9 +8,11 @@ def test_session_schema_is_explicit():
 
     response = schema['paths']['/api/v1/session/']['get']['responses']['200']
     reference = response['content']['application/json']['schema']['$ref']
-    assert reference == '#/components/schemas/Session'
-    assert schema['components']['schemas']['Session']['properties'] == {
-        'username': {'type': 'string', 'readOnly': True},
+    assert reference == '#/components/schemas/StaffSession'
+    assert schema['components']['schemas']['StaffSession']['properties'] == {
+        'username': {'type': 'string', 'readOnly': True, 'maxLength': 150},
+        'display_name': {'type': 'string', 'readOnly': True},
+        'health_only': {'type': 'boolean', 'readOnly': True},
     }
 
 
@@ -24,7 +26,9 @@ def test_session_returns_only_current_username(django_user_model):
     user = django_user_model.objects.create_user(username='synthetic-staff')
     client = Client()
     client.force_login(user)
-    assert client.get('/api/v1/session/').json() == {'username': 'synthetic-staff'}
+    assert client.get('/api/v1/session/').json() == {
+        'username': 'synthetic-staff', 'display_name': 'synthetic-staff', 'health_only': False,
+    }
 
 
 @pytest.mark.django_db

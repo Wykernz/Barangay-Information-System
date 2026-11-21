@@ -1,4 +1,14 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+import {
+  loadResidents,
+  persistResident,
+} from "../features/profiling/residentApi";
 import { catalog, type RecordRow } from "./catalog";
 import {
   prototypeResidents,
@@ -12,6 +22,8 @@ type Store = {
   history: Change[];
   save: (module: string, row: RecordRow) => void;
   reset: () => void;
+  saveResident?: typeof persistResident;
+  residentLoadError: string;
 };
 const Context = createContext<Store | null>(null);
 const initial = () =>
@@ -26,9 +38,11 @@ const initial = () =>
 export function DemoProvider({
   children,
   profilingFixtures = false,
+  persistResidents = false,
 }: {
   children: ReactNode;
   profilingFixtures?: boolean;
+  persistResidents?: boolean;
 }) {
   const seeded = () =>
     profilingFixtures
@@ -41,6 +55,31 @@ export function DemoProvider({
       : initial();
   const [records, setRecords] = useState(seeded);
   const [history, setHistory] = useState<Change[]>([]);
+  const [residentLoadError, setResidentLoadError] = useState("");
+  useEffect(() => {
+    if (!persistResidents) return;
+    const controller = new AbortController();
+    loadResidents(controller.signal)
+      .then((rows) => {
+        if (!controller.signal.aborted)
+          setRecords((current) => ({
+            ...current,
+            residents: [
+              ...current.residents,
+              ...rows.filter(
+                (row) => !current.residents.some((item) => item.id === row.id),
+              ),
+            ],
+          }));
+      })
+      .catch(() => {
+        if (!controller.signal.aborted)
+          setResidentLoadError(
+            "Database residents could not be loaded. Reload to retry; local profiles below are session only.",
+          );
+      });
+    return () => controller.abort();
+  }, [persistResidents]);
   function save(module: string, row: RecordRow) {
     setRecords((current) => ({
       ...current,
@@ -63,8 +102,20 @@ export function DemoProvider({
         records,
         history,
         save,
+        saveResident: persistResidents ? persistResident : undefined,
+        residentLoadError,
         reset: () => {
-          setRecords(seeded());
+          setRecords((current) => ({
+            ...seeded(),
+            residents: persistResidents
+              ? [
+                  ...seeded().residents,
+                  ...current.residents.filter(
+                    (row) => row._storage === "database",
+                  ),
+                ]
+              : seeded().residents,
+          }));
           setHistory([]);
         },
       }}

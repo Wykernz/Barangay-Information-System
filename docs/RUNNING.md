@@ -1,5 +1,15 @@
 # Run BIMS on Windows
 
+For the Payahan geographic map, database household links, native GIS prerequisites
+and licensed online/offline map sources, see [GIS.md](GIS.md). The basemap works
+with GIS storage disabled; saving household house locations requires PostGIS and
+the native GIS runtime. Existing sample profiles are not database records.
+
+If your ArcGIS browser key permits `localhost`, open **http://localhost:5173**
+instead of `127.0.0.1:5173`. The latest replacement key was accepted for localhost
+and rejected for 127.0.0.1. Use the hostname allowed by the key, or add the intended
+origin in its ArcGIS website restrictions. Sign in again when switching hosts.
+
 The current application provides staff sign-in, a workspace shell, and a real backend
 field planner for drafting versioned profiling forms. Resident/household API
 scaffolds also exist but the other operational screens remain synthetic demos.

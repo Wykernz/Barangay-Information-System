@@ -1,6 +1,7 @@
 # Barangay Information System
 
-A LAN-oriented Barangay Information Management System using Django/DRF,
+A Barangay Information Management System targeting online, authorized-staff-only
+use (confirmed 2026-11-20), using Django/DRF,
 React/TypeScript, PostgreSQL, and an optional GeoDjango/PostGIS runtime for
 verified housing locations.
 

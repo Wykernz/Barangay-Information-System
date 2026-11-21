@@ -33,8 +33,44 @@ and separate housing units. Assignment/transfer/unassignment and head changes us
 confirmations and preserve historical segments. Occupancy moves retain previous
 assignments. Units remain separate and may accommodate multiple households.
 
-The fictional reference data contains six residents and four households/units.
+The fictional sample data contains seven profiles and four households/units.
+The user-supplied demo aliases replace the previous display names. The original
+six profiles retain fictional attributes and relationships; the seventh starts
+unassigned with demographic details not recorded. These are not real resident
+records or assertions about the people whose names were supplied.
+Demo-alias validation (2026-11-20): typecheck passed using the reduced-memory Node
+command documented in `HOUSEHOLD_UI.md`; the single-worker Vitest suite passed
+11 files / 53 tests. The four modified TypeScript files were formatted with
+Prettier. Existing relationships and synthetic attributes were retained.
 No screen-position coordinates are imported; all locations remain unmapped.
+
+## Building use (user approved 2026-11-20)
+
+Housing-unit creation and editing include one **Building use** dropdown:
+
+| Category | Meaning |
+|---|---|
+| Residential | Houses, apartments, boarding houses |
+| Commercial | Stores, shops, restaurants, businesses |
+| Mixed-Use | House with a sari-sari store or another business |
+| Institutional | Schools, barangay halls, health centers |
+| Other | Properties outside the categories above |
+
+Existing and unknown values display **Not recorded**. A household living in a
+unit does not automatically classify it as Residential. Classification does not
+create or remove households, people or occupancy history, and describes use
+rather than official zoning, permits or legal status.
+
+Building use is visible in the housing registry, profile details, linked-household
+observations and unmapped housing directory. Housing registry and directory filters
+can select a category or Not recorded. No map geometry or location is invented.
+Selection is stored in synthetic session state and resets on reload/sign-out;
+backend persistence and production schema are not part of this increment.
+
+Validation: reduced-memory TypeScript check passed; single-worker Vitest with
+`--configLoader runner --maxWorkers=1` passed 11 files / 59 tests. Vite production
+build with `--configLoader runner`, targeted Prettier check and `git diff --check`
+passed. Browser visual/keyboard acceptance remains outstanding.
 
 ## Removal and recovery
 

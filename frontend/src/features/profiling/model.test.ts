@@ -2,9 +2,65 @@ import { expect, test } from "vitest";
 import {
   assign,
   assignFamily,
+  ensureHouseholdFamily,
   initialRelationships,
   selectHead,
 } from "./model";
+
+test("seeded households start with one family containing all current members", () => {
+  const state = initialRelationships();
+  for (const householdId of new Set(
+    state.memberships.map((member) => member.householdId),
+  )) {
+    const families = state.families!.filter(
+      (family) => family.householdId === householdId,
+    );
+    expect(families).toHaveLength(1);
+    expect(families[0].label).toBe("Family 1");
+    expect(
+      state.memberships
+        .filter((member) => member.householdId === householdId)
+        .every((member) => member.familyId === families[0].id),
+    ).toBe(true);
+  }
+});
+
+test("new households receive one default family, retain it on edits and default new members into it", () => {
+  const state = ensureHouseholdFamily(initialRelationships(), "NEW-HOUSEHOLD");
+  expect(ensureHouseholdFamily(state, "NEW-HOUSEHOLD")).toBe(state);
+  const family = state.families!.find(
+    (item) => item.householdId === "NEW-HOUSEHOLD",
+  )!;
+  const next = assign(
+    state,
+    "NEW-PERSON",
+    "NEW-HOUSEHOLD",
+    "Member",
+    "2026-11-20",
+    "NEW-MEMBERSHIP",
+  );
+  expect(
+    next.memberships.find((member) => member.id === "NEW-MEMBERSHIP")?.familyId,
+  ).toBe(family.id);
+  const unassigned = assignFamily(
+    next,
+    "NEW-MEMBERSHIP",
+    undefined,
+    "2026-11-20",
+    "UNGROUPED",
+  );
+  const edited = assign(
+    unassigned,
+    "NEW-PERSON",
+    "NEW-HOUSEHOLD",
+    "Sibling",
+    "2026-11-20",
+    "EDITED",
+  );
+  expect(
+    edited.memberships.find((member) => member.id === "EDITED")?.familyId,
+  ).toBeUndefined();
+});
 
 test("transfer preserves history and only one current demo membership", () => {
   const initial = initialRelationships();

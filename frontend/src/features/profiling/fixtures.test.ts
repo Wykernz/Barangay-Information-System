@@ -7,18 +7,30 @@ import {
 import { initialRelationships } from "./model";
 
 test("prototype profiles preserve structured names and demographic details", () => {
-  expect(prototypeResidents).toHaveLength(6);
+  expect(prototypeResidents).toHaveLength(7);
   expect(
     prototypeResidents.find((row) => row.id === "DEMO-R001"),
   ).toMatchObject({
-    firstName: "Maria",
-    surname: "Santos",
+    firstName: "Adrian Joseph",
+    surname: "Bayonon",
     birthdate: "1981-06-12",
     civilStatus: "Married",
   });
   expect(
     prototypeResidents.find((row) => row.id === "DEMO-R006")?.surname,
-  ).toBe("Dela Cruz");
+  ).toBe("Mara");
+  expect(
+    prototypeResidents.find((row) => row.id === "DEMO-R007"),
+  ).toMatchObject({
+    name: "Juliana Rianne Ygrubay",
+    birthdate: "",
+    sex: "Not recorded",
+  });
+  expect(
+    initialRelationships().memberships.some(
+      (member) => member.residentId === "DEMO-R007",
+    ),
+  ).toBe(false);
 });
 test("each prototype household has correct members, head and separate unit", () => {
   const state = initialRelationships();

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Workspace from "./Workspace";
+import HealthWorkspace from "./HealthWorkspace";
 import { api, getSession, signIn } from "./api";
 
 function Login() {
@@ -130,9 +131,18 @@ export default function App() {
       setLogoutError("Sign out failed. Please try again.");
     }
   }
-  return (
+  return session.data.health_only ? (
+    <main className="status">
+      <h1>Barangay Payahan · Healthcare administration</h1>
+      <p>Signed in as {session.data.display_name || session.data.username}</p>
+      <HealthWorkspace />
+      <p>Your account has access to Health only.</p>
+      {logoutError && <p role="alert">{logoutError}</p>}
+      <button onClick={logout}>Sign out</button>
+    </main>
+  ) : (
     <Workspace
-      username={session.data.username}
+      username={session.data.display_name || session.data.username}
       logout={logout}
       logoutError={logoutError}
     />

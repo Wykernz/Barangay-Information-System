@@ -4,9 +4,10 @@ Status: **Proposed; approval required before major implementation**
 
 ## 1. Context and constraints
 
-BIMS serves one barangay over a local network and must remain useful without
-internet. PostgreSQL/PostGIS is authoritative. A public portal, remote access,
-and house-coordinate collection method are separate pending decisions.
+BIMS serves one barangay through an online application for authorized staff only
+(user confirmed 2026-11-20). PostgreSQL/PostGIS is authoritative and private.
+There is no approved resident portal. Offline operation is optional; hosting,
+production security review and house-coordinate collection decisions remain open.
 
 Verified workspace/tool snapshot on 2026-11-14:
 
@@ -27,7 +28,7 @@ This inventory reflects command discovery, not an approved production stack.
 ## 2. System shape
 
 ```text
-Staff browsers on barangay LAN
+Authorized staff browsers over the internet
           |
      HTTPS/reverse proxy
           |
@@ -45,9 +46,9 @@ Staff browsers on barangay LAN
 QGIS -> reviewed GeoJSON/staging import -> BIMS (not live production editing)
 ```
 
-All runtime dependencies, fonts, scripts, and approved map resources are hosted
-locally. The database binds to an internal interface/firewall boundary and is
-never exposed to the public internet.
+Application assets are bundled with the deployment. Licensed online map services
+may be used; locally hosted tiles remain optional. The database binds to a
+private interface/network and is never exposed to the public internet.
 
 ### Pre-capture extensibility increment
 
@@ -131,22 +132,23 @@ architecture approval pass; role labels alone must not grant sensitive access.
   scanning strategy. Downloads pass authorization and audit checks.
 - Analytics query canonical tables using versioned metric definitions and effective dates.
 
-## 7. LAN and deployment
+## 7. Online staff deployment
 
-Preferred initial topology is one dedicated, maintained on-premises server, a
-UPS, managed LAN access, local DNS/static address, reverse proxy, application
-processes, PostgreSQL/PostGIS, and private storage. A containerized or native
-Windows/Linux deployment decision remains open and must follow operator skills,
-hardware, and restore testing—not developer convenience.
+The target is an HTTPS staff application behind managed ingress or a reverse
+proxy, with private application processes, PostgreSQL/PostGIS and attachment
+storage. Select hosting, domain, deployment region, operating environment,
+monitoring, backups and recovery procedures before rollout. Current localhost
+commands remain for development and are not a production deployment.
 
-Remote/public access requires a new threat model and architecture decision. Do
-not port-forward the server. Approved remote administration should use a managed
-VPN or equivalent controlled channel with MFA and logging.
+Internet staff access is authorized in scope; production requires a corresponding
+threat model and verified access controls. Do not expose Django's development
+server or PostgreSQL directly. Privileged remote administration needs a separately
+controlled channel with appropriate authentication and logging.
 
 ## 8. Security and privacy architecture
 
 - Environment-provided secrets, encrypted backups, least-privilege service accounts.
-- HTTPS on LAN using a managed local certificate approach; secure, HttpOnly,
+- HTTPS using valid production certificates; secure, HttpOnly,
   SameSite cookies; CSRF; CSP and other response headers.
 - Rate-limit authentication and costly/export endpoints; alert on abuse patterns.
 - Structured logs exclude sensitive payloads and use correlation IDs.
@@ -155,6 +157,16 @@ VPN or equivalent controlled channel with MFA and logging.
   purpose/lawful basis, notices, sharing, retention, disposal, and incident response.
 
 ## 9. GIS workflow
+
+The authorized Payahan map increment is documented in [GIS.md](GIS.md).
+Leaflet renders licensed real tile layers and an unchanged, provenance-bearing
+HDX polygon labeled indicative. The user-supplied initial center is preserved
+even though it lies outside the published polygon extent. Household links use
+effective occupancies and existing PostGIS point revisions; the frontend keeps
+database household locations explicitly separate from session-only profile
+fixtures. Local licensed XYZ files can be served over the LAN. GIS saves remain
+gated on verified native dependencies; online providers are optional basemaps,
+not dependencies of local household storage.
 
 1. Inventory paper map provenance, scale, date, authority, condition, and usage rights.
 2. Scan at an archival quality and preserve the untouched master plus checksum.
@@ -171,7 +183,8 @@ No paper-map feature becomes “official” merely through digitization.
 
 - Automated tests at service, constraint, API authorization, component, and workflow levels.
 - Restore drills prove backups; backup creation alone is not evidence.
-- LAN isolation testing disconnects upstream internet and exercises core workflows.
+- Online deployment acceptance tests HTTPS, authorization, session security,
+  private database/storage access and recovery. Offline map checks are optional.
 - Dependency assets are checked for accidental CDN/network calls.
 - Load targets await record-volume/concurrency discovery; benchmark representative datasets.
 - Accessibility checks combine automation and keyboard/screen-reader review.
@@ -188,7 +201,7 @@ No paper-map feature becomes “official” merely through digitization.
 6. Implement complaints only after legal workflow, confidentiality, and retention review.
 7. Add versioned analytics from accepted definitions; do not create a parallel data store early.
 8. Conduct migration rehearsal, privacy/security review, performance/accessibility testing,
-   backup restoration, isolated-LAN testing, training, and UAT before go-live.
+   backup restoration, online deployment/access testing, training, and UAT before go-live.
 
 ## 12. Safe work before approval
 
@@ -198,5 +211,5 @@ evaluate hardware/network constraints, and verify compatible dependency versions
 
 Requires approval: major scaffolding, finalized schemas, real-data migration,
 coordinate collection, case workflow, retention automation, deployment topology,
-public/remote access, and production procurement.
+production internet exposure controls, and production procurement.
 

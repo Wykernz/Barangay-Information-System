@@ -22,6 +22,11 @@ export type Relationships = {
   occupancies: Occupancy[];
 };
 export const initialRelationships = (): Relationships => ({
+  families: ["001", "002", "003", "004"].map((number) => ({
+    id: `DEMO-F${number}`,
+    householdId: `DEMO-H${number}`,
+    label: "Family 1",
+  })),
   memberships: [
     ["001", "001", "Head"],
     ["002", "001", "Son"],
@@ -33,6 +38,7 @@ export const initialRelationships = (): Relationships => ({
     id: index === 0 ? "DEMO-M1" : `DEMO-M${index + 1}`,
     residentId: `DEMO-R${resident}`,
     householdId: `DEMO-H${household}`,
+    familyId: `DEMO-F${household}`,
     relationship,
     head: relationship === "Head",
     start: "2026-01-01",
@@ -46,6 +52,22 @@ export const initialRelationships = (): Relationships => ({
     end: null,
   })),
 });
+
+/** New synthetic households start with one family, without duplicating it on edit. */
+export function ensureHouseholdFamily(
+  state: Relationships,
+  householdId: string,
+): Relationships {
+  if (state.families?.some((family) => family.householdId === householdId))
+    return state;
+  return {
+    ...state,
+    families: [
+      ...(state.families ?? []),
+      { id: crypto.randomUUID(), householdId, label: "Family 1" },
+    ],
+  };
+}
 /** Demo policy: one current household; production cardinality awaits stakeholder approval. */
 export function assign(
   state: Relationships,
@@ -60,6 +82,10 @@ export function assign(
   );
   if (active.some((item) => date < item.start))
     throw new Error("Effective date precedes the current membership.");
+  const existing = active.find((item) => item.householdId === householdId);
+  const families = (state.families ?? []).filter(
+    (family) => family.householdId === householdId,
+  );
   return {
     ...state,
     memberships: [
@@ -76,8 +102,11 @@ export function assign(
               start: date,
               end: null,
               head: false,
-              familyId: active.find((item) => item.householdId === householdId)
-                ?.familyId,
+              familyId: existing
+                ? existing.familyId
+                : families.length === 1
+                  ? families[0].id
+                  : undefined,
             },
           ]
         : []),

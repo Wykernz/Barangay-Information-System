@@ -1,13 +1,38 @@
 import type { RecordRow } from "../../demo/catalog";
 
-/** Fictional records copied from the supplied prototype, never operational data. */
+/** User-supplied demo aliases with fictional attributes, never operational data. */
 export const prototypeResidents: RecordRow[] = [
-  ["001", "Maria", "Santos", "1981-06-12", "Female", "Married", "Purok 1"],
-  ["002", "Juan", "Santos", "2005-03-19", "Male", "Single", "Purok 1"],
-  ["003", "Rosa", "Santos", "2014-02-10", "Female", "Single", "Purok 1"],
-  ["004", "Jose", "Reyes", "1962-11-04", "Male", "Widowed", "Purok 2"],
-  ["005", "Ana", "Cruz", "1990-08-25", "Female", "Single", "Purok 1"],
-  ["006", "Elena", "Dela Cruz", "1997-09-30", "Female", "Single", "Purok 3"],
+  [
+    "001",
+    "Adrian Joseph",
+    "Bayonon",
+    "1981-06-12",
+    "Female",
+    "Married",
+    "Purok 1",
+  ],
+  ["002", "Renz", "General", "2005-03-19", "Male", "Single", "Purok 1"],
+  ["003", "MIko", "Doinog", "2014-02-10", "Female", "Single", "Purok 1"],
+  [
+    "004",
+    "Paul Vincent",
+    "Ardidon",
+    "1962-11-04",
+    "Male",
+    "Widowed",
+    "Purok 2",
+  ],
+  ["005", "Zer Jay", "Arabiana", "1990-08-25", "Female", "Single", "Purok 1"],
+  ["006", "Darwin", "Mara", "1997-09-30", "Female", "Single", "Purok 3"],
+  [
+    "007",
+    "Juliana Rianne",
+    "Ygrubay",
+    "",
+    "Not recorded",
+    "Not recorded",
+    "Not recorded",
+  ],
 ].map(([number, firstName, surname, birthdate, sex, civilStatus, purok]) => ({
   id: `DEMO-R${number}`,
   firstName,
@@ -21,10 +46,10 @@ export const prototypeResidents: RecordRow[] = [
 }));
 
 export const prototypeHouseholds: RecordRow[] = [
-  ["001", "Maria Santos", "Purok 1"],
-  ["002", "Jose Reyes", "Purok 2"],
-  ["003", "Ana Cruz", "Purok 1"],
-  ["004", "Elena Dela Cruz", "Purok 3"],
+  ["001", "Adrian Joseph Bayonon", "Purok 1"],
+  ["002", "Paul Vincent Ardidon", "Purok 2"],
+  ["003", "Zer Jay Arabiana", "Purok 1"],
+  ["004", "Darwin Mara", "Purok 3"],
 ].map(([number, head, purok]) => ({
   id: `DEMO-H${number}`,
   name: `HH-${number}`,
