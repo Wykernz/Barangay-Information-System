@@ -182,7 +182,7 @@ test("resident create and edit save profile fields", () => {
   });
   fireEvent.click(screen.getByRole("button", { name: "Save profile" }));
   expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(
-    "Workflow, Synthetic",
+    "Person Profile",
   );
   fireEvent.click(screen.getByRole("button", { name: "Edit details" }));
   fireEvent.change(screen.getByLabelText("First name"), {
@@ -190,7 +190,7 @@ test("resident create and edit save profile fields", () => {
   });
   fireEvent.click(screen.getByRole("button", { name: "Save profile" }));
   expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(
-    "Workflow, Updated",
+    "Person Profile",
   );
 });
 
@@ -215,12 +215,12 @@ test.each(["Resident", "Non-resident"])(
     }
     fireEvent.submit(select.closest("form")!);
     expect(
-      within(screen.getByRole("dialog")).getByRole("alert").textContent,
+      within(screen.getByRole("main", { name: "Register resident" })).getByRole("alert").textContent,
     ).toBe("Choose Resident or Non-resident.");
-    expect(screen.getByRole("dialog")).toBeTruthy();
+    expect(screen.getByRole("main", { name: "Register resident" })).toBeTruthy();
     fireEvent.change(select, { target: { value: classification } });
     fireEvent.click(screen.getByRole("button", { name: "Save profile" }));
-    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.queryByRole("main", { name: "Register resident" })).toBeNull();
     expect(screen.getByText(classification)).toBeTruthy();
   },
 );
@@ -275,7 +275,7 @@ test("registration has one dialog heading and retains all identity fields", () =
   page("/residents", "residents");
   fireEvent.click(screen.getByRole("button", { name: "Add resident" }));
   expect(
-    screen.getAllByRole("heading", { name: "Register resident" }),
+    screen.getAllByRole("heading", { name: "Person Profile" }),
   ).toHaveLength(1);
   for (const label of [
     "First name",
@@ -543,7 +543,7 @@ test("registration from a family returns the new person to that household and fa
     screen.getByRole("link", { name: /Register a new resident/ }),
   );
   const dialog = within(
-    screen.getByRole("dialog", { name: "Register resident" }),
+    screen.getByRole("main", { name: "Register resident" }),
   );
   expect((dialog.getByLabelText("Household") as HTMLSelectElement).value).toBe(
     "DEMO-H001",

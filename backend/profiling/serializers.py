@@ -3,7 +3,9 @@ from django.utils import timezone
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from .models import FormDefinition, FormField, Resident, ResidentRevision
+from .models import FormDefinition, FormField, Resident
+from .photos import prepare_photo
+from .resident_records import save_resident_profile
 from .services import ProfileValidationError, validate_profile_values
 
 
@@ -105,8 +107,39 @@ class FormDefinitionSerializer(serializers.ModelSerializer):
         return instance
 
 
+class ResidentClassificationField(serializers.ChoiceField):
+    """Readable API vocabulary backed by the pre-existing stored codes."""
+
+    def __init__(self, **kwargs):
+        super().__init__(
+            choices=("Resident", "Non-resident", "Not recorded"),
+            required=False,
+            allow_null=True,
+            **kwargs,
+        )
+
+    def to_internal_value(self, data):
+        value = super().to_internal_value(data)
+        return {"Resident": "RESIDENT", "Non-resident": "NON_RESIDENT", "Not recorded": None}.get(
+            value
+        )
+
+    def to_representation(self, value):
+        return {"RESIDENT": "Resident", "NON_RESIDENT": "Non-resident", None: "Not recorded"}.get(
+            value, value
+        )
+
+
 class ResidentSerializer(serializers.ModelSerializer):
     age = serializers.SerializerMethodField()
+    photo = serializers.FileField(write_only=True, required=False)
+    photo_url = serializers.SerializerMethodField()
+    residency_classification = ResidentClassificationField()
+    verification_status = serializers.SerializerMethodField()
+
+    @extend_schema_field(serializers.CharField())
+    def get_verification_status(self, obj):
+        return obj.verification_status.lower()
 
     class Meta:
         model = Resident
@@ -120,6 +153,19 @@ class ResidentSerializer(serializers.ModelSerializer):
             "suffix",
             "birth_date",
             "age",
+            "sex",
+            "civil_status",
+            "nationality",
+            "place_of_birth",
+            "contact_number",
+            "email",
+            "residency_classification",
+            "residency_status",
+            "record_status",
+            "purok",
+            "is_archived",
+            "photo",
+            "photo_url",
             "values",
             "verification_status",
             "verified_at",
@@ -137,6 +183,18 @@ class ResidentSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
+        extra_kwargs = {"form_definition": {"required": False}}
+
+    @extend_schema_field(serializers.CharField(allow_null=True))
+    def get_photo_url(self, obj):
+        if not obj.photo:
+            return None
+        from urllib.parse import urlencode
+
+        return f"/api/v1/residents/{obj.pk}/photo/?" + urlencode({"v": obj.updated_at.isoformat()})
+
+    def validate_photo(self, value):
+        return prepare_photo(value)
 
     @extend_schema_field(serializers.IntegerField(allow_null=True))
     def get_age(self, obj):
@@ -159,6 +217,10 @@ class ResidentSerializer(serializers.ModelSerializer):
         definition = attrs.get("form_definition", getattr(self.instance, "form_definition", None))
         old_values = getattr(self.instance, "values", {})
         values = attrs.get("values", old_values)
+        if definition is None and values:
+            raise serializers.ValidationError(
+                {"values": "Select an active custom form for extension values."}
+            )
         if definition is not None:
             try:
                 validate_profile_values(definition.fields.all(), values)
@@ -190,37 +252,12 @@ class ResidentSerializer(serializers.ModelSerializer):
             }
         return data
 
-    def _snapshot(self, instance):
-        return {
-            "reference": instance.reference,
-            "form_definition": str(instance.form_definition_id),
-            "given_name": instance.given_name,
-            "middle_name": instance.middle_name,
-            "family_name": instance.family_name,
-            "suffix": instance.suffix,
-            "birth_date": instance.birth_date.isoformat() if instance.birth_date else None,
-            "values": instance.values,
-            "verification_status": instance.verification_status,
-        }
-
-    @transaction.atomic
     def create(self, validated_data):
-        resident = Resident.objects.create(
-            created_by=self.context["request"].user, **validated_data
+        return save_resident_profile(
+            actor=self.context["request"].user, validated_data=validated_data
         )
-        ResidentRevision.objects.create(
-            resident=resident,
-            changed_by=self.context["request"].user,
-            snapshot=self._snapshot(resident),
-        )
-        return resident
 
-    @transaction.atomic
     def update(self, instance, validated_data):
-        resident = super().update(instance, validated_data)
-        ResidentRevision.objects.create(
-            resident=resident,
-            changed_by=self.context["request"].user,
-            snapshot=self._snapshot(resident),
+        return save_resident_profile(
+            actor=self.context["request"].user, validated_data=validated_data, instance=instance
         )
-        return resident

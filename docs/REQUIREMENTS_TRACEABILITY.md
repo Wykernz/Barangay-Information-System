@@ -4,6 +4,9 @@ Status values: Draft, Approved, Implemented, Verified, Deferred.
 
 | Requirement group | Source | Design location | Planned verification | Status |
 |---|---|---|---|---|
+| Person Profile form layout based on supplied image | User reference image 2026-11-21 | `ResidentProfileLayout.tsx`; person-profile dialog variant; `personProfile.css` | Desktop/mobile browser screenshots with synthetic API stubs; overflow, footer reachability, generated/blank values and Escape checks; existing form regression suite | Implemented; native dialog behavior and approved data contract retained |
+| Expanded resident identity/contact/residency fields and private profile photo | User field list 2026-11-21; PRO-001..003, NFR-SEC/PRI | Resident model/serializer; protected photo action; profiling form/store; `docs/RESIDENT_PROFILING.md` | Read-only IDs/date/age; validation; photo limits/access; persistence and form tests | Implemented; 111 frontend and 87 non-database backend tests passed, PostgreSQL rollback smoke passed; full backend suite blocked by test-database privileges; local relationships remain session only |
+| Healthcare admin restricted to Health; barangay admin explicitly allowed both workspaces | User authorization 2026-11-21; IAM-003/004/006 | `accounts/access.py`; staff role service/commands; `docs/HEALTH_ACCESS.md` | Direct API denial, conflicting roles, group assignment, session routing and password handling tests | Authorized implementation; specific account names pending |
 | Hybrid imagery and matching labels | User approval 2026-11-20 | `map_config.py`; `EsriHybrid.ts`; `docs/GIS.md` | Credential fallback/default tests; layer alignment/credits; switching; audit/build; actual imagery/labels HTTP 200 with localhost referrer | Implemented; publishing to verified user fork authorized; provider origin restrictions apply |
 | Online authorized-staff-only deployment replaces offline/LAN-first target | User confirmation 2026-11-20 | SRS GIS-007/NFR-AVL-001; Architecture sections 1/2/7; DEC-004/010/012 | Future production HTTPS, authorization, private-network and recovery validation | Scope confirmed; hosting/deployment not yet implemented |
 | House Directions action | User request 2026-11-20 | `Directions.tsx`; household details; map sidebar; `docs/GIS.md` | Saved-coordinate URL, missing/rejected/invalid locations, no external request on render, both entry points | Implemented for review; Google Maps opens externally; requires saved location and internet |
@@ -26,10 +29,18 @@ During implementation, expand each group to one row per requirement with owner,
 acceptance criterion, implementation references, test IDs/results, and approval.
 No requirement becomes `Verified` without executed evidence.
 
+2026-11-20 PRO-014 (user approved): Building use categories are implemented in
+`buildingUses.ts`, shared housing fields, profiling form/list/details, household
+observations and the unmapped directory. Existing values remain Not recorded.
+Frontend tests exercise each category's save/reopen flow, occupancy preservation
+and filters; backend persistence and browser acceptance remain outstanding.
 
-2026-11-19 PRO-002 / ANA-001..002 / NFR-ACC: user-approved age-group and
-birthdate utilities are available with boundary, validity and category-filter tests.
-UI integration follows in the household and overview increments. See AGE_GROUPS.md.
+2026-11-20 PRO-004..009 / NFR-ACC: user approved automatic Family 1 for each
+synthetic household and one Water source field in household forms/details.
+Initial fixture memberships use Family 1; household creation is idempotent on
+edit, and the first additional family brings the count to two. Tests cover these
+defaults, explicit family unassignment, new-person context and water-value
+preservation. See `HOUSEHOLD_UI.md`; no backend/data migration is included.
 
 2026-11-19 household usability increment (user authorized): PRO-004..008 and
 NFR-ACC are implemented in the synthetic preview through household family cards,
@@ -45,15 +56,7 @@ refresh implemented through `professional.css`, navigation and overview markup.
 Existing workflow tests, typecheck and production build pass; visual and assistive
 technology acceptance remain outstanding. See `UI_REFRESH.md`.
 
-2026-11-20 PRO-004..009 / NFR-ACC: user approved automatic Family 1 for each
-synthetic household and one Water source field in household forms/details.
-Initial fixture memberships use Family 1; household creation is idempotent on
-edit, and the first additional family brings the count to two. Tests cover these
-defaults, explicit family unassignment, new-person context and water-value
-preservation. See `HOUSEHOLD_UI.md`; no backend/data migration is included.
 
-2026-11-20 PRO-014 (user approved): Building use categories are implemented in
-`buildingUses.ts`, shared housing fields, profiling form/list/details, household
-observations and the unmapped directory. Existing values remain Not recorded.
-Frontend tests exercise each category's save/reopen flow, occupancy preservation
-and filters; backend persistence and browser acceptance remain outstanding.
+2026-11-19 PRO-002 / ANA-001..002: user-approved age bands implemented in ageGroups.ts, overview, profile/household summaries and filters; 75+ classification pending.
+
+PRO-002 / NFR-ACC (2026-11-19): user authorized duplicate birthdate control removal and typed year; BirthdateInput.test.tsx covers required, leap-date and future-date validation.

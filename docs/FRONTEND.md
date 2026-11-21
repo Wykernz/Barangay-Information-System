@@ -1,17 +1,76 @@
 # Staff frontend review
 
-The shared staff interface refresh is documented in [UI_REFRESH.md](UI_REFRESH.md).
-The overview uses classified active-resident counts, the approved age groups and
-linked category filters. The missing-birthdate card and deferred appointment/case
-metrics are removed. A locally served neutral emblem is a replaceable placeholder,
-not an official barangay seal. Runtime fonts and icons require no internet.
+The full-page resident create/edit form follows the user-supplied Modern BIMS Person Profile
+Form reference: wide navy heading, left photo card, grouped blue information
+sections, and bottom Cancel/Save controls. It stacks on small screens and retains
+the existing birthdate control, validation, generated fields, private uploads,
+assignment controls and database adapter. See RESIDENT_PROFILING.md for scope and
+verification. This update does not change other module layouts or account access.
 
-Household family cards, member management and contextual registration are
-documented in [HOUSEHOLD_UI.md](HOUSEHOLD_UI.md). Birthdates use a single
-month/day/year control with a typed year; age groups follow [AGE_GROUPS.md](AGE_GROUPS.md).
-Resident classification, optional middle name and voluntary demographic fields
-are part of this synthetic preview. Profiles and relationship history remain in
-session memory and reset on reload/sign-out.
+The read-only resident page uses the same photo panel and four information
+sections as the edit form. Household membership history remains below the
+profile; the archive action is separate from the information fields.
+
+Resident fixed fields and private photos now use database-backed registration
+and editing in the workspace. See [RESIDENT_PROFILING.md](RESIDENT_PROFILING.md)
+for the field contract, existing local-profile distinction, migrations and checks.
+The household/family relationship adapter remains session only.
+
+The 2026-11-19 professional interface refresh supersedes older visual descriptions
+below. See [UI_REFRESH.md](UI_REFRESH.md) for the shared palette, navigation,
+overview, form layouts, executed checks, and browser-review limitations.
+
+Household families/member management now uses dedicated cards, search/filter and
+focused dialogs. See [HOUSEHOLD_UI.md](HOUSEHOLD_UI.md) for the second-family and
+new-member flows, historical rules and current verification results.
+
+Profile submission validates every required field before changing session state.
+Required dropdowns use browser validation, and required text rejects whitespace.
+Fields explicitly marked optional remain optional; declined sensitive answers
+are permitted rather than forcing disclosure.
+
+Overview category links open filtered registry views for residency, sex, voluntary
+LGBT identification, PWD, seniors, age bands and missing birthdates. Demographic
+links use the same classified-resident scope as the cards. Clear category removes
+the demographic constraint; registered-person and housing cards open full lists.
+
+Logo slot: overview header, profile-table identity and sidebar share
+`components/BarangayLogo.tsx`. The temporary neutral house emblem is served
+locally from `frontend/public/barangay-logo.svg`. Replace that file with the
+approved SVG to update all placements. For PNG/JPG, update the component's image
+filename. The placeholder is not an official barangay seal.
+
+Overview includes resident age-group cards and missing-birthdate counts, calculated
+from active classified residents. Bands use the eight user-approved mutually exclusive ranges; ages 75+ await classification.
+
+Overview visual update: reference-inspired teal/white header, left profile table,
+right two-column record-summary cards, gold section heading and responsive stacked
+layout. Uses a neutral icon rather than an official seal. Existing count rules and
+session-preview labeling remain unchanged; no appointment/complaint widgets return.
+
+Household Water supply is a dropdown covering piped/communal water, deep/shallow
+wells, springs, rainwater, delivered water, bottled/refilling stations, Other and
+Not recorded. Previously entered session values remain selectable when editing.
+
+Household details support labeled family groups and assignment of existing
+household members to one group or no group. Reassignment retains ended membership
+segments. Families do not create new people, household heads, or housing units.
+This remains synthetic session state and resets on reload/sign-out.
+
+## Requested profiling capture additions (synthetic preview)
+
+Resident registration/editing includes required Resident/Non-resident selection
+and an optional middle name. Existing synthetic people remain unclassified until
+staff choose a value. Classification appears in profile details and household
+member lists; household membership never assigns a classification automatically.
+Birthdates derive mutually exclusive age bands and senior status without storing age.
+Household details summarize those age bands for current members and report
+missing birthdates. Counts are derived from linked people, not independently
+entered household totals.
+Household forms include municipality, barangay, survey date, interviewer, water
+supply, and toilet type. These additions use session memory, not database capture.
+Health, pregnancy/family-planning categories and NHTS/insurance identifiers remain
+pending protected workflows and agreed definitions.
 
 ## Backend-persisted field planner
 
@@ -94,3 +153,13 @@ production-ready interface.
 
 Run Django and Vite as described in `RUNNING.md`, sign in, and review the routes.
 Use `npm.cmd run format`, `npm.cmd run build`, and `npm.cmd test` in `frontend`.
+
+Birthdate usability: registration and editing offer month/day selectors and direct year entry, alongside full-date entry. A complete valid birthdate remains required and future dates are blocked. The overview omits the redundant missing-birthdate count (PRO-002, ANA-002, NFR-ACC).
+
+Validation: npm.cmd run build passed TypeScript but default Vite config bundling hit filesystem access denial; npm.cmd test -- --run hit the same loader restriction. npx.cmd vite build --configLoader runner passed; npx.cmd vitest run --configLoader runner passed all 10 files / 40 tests. Existing unrelated worktree edits were preserved; this increment was not committed or pushed separately.
+
+Age-group validation (2026-11-19): npm.cmd run typecheck passed; npx.cmd vitest run --configLoader runner passed 10 files / 41 tests; npx.cmd vite build --configLoader runner passed. Existing unrelated worktree edits preserved; this increment was not committed or pushed separately.
+
+Birthdate control update: one month/day/year row replaces the duplicate full-date picker. Year accepts direct typing without number spinners. Required, valid calendar-date and future-date checks remain enforced.
+
+Date-control validation: npm.cmd run typecheck and npx.cmd vite build --configLoader runner passed. Regression suite uses npx.cmd vitest run --configLoader runner, including birthdate validity and profile save/edit coverage. Changes remain local alongside existing unrelated work.

@@ -3,6 +3,7 @@ import {
   Activity,
   ArrowUpRight,
   ChartNoAxesCombined,
+  HeartPulse,
   House,
   LayoutDashboard,
   LogOut,
@@ -25,6 +26,7 @@ import RecordPage from "./components/RecordPage";
 import Dashboard from "./pages/Dashboard";
 import MapPage from "./pages/MapPage";
 import Reports from "./pages/Reports";
+import HealthWorkspace from "./HealthWorkspace";
 import BarangayLogo from "./components/BarangayLogo";
 import "./styles/workspace.css";
 import {
@@ -138,6 +140,7 @@ export default function Workspace({
   const [menu, setMenu] = useState(false);
   const links: [string, string, LucideIcon][] = [
     ["/", "Overview", LayoutDashboard],
+    ["/health", "Health", HeartPulse],
     ["/residents", "Residents", Users],
     ["/households", "Households", UsersRound],
     ["/housing", "Housing units", House],
@@ -147,7 +150,7 @@ export default function Workspace({
     ["/settings", "Settings", Settings2],
   ];
   return (
-    <DemoProvider profilingFixtures>
+    <DemoProvider profilingFixtures persistResidents>
       <ProfilingProvider>
         <div className="workspace staff-shell">
           <a href="#main-content" className="skip-link">
@@ -177,11 +180,11 @@ export default function Workspace({
             <nav id="staff-navigation" aria-label="Main navigation">
               {links.map(([to, label, Icon], index) => (
                 <div className="navigation-item" key={to}>
-                  {(index === 0 || index === 1 || index === 5) && (
+                  {(index === 0 || index === 2 || index === 6) && (
                     <p className="navigation-label">
                       {index === 0
                         ? "Workspace"
-                        : index === 1
+                        : index === 2
                           ? "Community records"
                           : "Management"}
                     </p>
@@ -298,6 +301,7 @@ export default function Workspace({
                     />
                   ))}
                 <Route path="/gis" element={<MapPage />} />
+                <Route path="/health" element={<HealthWorkspace />} />
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/audit" element={<Audit />} />
                 <Route path="/settings" element={<Settings />} />

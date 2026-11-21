@@ -63,16 +63,37 @@ class ResidentViewSet(viewsets.ModelViewSet):
     queryset = Resident.objects.select_related("form_definition").prefetch_related(
         "form_definition__fields"
     )
-    filterset_fields = ("verification_status", "form_definition")
+    filterset_fields = (
+        "verification_status",
+        "form_definition",
+        "record_status",
+        "residency_classification",
+        "is_archived",
+    )
     search_fields = ("reference", "given_name", "middle_name", "family_name", "suffix")
     ordering_fields = ("family_name", "given_name", "created_at", "updated_at")
     ordering = ("family_name", "given_name")
+
+    @extend_schema(responses={(200, "image/jpeg"): bytes})
+    @action(detail=True, methods=("get",))
+    def photo(self, request, pk=None):
+        from django.http import FileResponse, Http404
+
+        resident = self.get_object()
+        if not resident.photo:
+            raise Http404
+        try:
+            response = FileResponse(resident.photo.open("rb"), content_type="image/jpeg")
+        except FileNotFoundError:
+            raise Http404 from None
+        response["Cache-Control"] = "private, no-store"
+        return response
 
     @extend_schema(request=None, responses=ResidentSerializer)
     @action(detail=True, methods=("post",), permission_classes=(ChangeModelPermissions,))
     def verify(self, request, pk=None):
         resident = self.get_object()
-        if resident.verification_status == Resident.VerificationStatus.VERIFIED:
+        if resident.verification_status.upper() == Resident.VerificationStatus.VERIFIED:
             return Response(
                 {"detail": "This resident is already verified."},
                 status=status.HTTP_409_CONFLICT,

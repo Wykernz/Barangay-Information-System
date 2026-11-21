@@ -32,6 +32,10 @@ import { matchesCategory } from "./categoryFilter";
 import { BirthdateInput } from "./components/BirthdateInput";
 import { HouseholdMembers } from "./components/HouseholdMembers";
 import { BUILDING_USES, BUILDING_USE_OPTIONS } from "./buildingUses";
+import { residentError } from "./residentApi";
+import { Save } from "lucide-react";
+import { ResidentProfileLayout } from "./components/ResidentProfileLayout";
+import { ResidentProfileDetails } from "./components/ResidentProfileDetails";
 
 const Context = createContext<{
   state: Relationships;
@@ -59,7 +63,7 @@ const sorted = (rows: RecordRow[]) =>
 
 /** Profiling has its own routes and state; the generic editor remains untouched. */
 export function ProfilingPage({ module }: { module: string }) {
-  const { records, save } = useDemo();
+  const { records, save, saveResident, residentLoadError } = useDemo();
   const { state, change } = useProfiling();
   const { id } = useParams();
   const [params, setParams] = useSearchParams();
@@ -74,6 +78,18 @@ export function ProfilingPage({ module }: { module: string }) {
     );
   }, [params]);
   const [draft, setDraft] = useState<RecordRow | null>(null);
+  const [photo, setPhoto] = useState<File>();
+  const [photoPreview, setPhotoPreview] = useState("");
+  const [saving, setSaving] = useState(false);
+  useEffect(() => {
+    if (!photo) {
+      setPhotoPreview("");
+      return;
+    }
+    const url = URL.createObjectURL(photo);
+    setPhotoPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [photo]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [candidate, setCandidate] = useState("");
@@ -99,7 +115,7 @@ export function ProfilingPage({ module }: { module: string }) {
       (module !== "residents" ||
         !classificationFilter ||
         row.residencyClassification === classificationFilter) &&
-      `${display(row)} ${row.middleName ?? ""} ${row.id}`
+      `${display(row)} ${row.middleName ?? ""} ${row.id} ${row.personId ?? ""}`
         .toLowerCase()
         .includes(search.toLowerCase()),
   );
@@ -125,8 +141,9 @@ export function ProfilingPage({ module }: { module: string }) {
   useEffect(() => {
     if (!id && returnHousehold) edit();
     if (id && params.get("edit") === "1" && current) edit(current);
-  }, [module, id, returnHousehold, params.get("edit")]);
+  }, [module, id, returnHousehold, params.get("edit"), current?.id]);
   function edit(row?: RecordRow) {
+    setPhoto(undefined);
     setError("");
     setMessage("");
     setDraft(
@@ -134,6 +151,9 @@ export function ProfilingPage({ module }: { module: string }) {
         ? { ...row }
         : {
             id: `DEMO-${crypto.randomUUID()}`,
+            ...(module === "residents"
+              ? { recordStatus: "Active", residencyStatus: "Not recorded" }
+              : {}),
             ...Object.fromEntries(
               catalog[module].fields.map((field) => [
                 field.key,
@@ -172,11 +192,11 @@ export function ProfilingPage({ module }: { module: string }) {
           : value,
       );
   }
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     // Validate the draft and compute relationship changes before applying UI state.
     // This adapter is not a database transaction; the backend contract requires one.
     event.preventDefault();
-    if (!draft) return;
+    if (!draft || saving) return;
     if (
       module === "housing" &&
       !BUILDING_USE_OPTIONS.includes(draft.buildingUse || "Not recorded")
@@ -365,15 +385,45 @@ export function ProfilingPage({ module }: { module: string }) {
     delete row.relationship;
     delete row.headId;
     delete row.unitId;
+    let saved = row;
+    if (
+      module === "residents" &&
+      saveResident &&
+      (row._storage === "database" ||
+        !records.residents.some((item) => item.id === row.id))
+    ) {
+      setSaving(true);
+      try {
+        saved = await saveResident(row, photo);
+        next = {
+          ...next,
+          memberships: next.memberships.map((item) =>
+            item.residentId === row.id
+              ? { ...item, residentId: saved.id }
+              : item,
+          ),
+        };
+      } catch (caught) {
+        setError(residentError(caught));
+        return;
+      } finally {
+        setSaving(false);
+      }
+    }
     change(next);
-    save(module, row);
+    save(module, saved);
     setDraft(null);
-    setMessage("Profile updated in this session.");
+    setPhoto(undefined);
+    setMessage(
+      saved._storage === "database"
+        ? "Resident profile saved to the database. Household and family assignments remain session only."
+        : "Profile updated in this session.",
+    );
     if (!id)
       navigate(
         module === "residents" && returnHousehold
           ? `/households/${returnHousehold}`
-          : `/${module}/${row.id}`,
+          : `/${module}/${saved.id}`,
       );
   }
   function confirmAction() {
@@ -405,6 +455,37 @@ export function ProfilingPage({ module }: { module: string }) {
           { key: "firstName", label: "First name" },
           { key: "surname", label: "Surname" },
           { key: "middleName", label: "Middle name", optional: true },
+          { key: "suffix", label: "Suffix", optional: true },
+          { key: "nationality", label: "Nationality", optional: true },
+          { key: "placeOfBirth", label: "Place of birth", optional: true },
+          {
+            key: "contactNumber",
+            label: "Contact number",
+            type: "tel",
+            optional: true,
+          },
+          {
+            key: "email",
+            label: "Email address",
+            type: "email",
+            optional: true,
+          },
+          {
+            key: "residencyStatus",
+            label: "Residency status",
+            options: [
+              "Not recorded",
+              "Permanent resident",
+              "Renter",
+              "Boarder",
+              "Other",
+            ],
+          },
+          {
+            key: "recordStatus",
+            label: "Record status",
+            options: ["Not recorded", "Active", "Moved out", "Deceased"],
+          },
           {
             key: "lgbtIdentification",
             label: "LGBT identification (voluntary)",
@@ -442,7 +523,11 @@ export function ProfilingPage({ module }: { module: string }) {
               "Other",
             ],
           },
-        ]
+        ].filter(
+          (field) =>
+            !saveResident ||
+            !["lgbtIdentification", "pwdStatus", "status"].includes(field.key),
+        )
       : [
           ...catalog[module].fields
             .filter(
@@ -529,7 +614,106 @@ export function ProfilingPage({ module }: { module: string }) {
               ]
             : []),
         ];
-  function remove() {
+  function renderProfileField(field: (typeof fields)[number]) {
+    if (!draft) return null;
+    return (
+      <label
+        key={field.key}
+        className={`person-field person-field--${field.key}${!("optional" in field && field.optional) ? " person-field-required" : ""}`}
+      >
+        <span className="person-field-label">{field.label}</span>
+        {"options" in field && field.options ? (
+          <select
+            required={!("optional" in field && field.optional)}
+            aria-label={field.label}
+            value={
+              draft[field.key] ??
+              (field.key === "residencyClassification" ? "" : field.options[0])
+            }
+            aria-describedby={
+              field.key === "residencyClassification"
+                ? "residency-requirement"
+                : field.key === "buildingUse"
+                  ? "building-use-help"
+                  : undefined
+            }
+            onChange={(event) =>
+              setDraft({
+                ...draft,
+                [field.key]: event.target.value,
+              })
+            }
+          >
+            {field.options.map((option) => (
+              <option
+                key={option}
+                value={option === "Choose classification" ? "" : option}
+              >
+                {option}
+              </option>
+            ))}
+          </select>
+        ) : field.key === "birthdate" ? (
+          <BirthdateInput
+            value={draft.birthdate ?? ""}
+            max={today()}
+            onChange={(value) => setDraft({ ...draft, birthdate: value })}
+          />
+        ) : (
+          <input
+            required={!("optional" in field && field.optional)}
+            type={"type" in field ? field.type : "text"}
+            maxLength={
+              (
+                {
+                  houseNumber: 50,
+                  firstName: 100,
+                  surname: 100,
+                  middleName: 100,
+                  suffix: 30,
+                  nationality: 100,
+                  contactNumber: 50,
+                  email: 254,
+                } as Record<string, number>
+              )[field.key] ?? 150
+            }
+            value={draft[field.key] ?? ""}
+            onChange={(event) =>
+              setDraft({
+                ...draft,
+                [field.key]: event.target.value,
+              })
+            }
+          />
+        )}
+        {field.key === "buildingUse" && (
+          <small id="building-use-help">
+            {BUILDING_USES.find(({ value }) => value === draft.buildingUse)
+              ?.description ??
+              "Choose how this building is used. Leave Not recorded if unknown."}
+          </small>
+        )}
+        {field.key === "residencyClassification" && (
+          <small id="residency-requirement">
+            Required. Choose Resident or Non-resident before saving.
+          </small>
+        )}
+      </label>
+    );
+  }
+  async function updateArchive(row: RecordRow, archived: boolean) {
+    const updated = { ...row, archived: String(archived) };
+    if (module === "residents" && row._storage === "database" && saveResident) {
+      try {
+        save(module, await saveResident(updated));
+      } catch (caught) {
+        setError(residentError(caught));
+        return false;
+      }
+    } else save(module, updated);
+    return true;
+  }
+  async function remove() {
     // "Delete" archives a profile. Active dependants block removal and historical
     // memberships/occupancies remain available for review; restore does not reopen them.
     if (!removing) return;
@@ -566,19 +750,179 @@ export function ProfilingPage({ module }: { module: string }) {
             : item,
         ),
       };
+    if (module === "residents" && removing._storage === "database") {
+      if (!(await updateArchive(removing, true))) return;
+    } else save(module, { ...removing, archived: "true" });
     change(next);
-    save(module, { ...removing, archived: "true" });
     setRemoving(null);
     navigate(`/${module}`);
     setMessage(
       "Record removed from the active directory. History retained in archived records.",
     );
   }
+  if (module === "residents" && draft)
+    return (
+      <div className="profiling person-profile-screen">
+        <ProfileDialog
+          personProfile
+          title={`${records.residents.some((row) => row.id === draft.id) ? "Edit" : "Register"} resident`}
+          close={() => {
+            if (!saving) setDraft(null);
+          }}
+        >
+          <form onSubmit={submit}>
+            <fieldset disabled={saving} className="person-form-fieldset">
+              <ResidentProfileLayout
+                draft={draft}
+                existing={records.residents.some((row) => row.id === draft.id)}
+                fields={Object.fromEntries(
+                  fields.map((field) => [field.key, renderProfileField(field)]),
+                )}
+                photoUrl={photoPreview || draft.photoUrl || ""}
+                photoName={photo?.name}
+                photoDisabled={
+                  !saveResident ||
+                  (draft._storage !== "database" &&
+                    records.residents.some((row) => row.id === draft.id))
+                }
+                onPhotoChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file && file.size > 5 * 1024 * 1024) {
+                    setError("Photo must be at most 5 MiB.");
+                    event.target.value = "";
+                    setPhoto(undefined);
+                    return;
+                  }
+                  setError("");
+                  setPhoto(file);
+                }}
+                ageSummary={
+                  draft.birthdate && (
+                    <>
+                      Calculated age: {ageAt(draft.birthdate)} years. Age
+                      groups:{" "}
+                      {ageGroups(draft.birthdate, today()).join(", ") ||
+                        "No listed age group"}
+                      . Calculated automatically from birthdate.
+                    </>
+                  )
+                }
+              >
+                <label>
+                  Household
+                  <select
+                    value={
+                      draft.targetHousehold ??
+                      memberships.find((item) => item.residentId === draft.id)
+                        ?.householdId ??
+                      ""
+                    }
+                    onChange={(event) =>
+                      setDraft({
+                        ...draft,
+                        targetHousehold: event.target.value,
+                        targetFamily: "",
+                      })
+                    }
+                  >
+                    <option value="">Unassigned / retain current</option>
+                    {records.households
+                      .filter((row) => row.archived !== "true")
+                      .map((row) => (
+                        <option key={row.id} value={row.id}>
+                          {row.name}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+                <label>
+                  Family
+                  <select
+                    value={
+                      draft.targetFamily ??
+                      memberships.find((item) => item.residentId === draft.id)
+                        ?.familyId ??
+                      ""
+                    }
+                    onChange={(event) =>
+                      setDraft({ ...draft, targetFamily: event.target.value })
+                    }
+                  >
+                    <option value="">Not assigned to a family</option>
+                    {(state.families ?? [])
+                      .filter(
+                        (family) =>
+                          family.householdId ===
+                          (draft.targetHousehold ||
+                            memberships.find(
+                              (item) => item.residentId === draft.id,
+                            )?.householdId),
+                      )
+                      .map((family) => (
+                        <option key={family.id} value={family.id}>
+                          {family.label}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+                <label>
+                  Relationship
+                  <select
+                    value={draft.relationship ?? "Member"}
+                    onChange={(event) =>
+                      setDraft({ ...draft, relationship: event.target.value })
+                    }
+                  >
+                    {[
+                      "Member",
+                      "Head",
+                      "Spouse",
+                      "Son",
+                      "Daughter",
+                      "Parent",
+                      "Sibling",
+                      "Other",
+                    ].map((value) => (
+                      <option key={value}>{value}</option>
+                    ))}
+                  </select>
+                </label>
+              </ResidentProfileLayout>
+              {error && (
+                <p role="alert" className="error">
+                  {error}
+                </p>
+              )}
+              <div className="profile-form-actions">
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() => setDraft(null)}
+                  disabled={saving}
+                >
+                  Cancel
+                </button>
+                <button disabled={saving}>
+                  <Save size={17} aria-hidden="true" />
+                  {saving ? "Saving…" : "Save profile"}
+                </button>
+              </div>
+            </fieldset>
+          </form>
+        </ProfileDialog>
+      </div>
+    );
   return (
     <div className="profiling">
       <ProfilePageHeader
         module={module}
-        title={current ? display(current) : catalog[module].title}
+        title={
+          current && module === "residents"
+            ? "Person Profile"
+            : current
+              ? display(current)
+              : catalog[module].title
+        }
         singular={catalog[module].singular}
         detail={!!current}
         disabled={!!id && !current}
@@ -602,6 +946,17 @@ export function ProfilingPage({ module }: { module: string }) {
         <p role="alert">Record not found. Return to the directory.</p>
       )}
       {message && <ProfileFeedback message={message} />}
+      {module === "residents" && !id && saveResident && (
+        <p className="notice">
+          New resident profiles are saved to the database. Profiles labeled
+          “Local sample” are session only.
+        </p>
+      )}
+      {module === "residents" && residentLoadError && (
+        <p role="alert" className="error">
+          {residentLoadError}
+        </p>
+      )}
       {error && !action && <ProfileFeedback message={error} error />}
       {!id && (
         <section className="panel">
@@ -727,7 +1082,16 @@ export function ProfilingPage({ module }: { module: string }) {
                   );
                   return (
                     <tr key={row.id}>
-                      <td>{row.id}</td>
+                      <td>
+                        {row.personId || row.id}
+                        {module === "residents" && saveResident && (
+                          <small className="muted" style={{ display: "block" }}>
+                            {row._storage === "database"
+                              ? "Database"
+                              : "Local sample"}
+                          </small>
+                        )}
+                      </td>
                       <td>
                         {module === "residents" ? row.surname : display(row)}
                         {row.archived === "true" && (
@@ -792,9 +1156,7 @@ export function ProfilingPage({ module }: { module: string }) {
                             setError("");
                             setRemoving(row);
                           }}
-                          restore={() =>
-                            save(module, { ...row, archived: "false" })
-                          }
+                          restore={() => void updateArchive(row, false)}
                         />
                       </td>
                     </tr>
@@ -810,16 +1172,83 @@ export function ProfilingPage({ module }: { module: string }) {
           )}
         </section>
       )}
-      {current && (
+      {current && module === "residents" && (
+        <section className="resident-view-page">
+          <ResidentProfileDetails
+            resident={current}
+            relationship={
+              memberships.find((item) => item.residentId === current.id)
+                ?.relationship ?? "Unassigned"
+            }
+          />
+          <div className="resident-view-actions">
+            {current.archived === "true" ? (
+              <p className="notice">
+                Archived record. Restore it from the directory before active
+                use.
+              </p>
+            ) : (
+              <button
+                className="secondary danger"
+                onClick={() => {
+                  setError("");
+                  setRemoving(current);
+                }}
+              >
+                Archive resident
+              </button>
+            )}
+          </div>
+          <section
+            className="resident-view-history"
+            aria-label="Household memberships"
+          >
+            <h2>Household memberships</h2>
+            {state.memberships.filter((item) => item.residentId === id)
+              .length ? (
+              state.memberships
+                .filter((item) => item.residentId === id)
+                .map((item) => (
+                  <p key={item.id}>
+                    <Link to={`/households/${item.householdId}`}>
+                      {item.householdId}
+                    </Link>{" "}
+                    · {item.head ? "Head" : item.relationship} · {item.start} →{" "}
+                    {item.end ?? "Current"}
+                  </p>
+                ))
+            ) : (
+              <p>No household membership recorded.</p>
+            )}
+          </section>
+        </section>
+      )}
+      {current && module !== "residents" && (
         <section className="panel">
           {module === "residents" && (
             <div className="profile-identity">
+              {current.photoUrl && (
+                <img
+                  src={current.photoUrl}
+                  alt="Resident profile"
+                  width={96}
+                  height={96}
+                  style={{ objectFit: "cover", borderRadius: 8 }}
+                />
+              )}
               <span className="profile-initials" aria-hidden="true">
                 {current.firstName?.[0]}
                 {current.surname?.[0]}
               </span>
               <div>
                 <h2>{current.name}</h2>
+                {saveResident && (
+                  <small>
+                    {current._storage === "database"
+                      ? "Database record"
+                      : "Local sample · session only"}
+                  </small>
+                )}
                 <p className="muted">
                   {memberships.find((item) => item.residentId === current.id)
                     ?.relationship ?? "Unassigned"}
@@ -851,6 +1280,14 @@ export function ProfilingPage({ module }: { module: string }) {
           </h2>
           {module !== "households" && (
             <dl className="profile-details">
+              {module === "residents" && (
+                <div>
+                  <dt>Age</dt>
+                  <dd>
+                    {ageAt(current.birthdate)} (calculated from birthdate)
+                  </dd>
+                </div>
+              )}
               {Object.entries(
                 module === "housing"
                   ? {
@@ -860,7 +1297,10 @@ export function ProfilingPage({ module }: { module: string }) {
                     }
                   : current,
               )
-                .filter(([key]) => !["head", "housing"].includes(key))
+                .filter(
+                  ([key]) =>
+                    !["head", "housing", "photoUrl", "_storage"].includes(key),
+                )
                 .map(([key, value]) => (
                   <div key={key}>
                     <dt>
@@ -872,6 +1312,8 @@ export function ProfilingPage({ module }: { module: string }) {
                             household: "Household",
                             householdId: "Household reference",
                             archived: "Archived",
+                            personId: "Person ID",
+                            registrationDate: "Date of registration",
                           } as Record<string, string>
                         )[key] ??
                         key}
@@ -1239,94 +1681,73 @@ export function ProfilingPage({ module }: { module: string }) {
       )}
       {draft && (
         <ProfileDialog
+          personProfile={module === "residents"}
           title={`${records[module].some((row) => row.id === draft.id) ? "Edit" : "Register"} ${catalog[module].singular}`}
-          close={() => setDraft(null)}
+          close={() => {
+            if (!saving) setDraft(null);
+          }}
         >
-          <p className="form-intro">
-            Review the information below. Required fields must be completed
-            before saving.
-          </p>
+          {module !== "residents" && (
+            <p className="form-intro">
+              Review the information below. Required fields must be completed
+              before saving.
+            </p>
+          )}
           <form onSubmit={submit}>
-            {module === "residents" && draft.birthdate && (
-              <div className="notice" role="status">
-                Calculated age: {ageAt(draft.birthdate)} years. Age groups:{" "}
-                {ageGroups(draft.birthdate, today()).join(", ") ||
-                  "No listed age group"}
-                . Calculated automatically from birthdate.
-              </div>
-            )}
-            <div className="form-grid">
-              {fields.map((field) => (
-                <label key={field.key}>
-                  {field.label}
-                  {"options" in field && field.options ? (
-                    <select
-                      required={!("optional" in field && field.optional)}
-                      aria-label={field.label}
-                      value={
-                        draft[field.key] ??
-                        (field.key === "residencyClassification"
-                          ? ""
-                          : field.options[0])
-                      }
-                      aria-describedby={
-                        field.key === "residencyClassification"
-                          ? "residency-requirement"
-                          : field.key === "buildingUse"
-                            ? "building-use-help"
-                            : undefined
-                      }
-                      onChange={(event) =>
-                        setDraft({ ...draft, [field.key]: event.target.value })
-                      }
-                    >
-                      {field.options.map((option) => (
-                        <option
-                          key={option}
-                          value={
-                            option === "Choose classification" ? "" : option
-                          }
-                        >
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  ) : field.key === "birthdate" ? (
-                    <BirthdateInput
-                      value={draft.birthdate ?? ""}
-                      max={today()}
-                      onChange={(value) =>
-                        setDraft({ ...draft, birthdate: value })
-                      }
-                    />
-                  ) : (
-                    <input
-                      required={!("optional" in field && field.optional)}
-                      type={"type" in field ? field.type : "text"}
-                      maxLength={field.key === "houseNumber" ? 50 : 150}
-                      value={draft[field.key] ?? ""}
-                      onChange={(event) =>
-                        setDraft({ ...draft, [field.key]: event.target.value })
-                      }
-                    />
-                  )}
-                  {field.key === "buildingUse" && (
-                    <small id="building-use-help">
-                      {BUILDING_USES.find(
-                        ({ value }) => value === draft.buildingUse,
-                      )?.description ??
-                        "Choose how this building is used. Leave Not recorded if unknown."}
-                    </small>
-                  )}
-                  {field.key === "residencyClassification" && (
-                    <small id="residency-requirement">
-                      Required. Choose Resident or Non-resident before saving.
-                    </small>
-                  )}
-                </label>
-              ))}
+            <fieldset
+              disabled={saving}
+              style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}
+            >
               {module === "residents" && (
-                <>
+                <ResidentProfileLayout
+                  draft={draft}
+                  existing={records.residents.some(
+                    (row) => row.id === draft.id,
+                  )}
+                  fields={Object.fromEntries(
+                    fields.map((field) => [
+                      field.key,
+                      renderProfileField(field),
+                    ]),
+                  )}
+                  photoUrl={photoPreview || draft.photoUrl || ""}
+                  photoName={photo?.name}
+                  photoDisabled={
+                    !saveResident ||
+                    (draft._storage !== "database" &&
+                      records.residents.some((row) => row.id === draft.id))
+                  }
+                  onPhotoChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (file && file.size > 5 * 1024 * 1024) {
+                      setError("Photo must be at most 5 MiB.");
+                      event.target.value = "";
+                      setPhoto(undefined);
+                      return;
+                    }
+                    setError("");
+                    setPhoto(file);
+                  }}
+                  ageSummary={
+                    draft.birthdate && (
+                      <>
+                        Calculated age: {ageAt(draft.birthdate)} years. Age
+                        groups:{" "}
+                        {ageGroups(draft.birthdate, today()).join(", ") ||
+                          "No listed age group"}
+                        . Calculated automatically from birthdate.
+                      </>
+                    )
+                  }
+                  notice={
+                    saveResident
+                      ? draft._storage === "database" ||
+                        !records.residents.some((row) => row.id === draft.id)
+                        ? "Resident details are saved to the database. Household and family assignments above remain session only."
+                        : "This is a local sample profile. Edits remain in this session; register a new resident to save to the database."
+                      : undefined
+                  }
+                >
                   <label>
                     Household
                     <select
@@ -1373,7 +1794,10 @@ export function ProfilingPage({ module }: { module: string }) {
                         ""
                       }
                       onChange={(event) =>
-                        setDraft({ ...draft, targetFamily: event.target.value })
+                        setDraft({
+                          ...draft,
+                          targetFamily: event.target.value,
+                        })
                       }
                     >
                       <option value="">Not assigned to a family</option>
@@ -1398,7 +1822,10 @@ export function ProfilingPage({ module }: { module: string }) {
                     <select
                       value={draft.relationship ?? "Member"}
                       onChange={(event) =>
-                        setDraft({ ...draft, relationship: event.target.value })
+                        setDraft({
+                          ...draft,
+                          relationship: event.target.value,
+                        })
                       }
                     >
                       {[
@@ -1415,105 +1842,114 @@ export function ProfilingPage({ module }: { module: string }) {
                       ))}
                     </select>
                   </label>
-                </>
+                </ResidentProfileLayout>
               )}
-              {module === "households" && (
-                <>
+              <div className="form-grid">
+                {module !== "residents" && fields.map(renderProfileField)}
+                {module === "households" && (
+                  <>
+                    <label>
+                      Household head
+                      <select
+                        value={draft.headId ?? ""}
+                        onChange={(event) =>
+                          setDraft({ ...draft, headId: event.target.value })
+                        }
+                      >
+                        <option value="">Retain current / not assigned</option>
+                        {sorted(records.residents)
+                          .filter(
+                            (row) =>
+                              row.archived !== "true" &&
+                              !memberships.some(
+                                (item) =>
+                                  item.residentId === row.id &&
+                                  item.householdId !== draft.id,
+                              ),
+                          )
+                          .map((row) => (
+                            <option key={row.id} value={row.id}>
+                              {display(row)}
+                            </option>
+                          ))}
+                      </select>
+                    </label>
+                    <label>
+                      Housing unit
+                      <select
+                        value={draft.unitId ?? ""}
+                        onChange={(event) =>
+                          setDraft({ ...draft, unitId: event.target.value })
+                        }
+                      >
+                        <option value="">Retain current / unassigned</option>
+                        {records.housing
+                          .filter((row) => row.archived !== "true")
+                          .map((row) => (
+                            <option key={row.id} value={row.id}>
+                              {row.name}
+                            </option>
+                          ))}
+                      </select>
+                    </label>
+                  </>
+                )}
+                {module === "surveys" && (
                   <label>
-                    Household head
+                    Household
                     <select
-                      value={draft.headId ?? ""}
+                      required
+                      value={draft.householdId ?? returnHousehold ?? ""}
                       onChange={(event) =>
-                        setDraft({ ...draft, headId: event.target.value })
+                        setDraft({ ...draft, householdId: event.target.value })
                       }
                     >
-                      <option value="">Retain current / not assigned</option>
-                      {sorted(records.residents)
-                        .filter(
-                          (row) =>
-                            row.archived !== "true" &&
-                            !memberships.some(
-                              (item) =>
-                                item.residentId === row.id &&
-                                item.householdId !== draft.id,
-                            ),
-                        )
-                        .map((row) => (
-                          <option key={row.id} value={row.id}>
-                            {display(row)}
-                          </option>
-                        ))}
+                      <option value="">Choose household</option>
+                      {records.households.map((row) => (
+                        <option key={row.id} value={row.id}>
+                          {row.name}
+                        </option>
+                      ))}
                     </select>
                   </label>
-                  <label>
-                    Housing unit
-                    <select
-                      value={draft.unitId ?? ""}
-                      onChange={(event) =>
-                        setDraft({ ...draft, unitId: event.target.value })
-                      }
-                    >
-                      <option value="">Retain current / unassigned</option>
-                      {records.housing
-                        .filter((row) => row.archived !== "true")
-                        .map((row) => (
-                          <option key={row.id} value={row.id}>
-                            {row.name}
-                          </option>
-                        ))}
-                    </select>
-                  </label>
-                </>
-              )}
-              {module === "surveys" && (
-                <label>
-                  Household
-                  <select
-                    required
-                    value={draft.householdId ?? returnHousehold ?? ""}
-                    onChange={(event) =>
-                      setDraft({ ...draft, householdId: event.target.value })
-                    }
-                  >
-                    <option value="">Choose household</option>
-                    {records.households.map((row) => (
-                      <option key={row.id} value={row.id}>
-                        {row.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              )}
-            </div>
-            {module === "residents" &&
-              records.residents.some(
-                (row) =>
-                  row.id !== draft.id &&
-                  row.name.toLowerCase() ===
-                    `${draft.firstName ?? ""} ${draft.surname ?? ""}`
-                      .trim()
-                      .toLowerCase(),
-              ) && (
-                <p className="notice">
-                  Potential duplicate: review the directory before saving. No
-                  automatic merge.
-                </p>
-              )}
-            <div className="profile-form-actions">
-              <button>Save profile</button>
-              {error && (
-                <p role="alert" className="error">
-                  {error}
-                </p>
-              )}
-              <button
-                type="button"
-                className="secondary"
-                onClick={() => setDraft(null)}
-              >
-                Cancel
-              </button>
-            </div>
+                )}
+              </div>
+              {module === "residents" &&
+                records.residents.some(
+                  (row) =>
+                    row.id !== draft.id &&
+                    row.name.toLowerCase() ===
+                      `${draft.firstName ?? ""} ${draft.surname ?? ""}`
+                        .trim()
+                        .toLowerCase(),
+                ) && (
+                  <p className="notice">
+                    Potential duplicate: review the directory before saving. No
+                    automatic merge.
+                  </p>
+                )}
+              <div className="profile-form-actions">
+                {error && (
+                  <p role="alert" className="error">
+                    {error}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  disabled={saving}
+                  className="secondary"
+                  onClick={() => setDraft(null)}
+                >
+                  Cancel
+                </button>
+                <button disabled={saving}>
+                  {module === "residents" && (
+                    <Save size={17} aria-hidden="true" />
+                  )}
+                  {saving ? "Saving…" : "Save profile"}
+                </button>
+              </div>
+            </fieldset>
           </form>
           {returnHousehold && module === "residents" && (
             <p>

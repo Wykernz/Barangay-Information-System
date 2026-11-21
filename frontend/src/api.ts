@@ -8,7 +8,11 @@ export const api = axios.create({
   xsrfHeaderName: "X-CSRFToken",
 });
 
-export type StaffSession = { username: string };
+export type StaffSession = {
+  username: string;
+  display_name?: string;
+  health_only?: boolean;
+};
 
 export async function getSession(): Promise<StaffSession | null> {
   try {

@@ -5,6 +5,73 @@ Statuses: `Confirmed` records supplied constraints; `Proposed` needs approval;
 
 ## Confirmed constraints
 
+2026-11-21 user supplied baranggay_admin for the barangay account and Health Center
+Admin for the healthcare account name. Use health_center_admin as the compatible
+sign-in username and Health Center Admin as its display name. These names do not
+authorize a default password, an automatic promotion of a different existing
+account, or posting passwords in chat. Account creation must use the local hidden
+password prompt and the already approved barangay_admin/healthcare_admin bundles.
+The optional --display-name flag sets the account label using Django's existing
+first_name field; it does not infer a resident surname. Session responses expose
+display_name, falling back to the unchanged username for accounts without a label.
+
+2026-11-21 user supplied the Modern BIMS Person Profile Form image as a layout
+reference. Apply a full-page, spacious navy/blue person form with a photo sidebar and
+Personal Information, Other Information, Residency Information and Record Status
+cards, plus existing assignment controls. Keep current validation, optional
+fields, unknown values, generated IDs/registration date and calculated age.
+The reference's sample ID/default nationality/required marks are illustrative;
+do not infer data or change the approved field contract from image text. Retain
+Back/Cancel navigation and provide responsive stacking on small screens. This
+full-page correction supersedes the earlier resident modal presentation.
+
+2026-11-21 schema inspection for resident profiling found legacy PostgreSQL
+columns absent from migration 0001: nullable residency_classification varchar(20),
+is_active boolean NOT NULL, and nullable archived_at timestamp. Preserve these
+columns and all values; retain nullable classification for old unknown entries.
+Register compatible legacy columns in migration state only after exact metadata
+checks; add them normally on fresh databases. Keep is_active/archived_at private
+compatibility fields, never infer or rewrite their existing meanings from the new
+record-status/archive controls. The migration refuses incompatible definitions
+and does not support destructive reversal. No fake migration or data rewrite.
+The inspected legacy check constraints require RESIDENT/NON_RESIDENT (or NULL)
+and UNVERIFIED/PENDING/VERIFIED/NEEDS_REVIEW stored codes. Preserve those codes;
+the serializer exposes readable classification labels and lowercase verification
+codes for the existing API. Not recorded classification maps to NULL. Do not
+rewrite any stored classifications or verification facts.
+
+2026-11-21 user approved resident profiling fields: generated person ID, first/
+middle/last name, suffix, birthdate/calculated age, sex, civil status, nationality,
+place of birth, contact number, optional email, residency classification and
+status, generated registration date, photo, and record status. Keep immutable
+IDs/created_at and derive age, never maintain an age column. New demographic
+fields default blank/Not recorded for existing records; no nationality,
+registration date, death fact or residency status is inferred. Reuse the existing
+classification/civil-status wording; residency choices cover Permanent resident,
+Renter, Boarder, Other and Not recorded; record status covers Active, Moved out,
+Deceased and Not recorded. These are descriptive entries, not legal findings.
+New resident saves in the workspace must persist through the authorized API;
+legacy local fixtures retain their IDs and remain explicitly distinguished.
+Typed base fields use a system base profile contract only when no custom active
+contract is selected; no existing contracts/extension values are overwritten.
+Photo policy for this increment: optional JPEG/PNG, at most 5 MiB and 10 million
+pixels, re-encoded without EXIF, stored privately with random filenames and
+authenticated resident-read access. Replacements preserve old files/revision
+references; no automatic retention/deletion period or biometric use is assumed.
+
+2026-11-21 user confirmed Barangay Payahan as the system owner and explicitly
+authorized these staff access bundles: healthcare administrator = Health only;
+barangay administrator = main barangay workspace plus Health. Health access is
+explicitly assigned through these bundles, never inferred from a generic admin
+or superuser flag. A health-only group takes precedence if memberships conflict.
+Preserve existing health code/data and use a separate non-superuser healthcare
+account; do not expose Django account administration to it. Account usernames
+await user input; password entry must use a local hidden prompt, never chat,
+command arguments, tracked files or default passwords. No unrelated accounts
+are automatically promoted. Normal barangay model permissions exclude hard
+deletion, health/case bypass and arbitrary account administration. Legacy Health
+Workers isolation and Health Administrators explicit access remain supported.
+
 2026-11-20 publication handoff: user explicitly requested committing the GIS,
 house-number, hazard-layer, directions, hybrid and online staff-only increment
 and pushing it to their fork. Verified destination is
@@ -80,6 +147,83 @@ Keep GIS native dependency gate; a disabled GIS backend must report unavailabili
 and never claim that browser-only edits were saved. Real resident capture remains
 outside this synthetic development increment.
 
+2026-11-20 user approved Building use choices for physical building/housing-unit
+records: Residential, Commercial, Mixed-Use, Institutional and Other, with the
+examples supplied in the request. Unknown existing values remain Not recorded;
+household occupancy does not infer a category. Add capture, display and filters
+in the synthetic frontend. This is descriptive use, not official zoning, permits
+or legal classification. Backend persistence and schema remain a later increment.
+
+2026-11-20 user supplied replacement demo names. Treat these as sample display
+aliases only, without attributing real demographic facts to anyone. Preserve the
+first six synthetic profiles' IDs and fictional attributes; add the seventh as
+an unassigned sample with demographic values not recorded. Update household-head
+labels consistently, without inferring new family relationships or real data.
+
+2026-11-20 user requested one automatic family per household: seed each synthetic
+household with Family 1 and its current members; creating a household creates
+Family 1, so the first added family brings the count to two. Preserve explicit
+family changes and historical membership segments. Household water capture and
+display use one Water source field (existing synthetic waterSupply value); remove
+the duplicate housing-water row from household details. Housing units retain
+their independent attributes. No production data or migrations are involved.
+
+2026-11-19 household usability increment: user requested clearer family creation
+and member management, including a second family and its members. Keep families
+within one household; a person has at most one current family there. Use family
+cards, explicit member selection, a searchable member list and focused dialogs.
+Offer existing-person assignment and new-person registration with household/family
+context. Reassignment retains membership history and household-head status; no
+family head is inferred. This remains the authorized synthetic session preview.
+
+Family grouping increment: user authorized families within a household. Groups
+have an internal ID, household ID and staff-entered label. A current household
+member may be unassigned or belong to one family group in that household;
+reassignment supersedes the membership segment to retain history. No family
+head is inferred. This increment remains a synthetic session preview.
+
+2026-11-17 household simplification: remove municipality, barangay and interviewer
+from manual household entry/display. Septic tank is a separate Yes/None/Not
+recorded observation; no automatic conversion from previous toilet categories.
+Multiple families within a household: proposed family-group child entity with
+dated person memberships. Household and physical housing unit remain separate;
+family heads would not replace the household head. Implementation pending.
+
+2026-11-17 scope update: Field Planner, Office Services and Staff & Access are
+removed from active workspace navigation and routes at the user's request.
+Backend form definitions, authentication, health-role controls and dormant source
+remain intact. This does not remove real accounts or their permissions.
+
+2026-11-17 scope update: user deferred appointments and complaints to focus on
+profiling. Remove their active routes, navigation, overview and report metrics.
+Retain dormant fixtures and historical requirements; no operational data deletion.
+
+2026-11-17 user requested optional LGBT identification, PWD status and overview
+counts. Synthetic preview uses separate voluntary identification and sex fields;
+blank/declined answers remain unknown. Health and complaint counts cannot be
+inferred from fixture names or treated as zero when unavailable. Production
+identity/disability collection and aggregate visibility require explicit access
+controls. Complaint counts mean cases filed by the person, not accusations.
+
+Health assessment increment: store dated, append-only observations linked to a
+canonical person. Pregnancy, family planning and screening use optional staff
+notes until exact paper-form categories are supplied; blank means not recorded,
+never a negative finding. Explicit health groups alone authorize this API.
+No clinical diagnosis or eligibility is inferred. No migration is applied here.
+
+2026-11-17 user access decision: admin and designated health-worker accounts may
+access health information. Health-worker accounts may access only health services.
+The explicit `Health Workers` Django group activates backend isolation; membership
+must not be assigned to ordinary admin accounts. No existing accounts were changed.
+Health capture and explicit admin/health read-write permissions remain to implement.
+
+2026-11-17 requested capture extension: residency classification, household survey
+header, demographics, water and sanitation. Current restored profile UI uses
+session-only synthetic records. Health symptoms, pregnancy categories, family
+planning, NHTS identifiers and insurance details require explicit sensitive-data
+permissions and agreed field definitions before operational capture. Age and
+senior status must be derived from birthdate, never maintained separately.
+
 | ID | Status | Decision/constraint | Consequence |
 |---|---|---|---|
 | DEC-001 | Confirmed | Deployment serves one barangay. | No premature multi-tenant design. |
@@ -153,69 +297,4 @@ and security decisions require their specialist owner, not only the software tea
 
 2026-11-19 user requested a single birthdate control with directly editable year. Remove the duplicate native date picker; retain month/day selectors and a four-digit typed year with required, calendar and future-date validation. No stored dates or schema changes (PRO-002, NFR-ACC).
 
-2026-11-19 household usability increment: user requested clearer family creation
-and member management, including a second family and its members. Keep families
-within one household; a person has at most one current family there. Use family
-cards, explicit member selection, a searchable member list and focused dialogs.
-Offer existing-person assignment and new-person registration with household/family
-context. Reassignment retains membership history and household-head status; no
-family head is inferred. This remains the authorized synthetic session preview.
-
-Family grouping increment: user authorized families within a household. Groups
-have an internal ID, household ID and staff-entered label. A current household
-member may be unassigned or belong to one family group in that household;
-reassignment supersedes the membership segment to retain history. No family
-head is inferred. This increment remains a synthetic session preview.
-
-2026-11-17 household simplification: remove municipality, barangay and interviewer
-from manual household entry/display. Septic tank is a separate Yes/None/Not
-recorded observation; no automatic conversion from previous toilet categories.
-Multiple families within a household: proposed family-group child entity with
-dated person memberships. Household and physical housing unit remain separate;
-family heads would not replace the household head. Family grouping is implemented in the synthetic preview described in HOUSEHOLD_UI.md.
-
-2026-11-17 requested capture extension: residency classification, household survey
-header, demographics, water and sanitation. Current restored profile UI uses
-session-only synthetic records. Health symptoms, pregnancy categories, family
-planning, NHTS identifiers and insurance details require explicit sensitive-data
-permissions and agreed field definitions before operational capture. Age and
-senior status must be derived from birthdate, never maintained separately.
-
-2026-11-17 scope update: Field Planner, Office Services and Staff & Access are
-removed from active workspace navigation and routes at the user's request.
-Backend form definitions, authentication, health-role controls and dormant source
-remain intact. This does not remove real accounts or their permissions.
-
-2026-11-17 scope update: user deferred appointments and complaints to focus on
-profiling. Remove their active routes, navigation, overview and report metrics.
-Retain dormant fixtures and historical requirements; no operational data deletion.
-
-2026-11-17 user requested optional LGBT identification, PWD status and overview
-counts. Synthetic preview uses separate voluntary identification and sex fields;
-blank/declined answers remain unknown. Health and complaint counts cannot be
-inferred from fixture names or treated as zero when unavailable. Production
-identity/disability collection and aggregate visibility require explicit access
-controls. Complaint counts mean cases filed by the person, not accusations.
-
 2026-11-19 user authorized a professional UI/UX refresh of the existing staff interface (NFR-ACC / NFR-MNT). Use a consistent slate/teal palette, local system fonts, icon navigation with text labels, responsive summary cards and readable tables/forms. Preserve existing routes, validation, permissions and synthetic-data boundaries. No external assets or new runtime dependencies; visual choices are reversible implementation details.
-
-2026-11-20 user requested one automatic family per household: seed each synthetic
-household with Family 1 and its current members; creating a household creates
-Family 1, so the first added family brings the count to two. Preserve explicit
-family changes and historical membership segments. Household water capture and
-display use one Water source field (existing synthetic waterSupply value); remove
-the duplicate housing-water row from household details. Housing units retain
-their independent attributes. No production data or migrations are involved.
-
-2026-11-20 user supplied replacement demo names. Treat these as sample display
-aliases only, without attributing real demographic facts to anyone. Preserve the
-first six synthetic profiles' IDs and fictional attributes; add the seventh as
-an unassigned sample with demographic values not recorded. Update household-head
-labels consistently, without inferring new family relationships or real data.
-
-2026-11-20 user approved Building use choices for physical building/housing-unit
-records: Residential, Commercial, Mixed-Use, Institutional and Other, with the
-examples supplied in the request. Unknown existing values remain Not recorded;
-household occupancy does not infer a category. Add capture, display and filters
-in the synthetic frontend. This is descriptive use, not official zoning, permits
-or legal classification. Backend persistence and schema remain a later increment.

@@ -7,6 +7,8 @@ from django.utils import timezone
 
 from common.models import RecordedByModel
 
+from .photos import resident_photo_path, resident_photo_storage
+
 
 def generate_resident_reference() -> str:
     return f"RES-{secrets.token_hex(5).upper()}"
@@ -82,9 +84,10 @@ class FormField(models.Model):
 
 class Resident(RecordedByModel):
     class VerificationStatus(models.TextChoices):
-        UNVERIFIED = "unverified", "Unverified"
-        VERIFIED = "verified", "Verified"
-        NEEDS_REVIEW = "needs_review", "Needs review"
+        UNVERIFIED = "UNVERIFIED", "Unverified"
+        PENDING = "PENDING", "Pending"
+        VERIFIED = "VERIFIED", "Verified"
+        NEEDS_REVIEW = "NEEDS_REVIEW", "Needs review"
 
     reference = models.CharField(
         max_length=20, unique=True, default=generate_resident_reference, editable=False
@@ -97,6 +100,50 @@ class Resident(RecordedByModel):
     family_name = models.CharField(max_length=150)
     suffix = models.CharField(max_length=50, blank=True)
     birth_date = models.DateField(null=True, blank=True)
+    sex = models.CharField(
+        max_length=20,
+        choices=[(value, value) for value in ("Female", "Male", "Not recorded")],
+        default="Not recorded",
+    )
+    civil_status = models.CharField(
+        max_length=30,
+        choices=[
+            (value, value)
+            for value in ("Not recorded", "Single", "Married", "Widowed", "Separated", "Other")
+        ],
+        default="Not recorded",
+    )
+    nationality = models.CharField(max_length=100, blank=True, default="")
+    place_of_birth = models.CharField(max_length=150, blank=True, default="")
+    contact_number = models.CharField(max_length=50, blank=True, default="")
+    email = models.EmailField(blank=True, default="")
+    residency_classification = models.CharField(
+        max_length=20,
+        null=True,
+        choices=[("RESIDENT", "Resident"), ("NON_RESIDENT", "Non-resident")],
+        default=None,
+    )
+    residency_status = models.CharField(
+        max_length=30,
+        choices=[
+            (value, value)
+            for value in ("Not recorded", "Permanent resident", "Renter", "Boarder", "Other")
+        ],
+        default="Not recorded",
+    )
+    record_status = models.CharField(
+        max_length=20,
+        choices=[(value, value) for value in ("Not recorded", "Active", "Moved out", "Deceased")],
+        default="Not recorded",
+    )
+    purok = models.CharField(max_length=50, blank=True, default="")
+    is_archived = models.BooleanField(default=False)
+    # Preserve legacy database columns without inventing mappings to record status.
+    is_active = models.BooleanField(default=True)
+    archived_at = models.DateTimeField(null=True, blank=True)
+    photo = models.ImageField(
+        upload_to=resident_photo_path, storage=resident_photo_storage, blank=True, default=""
+    )
     values = models.JSONField(default=dict, blank=True)
     verification_status = models.CharField(
         max_length=20,

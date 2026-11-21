@@ -6,6 +6,9 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter
 
+from accounts.access import health_only
+from accounts.health_records import HealthAssessmentViewSet
+from accounts.health_views import health_workspace
 from accounts.serializers import StaffSessionSerializer
 from accounts.views import csrf, sign_in, sign_out
 from households import map_views
@@ -21,10 +24,17 @@ from profiling.views import FormDefinitionViewSet, ResidentViewSet
 @extend_schema(responses=StaffSessionSerializer)
 @api_view(["GET"])
 def session(request):
-    return Response({"username": request.user.username})
+    return Response(
+        {
+            "username": request.user.username,
+            "display_name": request.user.get_full_name().strip() or request.user.username,
+            "health_only": health_only(request.user),
+        }
+    )
 
 
 router = DefaultRouter()
+router.register("health/assessments", HealthAssessmentViewSet, basename="health-assessment")
 router.register("profile-forms", FormDefinitionViewSet, basename="profile-form")
 router.register("residents", ResidentViewSet, basename="resident")
 router.register("households", HouseholdViewSet, basename="household")
@@ -42,6 +52,7 @@ urlpatterns = [
     path("api/v1/gis/households/", map_views.household_directory),
     path("api/v1/gis/households/<uuid:pk>/", map_views.household_detail),
     path("api/v1/gis/households/<uuid:pk>/location/", map_views.household_location),
+    path("api/v1/health/workspace/", health_workspace),
     path("api/v1/auth/csrf/", csrf),
     path("api/v1/auth/login/", sign_in),
     path("api/v1/auth/logout/", sign_out),
