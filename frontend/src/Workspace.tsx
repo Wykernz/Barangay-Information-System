@@ -24,6 +24,7 @@ import {
   HousingUnitDetail,
   HousingUnitDirectory,
 } from "./features/housing/HousingRegistry";
+import ActivityLog from "./features/audit/ActivityLog";
 import { DemoProvider, useDemo } from "./demo/store";
 import { catalog } from "./demo/catalog";
 import RecordPage from "./components/RecordPage";
@@ -63,23 +64,7 @@ function HouseholdProfileRoute({ module }: { module: string }) {
 }
 
 function Audit() {
-  return (
-    <>
-      <p className="eyebrow">ACCOUNTABILITY</p>
-      <h1>Activity log</h1>
-      <p className="muted">Authorized database audit events.</p>
-      <section className="panel">
-        <div className="empty-state">
-          <h2>Audit feed unavailable</h2>
-          <p>
-            The audit records are stored by the server, but this workspace does
-            not yet have an authorized audit-list endpoint. No session-only
-            sample events are shown here.
-          </p>
-        </div>
-      </section>
-    </>
-  );
+  return <ActivityLog />;
 }
 function Settings() {
   const { reset } = useDemo();

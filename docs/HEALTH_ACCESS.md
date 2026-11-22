@@ -138,3 +138,7 @@ Both administrators and workers must belong to a designated health group;
 superuser status alone does not satisfy this endpoint. `/health` in the staff
 workspace shows the server-confirmed status. Health-worker accounts receive a
 restricted landing page. Capture remains unavailable until the forms are built.
+
+Barangay Administrator role assignment includes only `audit.view_auditevent`
+from the audit app. The read-only audit API omits event metadata; healthcare
+accounts remain blocked from the route by health-only middleware.

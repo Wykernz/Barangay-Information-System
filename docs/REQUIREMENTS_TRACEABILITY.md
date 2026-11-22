@@ -85,7 +85,7 @@ records with links to available household and map views. Unsupported preview
 attributes remain unavailable; occupancy history remains preserved.
 
 2026-11-22 reporting/accountability UI: Reports reads the authorized overview
-aggregate and exports aggregate-only CSV; session-memory changes are no longer
-presented as the official Activity Log. Audit listing/search, family and 4Ps
-counts, and purok summaries still require their source endpoints and approved
-definitions.
+aggregate and exports aggregate-only CSV. A read-only audit endpoint and
+filterable Activity Log expose action/record identifiers to staff with explicit
+audit-view permission, without returning event metadata. Family and 4Ps counts
+and purok summaries still require source APIs and approved definitions.

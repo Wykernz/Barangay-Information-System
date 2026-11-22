@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter
 
 from accounts.access import health_only
+from audit.views import AuditEventViewSet
 from accounts.health_records import HealthAssessmentViewSet
 from accounts.health_views import health_workspace
 from accounts.serializers import StaffSessionSerializer
@@ -35,6 +36,7 @@ def session(request):
 
 
 router = DefaultRouter()
+router.register("audit/events", AuditEventViewSet, basename="audit-event")
 router.register("health/assessments", HealthAssessmentViewSet, basename="health-assessment")
 router.register("profile-forms", FormDefinitionViewSet, basename="profile-form")
 router.register("residents", ResidentViewSet, basename="resident")

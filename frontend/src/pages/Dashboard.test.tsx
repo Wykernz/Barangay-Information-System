@@ -13,23 +13,26 @@ afterEach(() => {
 });
 
 test("overview uses database aggregates and labels unsupported statistics", async () => {
-  vi.mocked(api.get).mockResolvedValue({
-    data: {
-      as_of: "2026-11-22",
-      registered_persons: 12,
-      verified_residents: 7,
-      active_households: 4,
-      housing_units: 5,
-      occupied_units: 3,
-      mapped_units: null,
-      age_groups: { "0-14": 2, "60+": 1 },
-      residency: {
-        Resident: 8,
-        "Non-resident": 2,
-        "Pending classification": 2,
+  vi.mocked(api.get).mockImplementation(async (url) => {
+    if (url === "audit/events/") return { data: { results: [] } } as never;
+    return {
+      data: {
+        as_of: "2026-11-22",
+        registered_persons: 12,
+        verified_residents: 7,
+        active_households: 4,
+        housing_units: 5,
+        occupied_units: 3,
+        mapped_units: null,
+        age_groups: { "0-14": 2, "60+": 1 },
+        residency: {
+          Resident: 8,
+          "Non-resident": 2,
+          "Pending classification": 2,
+        },
+        sex: { Male: 5, Female: 6, "Other or not recorded": 1 },
       },
-      sex: { Male: 5, Female: 6, "Other or not recorded": 1 },
-    },
+    } as never;
   });
   render(
     <QueryClientProvider

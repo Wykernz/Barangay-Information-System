@@ -33,8 +33,14 @@ def assign_staff_role(*, user: User, role: StaffRole, actor: User | None = None)
         user.groups.add(group)
     else:
         group, _ = Group.objects.get_or_create(name="Barangay Administrators")
-        permissions = Permission.objects.filter(
-            content_type__app_label__in=("profiling", "households", "gis")
+        permissions = list(
+            Permission.objects.filter(
+                content_type__app_label__in=("profiling", "households", "gis")
+            )
+        ) + list(
+            Permission.objects.filter(
+                content_type__app_label="audit", codename="view_auditevent"
+            )
         )
         group.permissions.set(
             [

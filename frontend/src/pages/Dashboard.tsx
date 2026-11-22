@@ -26,6 +26,15 @@ type Overview = {
   residency: Record<string, number>;
   sex: Record<string, number>;
 };
+type RecentAudit = {
+  id: string;
+  occurred_at: string;
+  actor_username: string | null;
+  action: string;
+  target_type: string;
+  target_id: string;
+};
+type AuditPage = { results: RecentAudit[] };
 
 function Distribution({
   title,
@@ -63,6 +72,12 @@ export default function Dashboard() {
     queryFn: async () => (await api.get<Overview>("overview/")).data,
     retry: false,
     refetchOnWindowFocus: false,
+  });
+  const activity = useQuery({
+    queryKey: ["recent-audit-events"],
+    queryFn: async () =>
+      (await api.get<AuditPage>("audit/events/", { params: { page: 1 } })).data,
+    retry: false,
   });
   const data = query.data;
   const stats = data
@@ -217,9 +232,45 @@ export default function Dashboard() {
         </section>
         <section className="overview-panel">
           <h2>Recent activity</h2>
-          <p className="muted">
-            An authorized database audit feed is not connected to this page yet.
-          </p>
+          {activity.isPending && (
+            <p className="muted" role="status">
+              Loading activity…
+            </p>
+          )}
+          {activity.isError && (
+            <p className="muted">
+              Activity is unavailable for this account or the audit feed could
+              not be reached.
+            </p>
+          )}
+          {activity.data && !activity.data.results.length && (
+            <p className="muted">No database audit events are recorded yet.</p>
+          )}
+          {activity.data?.results.slice(0, 5).map((event) => (
+            <div className="overview-activity-row" key={event.id}>
+              <div>
+                <strong>{event.action}</strong>
+                <small>
+                  {event.target_type} · {event.target_id}
+                </small>
+              </div>
+              <span>
+                {event.actor_username ?? "System"}
+                <small>
+                  {new Date(event.occurred_at).toLocaleString("en-PH", {
+                    timeZone: "Asia/Manila",
+                    dateStyle: "short",
+                    timeStyle: "short",
+                  })}
+                </small>
+              </span>
+            </div>
+          ))}
+          {activity.data?.results.length ? (
+            <Link to="/audit">
+              View activity log <ArrowRight size={15} />
+            </Link>
+          ) : null}
         </section>
       </div>
       <section className="overview-panel overview-actions">

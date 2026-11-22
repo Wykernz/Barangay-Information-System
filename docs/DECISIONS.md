@@ -330,7 +330,7 @@ No deletion or history rewrite is introduced.
 
 2026-11-22 reporting and accountability UI: Reports now uses the existing
 authorized database overview aggregate and offers only aggregate CSV export.
-Activity Log does not display session-memory actions as official audit events;
-the backend audit models do not yet have a staff list endpoint. Family, 4Ps,
-purok analytics, and audit search remain unavailable until source APIs and
-approved definitions/permissions are established.
+Activity Log reads a new read-only projection of server audit events. Only
+Barangay Administrators receive its view permission; metadata is excluded.
+Family, 4Ps, and purok analytics remain unavailable until source APIs and
+approved definitions are established.
