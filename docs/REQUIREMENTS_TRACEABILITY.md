@@ -74,9 +74,10 @@ covered by `navigation.test.tsx`.
 
 2026-11-22 Household registry increment (PRO-004..009): database-only household
 directory uses server pagination, status/location filters, and links to detail
-and GIS. The existing API omits membership/family/head/purok and registry-wide
-active/occupancy aggregates; the UI marks these unavailable. Route and pagination
-behavior is covered by `navigation.test.tsx` and `api.test.ts`.
+and GIS. The existing Household API provides active-household and current member
+counts; family/head/purok and household-family aggregates are unavailable and
+remain marked as such. Route and pagination behavior is covered by
+`navigation.test.tsx` and `api.test.ts`.
 
 2026-11-22 Housing registry increment (PRO-006..007, GIS-005): the Housing
 Units route now reads and creates actual HousingUnit records, displays only

@@ -20,6 +20,12 @@ import HouseNumberEditor from "./HouseNumberEditor";
 import Directions from "./Directions";
 import { api } from "../../api";
 
+type HouseholdSummary = {
+  active_households: number;
+  current_members: number;
+  member_counts: Record<string, number>;
+};
+
 export function DatabaseHouseholdDirectory() {
   const [rows, setRows] = useState<MapHousehold[]>([]);
   const [error, setError] = useState("");
@@ -33,6 +39,7 @@ export function DatabaseHouseholdDirectory() {
   const [previousPage, setPreviousPage] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [refresh, setRefresh] = useState(0);
+  const [summary, setSummary] = useState<HouseholdSummary | null>(null);
   useEffect(() => {
     let active = true;
     setLoading(true);
@@ -60,6 +67,45 @@ export function DatabaseHouseholdDirectory() {
       active = false;
     };
   }, [page, refresh]);
+  useEffect(() => {
+    let active = true;
+    async function loadSummary() {
+      let pageNumber = 1;
+      let activeHouseholds = 0;
+      let members = 0;
+      const memberCounts: Record<string, number> = {};
+      while (true) {
+        const { data } = await api.get<{
+          results: {
+            id: string;
+            is_active: boolean;
+            active_member_count: number;
+          }[];
+          next: string | null;
+        }>("households/", { params: { page: pageNumber } });
+        for (const household of data.results) {
+          memberCounts[household.id] = household.active_member_count;
+          if (!household.is_active) continue;
+          activeHouseholds += 1;
+          members += household.active_member_count;
+        }
+        if (!data.next) break;
+        pageNumber += 1;
+      }
+      if (active)
+        setSummary({
+          active_households: activeHouseholds,
+          current_members: members,
+          member_counts: memberCounts,
+        });
+    }
+    loadSummary().catch(() => {
+      if (active) setSummary(null);
+    });
+    return () => {
+      active = false;
+    };
+  }, [refresh]);
   const filtered = useMemo(() => {
     const needle = search.trim().toLowerCase();
     return rows.filter((row) => {
@@ -86,16 +132,6 @@ export function DatabaseHouseholdDirectory() {
       );
     });
   }, [rows, search, status, location]);
-  const mappedUnits = new Set(
-    rows
-      .filter(
-        (row) =>
-          row.housing_unit &&
-          row.location &&
-          row.location.verification_status !== "rejected",
-      )
-      .map((row) => row.housing_unit),
-  ).size;
   return (
     <section
       className="household-registry"
@@ -110,17 +146,18 @@ export function DatabaseHouseholdDirectory() {
         <div>
           <UsersRound size={19} />
           <span>Active households</span>
-          <strong>—</strong>
+          <strong>{summary?.active_households ?? "—"}</strong>
         </div>
         <div>
           <House size={19} />
-          <span>Current members</span>
-          <strong>—</strong>
+          <span>Current household members</span>
+          <strong>{summary?.current_members ?? "—"}</strong>
         </div>
         <div>
           <MapPinned size={19} />
-          <span>Mapped in this page</span>
-          <strong>{loading || error ? "—" : mappedUnits}</strong>
+          <span>Households with multiple families</span>
+          <strong>Unavailable</strong>
+          <small>Family records are not connected</small>
         </div>
       </div>
       <section className="panel household-directory-panel">
@@ -243,7 +280,7 @@ export function DatabaseHouseholdDirectory() {
                       <Link to={householdUrl(row.id)}>{row.reference}</Link>
                       <small>{row.label}</small>
                     </td>
-                    <td>Not available</td>
+                    <td>{summary?.member_counts[row.id] ?? "—"}</td>
                     <td>Not recorded</td>
                     <td>Not available</td>
                     <td>Not available</td>
