@@ -60,3 +60,20 @@ technology acceptance remain outstanding. See `UI_REFRESH.md`.
 2026-11-19 PRO-002 / ANA-001..002: user-approved age bands implemented in ageGroups.ts, overview, profile/household summaries and filters; 75+ classification pending.
 
 PRO-002 / NFR-ACC (2026-11-19): user authorized duplicate birthdate control removal and typed year; BirthdateInput.test.tsx covers required, leap-date and future-date validation.
+2026-11-22 UI makeover increment: the staff overview uses the authorized
+database aggregate endpoint for registered people, verified residents,
+active households, active housing units, current occupancy, demographics,
+and mapped units when GIS is enabled. Family, 4Ps, and audit summaries remain
+unavailable until their source workflows and permissions are approved.
+
+2026-11-22 GIS UI increment (GIS-001..008): linked housing-unit map coverage,
+directory search and active-status filtering are derived from the existing
+database map response; a purok filter remains blocked by absent authoritative
+purok data. Existing household-to-map and marker-to-household navigation is
+covered by `navigation.test.tsx`.
+
+2026-11-22 Household registry increment (PRO-004..009): database-only household
+directory uses server pagination, status/location filters, and links to detail
+and GIS. The existing API omits membership/family/head/purok and registry-wide
+active/occupancy aggregates; the UI marks these unavailable. Route and pagination
+behavior is covered by `navigation.test.tsx` and `api.test.ts`.

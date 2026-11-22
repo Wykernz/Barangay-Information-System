@@ -34,6 +34,8 @@ export default function MapPage() {
     null,
   );
   const [households, setHouseholds] = useState<MapHousehold[]>([]);
+  const [loadingHouseholds, setLoadingHouseholds] = useState(true);
+  const [householdLoadError, setHouseholdLoadError] = useState(false);
   const [boundary, setBoundary] = useState<Boundary | null>(null);
   const [boundaryFocus, setBoundaryFocus] = useState(0);
   const [boundaryError, setBoundaryError] = useState("");
@@ -62,12 +64,53 @@ export default function MapPage() {
       configuration.center[0] > boundary.bbox[3]);
   const [search, setSearch] = useState("");
   const [unmapped, setUnmapped] = useState(false);
+  const [occupancyFilter, setOccupancyFilter] = useState("all");
+  const linkedUnits = new Map<string, boolean>();
+  for (const row of households) {
+    if (!row.housing_unit) continue;
+    linkedUnits.set(
+      row.housing_unit,
+      (linkedUnits.get(row.housing_unit) ?? false) ||
+        Boolean(
+          row.location && row.location.verification_status !== "rejected",
+        ),
+    );
+  }
+  const mappedUnits = [...linkedUnits.values()].filter(Boolean).length;
+  const searchKey = search.trim().toLowerCase();
+  const visibleHouseholds = households.filter((row) => {
+    const mapped = Boolean(
+      row.location && row.location.verification_status !== "rejected",
+    );
+    return (
+      (!unmapped || !mapped) &&
+      (occupancyFilter === "all" ||
+        row.is_active === (occupancyFilter === "active")) &&
+      [
+        row.label,
+        row.reference,
+        row.housing_unit,
+        row.housing_label,
+        row.house_number,
+        row.location?.source,
+        row.location?.latitude,
+        row.location?.longitude,
+      ].some((value) =>
+        String(value ?? "")
+          .toLowerCase()
+          .includes(searchKey),
+      )
+    );
+  });
   useEffect(() => {
     let active = true;
     let configured = false;
     setConfigurationError("");
     setBoundaryError("");
     setError("");
+    setLoadingHouseholds(true);
+    setHouseholdLoadError(false);
+    setHouseholds([]);
     gisApi
       .config()
       .then((config) => {
@@ -107,13 +150,19 @@ export default function MapPage() {
     gisApi
       .households()
       .then((rows) => {
-        if (active) setHouseholds(rows);
+        if (active) {
+          setHouseholds(rows);
+          setLoadingHouseholds(false);
+        }
       })
       .catch(() => {
-        if (active)
+        if (active) {
+          setLoadingHouseholds(false);
+          setHouseholdLoadError(true);
           setError(
             "Cannot load database households. Check your permissions and connection.",
           );
+        }
       });
     return () => {
       active = false;
@@ -161,12 +210,16 @@ export default function MapPage() {
   }
   return (
     <>
-      <p className="eyebrow">GEOGRAPHIC INFORMATION</p>
-      <h1>Housing map</h1>
-      <p>
-        Barangay Payahan, Calbayog City, Samar · House locations require staff
-        assignment.
-      </p>
+      <div className="gis-page-heading">
+        <div>
+          <p className="eyebrow">GEOGRAPHIC INFORMATION</p>
+          <h1>Housing map</h1>
+          <p>
+            Barangay Payahan, Calbayog City, Samar · Staff housing locations
+          </p>
+        </div>
+        <span>Authorized staff workspace</span>
+      </div>
       {error && (
         <p role="alert" className="error">
           {error}
@@ -195,7 +248,39 @@ export default function MapPage() {
       )}
       {boundaryError && <p role="status">{boundaryError}</p>}
       {configuration && (
-        <section className="panel">
+        <section className="panel gis-workspace-panel">
+          <div className="gis-coverage" aria-label="Map coverage">
+            <div>
+              <strong>
+                {loadingHouseholds || householdLoadError
+                  ? "—"
+                  : linkedUnits.size}
+              </strong>
+              <span>Linked housing units</span>
+            </div>
+            <div>
+              <strong>
+                {loadingHouseholds || householdLoadError ? "—" : mappedUnits}
+              </strong>
+              <span>Mapped units</span>
+            </div>
+            <div>
+              <strong>
+                {loadingHouseholds || householdLoadError
+                  ? "—"
+                  : linkedUnits.size - mappedUnits}
+              </strong>
+              <span>Unmapped linked units</span>
+            </div>
+            <div>
+              <strong>
+                {loadingHouseholds || householdLoadError
+                  ? "—"
+                  : households.filter((row) => !row.housing_unit).length}
+              </strong>
+              <span>Households without a unit</span>
+            </div>
+          </div>
           <details className="assignment-guide">
             <summary>How to assign a house</summary>
             <ol>
@@ -507,45 +592,63 @@ export default function MapPage() {
               )}
               <h2>Household directory</h2>
               <label>
-                Find household
+                Find household, housing unit, or location
                 <input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Reference, house number, or coordinates"
                 />
               </label>
+              <label>
+                Household status
+                <select
+                  value={occupancyFilter}
+                  onChange={(event) => setOccupancyFilter(event.target.value)}
+                >
+                  <option value="all">All households</option>
+                  <option value="active">Active households</option>
+                  <option value="inactive">Inactive households</option>
+                </select>
+              </label>
+              <p className="gis-filter-note">
+                Purok filtering will be available when a reviewed purok field is
+                stored with the database housing records.
+              </p>
               <label>
                 <input
                   type="checkbox"
                   checked={unmapped}
                   onChange={(event) => setUnmapped(event.target.checked)}
                 />{" "}
-                Locations not recorded
+                Unmapped or rejected locations
               </label>
-              {households
-                .filter(
-                  (row) =>
-                    (!unmapped || !row.location) &&
-                    `${row.label} ${row.reference}`
-                      .toLowerCase()
-                      .includes(search.toLowerCase()),
-                )
-                .map((row) => (
-                  <div className="gis-household" key={row.id}>
-                    <button
-                      className="secondary"
-                      disabled={saving}
-                      onClick={() => select(row.id)}
-                    >
-                      {row.label}
-                    </button>
-                    <small>
-                      {row.location
+              {visibleHouseholds.map((row) => (
+                <div className="gis-household" key={row.id}>
+                  <button
+                    className="secondary"
+                    disabled={saving}
+                    onClick={() => select(row.id)}
+                  >
+                    {row.label}
+                  </button>
+                  <small>
+                    {row.location?.verification_status === "rejected"
+                      ? "Location rejected"
+                      : row.location
                         ? "Location recorded"
                         : "Location not recorded"}
-                    </small>
-                  </div>
-                ))}
-              {!households.length && <p>No accessible database households.</p>}
+                  </small>
+                </div>
+              ))}
+              {loadingHouseholds && <p role="status">Loading households…</p>}
+              {!loadingHouseholds &&
+                !householdLoadError &&
+                !households.length && <p>No accessible database households.</p>}
+              {!loadingHouseholds &&
+                households.length > 0 &&
+                !visibleHouseholds.length && (
+                  <p>No households match the current filters.</p>
+                )}
             </div>
           </div>
           {provider?.licence && (

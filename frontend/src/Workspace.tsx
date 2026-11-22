@@ -45,8 +45,11 @@ function HouseholdProfileRoute({ module }: { module: string }) {
   }
   return (
     <>
-      <ProfilingPage module={module} />
-      {module === "households" && !id && <DatabaseHouseholdDirectory />}
+      {module === "households" && !id ? (
+        <DatabaseHouseholdDirectory />
+      ) : (
+        <ProfilingPage module={module} />
+      )}
     </>
   );
 }
@@ -138,14 +141,14 @@ export default function Workspace({
   logoutError: string;
 }) {
   const [menu, setMenu] = useState(false);
-  const links: [string, string, LucideIcon][] = [
-    ["/", "Overview", LayoutDashboard],
+  const links: [string, string, LucideIcon, string?][] = [
+    ["/", "Overview", LayoutDashboard, "Workspace"],
     ["/health", "Health", HeartPulse],
-    ["/residents", "Residents", Users],
+    ["/residents", "Residents", Users, "Community records"],
     ["/households", "Households", UsersRound],
     ["/housing", "Housing units", House],
     ["/gis", "Housing map", MapPinned],
-    ["/reports", "Reports", ChartNoAxesCombined],
+    ["/reports", "Reports", ChartNoAxesCombined, "Management"],
     ["/audit", "Activity log", Activity],
     ["/settings", "Settings", Settings2],
   ];
@@ -178,21 +181,14 @@ export default function Workspace({
               {menu ? "Close navigation" : "Open navigation"}
             </button>
             <nav id="staff-navigation" aria-label="Main navigation">
-              {links.map(([to, label, Icon], index) => (
+              {links.map(([to, label, Icon, group]) => (
                 <div className="navigation-item" key={to}>
-                  {(index === 0 || index === 2 || index === 6) && (
-                    <p className="navigation-label">
-                      {index === 0
-                        ? "Workspace"
-                        : index === 2
-                          ? "Community records"
-                          : "Management"}
-                    </p>
-                  )}
+                  {group && <p className="navigation-label">{group}</p>}
                   <NavLink
                     key={to}
                     end={to === "/"}
                     to={to}
+                    title={label}
                     onClick={() => setMenu(false)}
                   >
                     <Icon size={19} strokeWidth={1.7} aria-hidden="true" />
@@ -241,11 +237,12 @@ export default function Workspace({
               <div className="demo-banner">
                 <strong>
                   <span className="preview-dot" aria-hidden="true" />
-                  Preview workspace
+                  Data source
                 </strong>
                 <span>
-                  Synthetic records only. Sample profile changes reset on reload
-                  or sign-out. Database map locations are saved separately.
+                  Overview totals come from the database. Some profiling views
+                  still include labeled session samples; map locations are saved
+                  separately.
                 </span>
               </div>
               <Routes>

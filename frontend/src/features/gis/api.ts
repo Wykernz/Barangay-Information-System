@@ -72,6 +72,15 @@ export const gisApi = {
       page++;
     }
   },
+  householdPage: async (page: number) =>
+    (
+      await api.get<{
+        count: number;
+        results: MapHousehold[];
+        next: string | null;
+        previous: string | null;
+      }>("gis/households/", { params: { page } })
+    ).data,
   household: async (id: string) =>
     (await api.get<MapHousehold>(`gis/households/${encodeURIComponent(id)}/`))
       .data,

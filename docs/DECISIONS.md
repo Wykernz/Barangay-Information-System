@@ -5,6 +5,27 @@ Statuses: `Confirmed` records supplied constraints; `Proposed` needs approval;
 
 ## Confirmed constraints
 
+2026-11-22 user requested a phased professional UI/UX makeover. Use the supplied
+teal design tokens and reorganize only implemented navigation. Dashboard numbers
+must come from authoritative database records; omit unavailable family, 4Ps,
+and audit summaries rather than deriving them from session fixtures. Do not add
+Relief Operations. Keep the existing stack and routes, and do not push changes
+automatically.
+
+2026-11-22 GIS interface increment: search may use existing household and housing
+unit references, labels, and house numbers; household-status filters use the stored
+active flag. Vacant housing units are absent from the household map directory.
+No purok field exists in the database map directory, so
+the map must disclose that limitation instead of inferring a purok from names or
+approximate positions. Coverage counts represent distinct linked housing units.
+
+2026-11-22 Household Registry UI increment: use the authorized paginated database
+map endpoint as the household list source; never merge it with session fixtures.
+Only total households and mapped units on the current page are known from that
+contract. Active counts, occupancy/member totals, family counts, head, and purok
+stay unavailable until an authorized registry API provides them. Search and
+filters apply to the loaded server page and disclose that scope.
+
 2026-11-21 user supplied baranggay_admin for the barangay account and Health Center
 Admin for the healthcare account name. Use health_center_admin as the compatible
 sign-in username and Health Center Admin as its display name. These names do not

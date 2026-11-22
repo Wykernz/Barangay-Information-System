@@ -8,7 +8,10 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { DatabaseHouseholdDetail } from "./HouseholdLocation";
+import {
+  DatabaseHouseholdDetail,
+  DatabaseHouseholdDirectory,
+} from "./HouseholdLocation";
 import MapPage from "../../pages/MapPage";
 import { gisApi, type MapConfiguration, type MapHousehold } from "./api";
 
@@ -17,6 +20,7 @@ vi.mock("./api", async (original) => ({
   gisApi: {
     config: vi.fn(),
     households: vi.fn(),
+    householdPage: vi.fn(),
     household: vi.fn(),
     save: vi.fn(),
   },
@@ -85,6 +89,12 @@ const config: MapConfiguration = {
 beforeEach(() => {
   vi.mocked(gisApi.config).mockResolvedValue(config);
   vi.mocked(gisApi.households).mockResolvedValue([household]);
+  vi.mocked(gisApi.householdPage).mockResolvedValue({
+    count: 1,
+    results: [household],
+    next: null,
+    previous: null,
+  });
   vi.mocked(gisApi.household).mockResolvedValue(household);
   vi.stubGlobal(
     "fetch",
@@ -108,6 +118,7 @@ function page(path: string) {
     <MemoryRouter initialEntries={[path]}>
       <Routes>
         <Route path="/households/:id" element={<DatabaseHouseholdDetail />} />
+        <Route path="/households" element={<DatabaseHouseholdDirectory />} />
         <Route path="/gis" element={<MapPage />} />
       </Routes>
     </MemoryRouter>,
@@ -116,7 +127,7 @@ function page(path: string) {
 
 test("household View on Map focuses its exact saved location; marker returns to household", async () => {
   page("/households/test-household");
-  fireEvent.click(await screen.findByRole("link", { name: "View on Map" }));
+  fireEvent.click(await screen.findByRole("link", { name: "View on map" }));
   expect(await screen.findByText("Focused location: point-1")).toBeTruthy();
   expect(
     new URL(
@@ -129,13 +140,59 @@ test("household View on Map focuses its exact saved location; marker returns to 
   expect(
     await screen.findByRole("heading", { name: "Synthetic household" }),
   ).toBeTruthy();
-  expect(screen.getByText("1, 2")).toBeTruthy();
+  expect(screen.getByText("1.000000, 2.000000")).toBeTruthy();
   expect(
     new URL(
       (screen.getByRole("link", { name: "Directions" }) as HTMLAnchorElement)
         .href,
     ).searchParams.get("destination"),
   ).toBe("1,2");
+});
+
+test("database household registry searches, filters, and paginates returned database rows", async () => {
+  const second = {
+    ...household,
+    id: "second-household",
+    reference: "HH-SECOND",
+    label: "Second synthetic household",
+    is_active: false,
+    housing_unit: "unit-2",
+    location: null,
+  };
+  vi.mocked(gisApi.householdPage)
+    .mockResolvedValueOnce({
+      count: 2,
+      results: [household],
+      next: "/api/v1/gis/households/?page=2",
+      previous: null,
+    })
+    .mockResolvedValueOnce({
+      count: 2,
+      results: [second],
+      next: null,
+      previous: "/api/v1/gis/households/?page=1",
+    });
+  page("/households");
+  expect(await screen.findByText("HH-SYNTHETIC")).toBeTruthy();
+  expect(screen.getByText("Total households")).toBeTruthy();
+  expect(screen.getByText("Active households")).toBeTruthy();
+  fireEvent.change(screen.getByLabelText("Search households"), {
+    target: { value: "HH-SYNTHETIC" },
+  });
+  expect(screen.getByText("HH-SYNTHETIC")).toBeTruthy();
+  fireEvent.change(screen.getByLabelText("Housing location"), {
+    target: { value: "unmapped" },
+  });
+  expect(screen.getByText("No households match these filters.")).toBeTruthy();
+  fireEvent.change(screen.getByLabelText("Housing location"), {
+    target: { value: "all" },
+  });
+  fireEvent.change(screen.getByLabelText("Search households"), {
+    target: { value: "" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Next" }));
+  expect(await screen.findByText("HH-SECOND")).toBeTruthy();
+  expect(gisApi.householdPage).toHaveBeenLastCalledWith(2);
 });
 
 test("unmapped household has no fabricated point; selection only saves after confirmation", async () => {
@@ -283,4 +340,46 @@ test("outdated backend shows recovery instructions and retry loads the map", asy
   expect(screen.queryByText("Loading map configuration…")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Retry map" }));
   expect(await screen.findByLabelText("Test map")).toBeTruthy();
+});
+
+test("map directory searches housing details and filters occupancy without inventing puroks", async () => {
+  vi.mocked(gisApi.households).mockResolvedValue([
+    household,
+    {
+      ...household,
+      id: "other-household",
+      reference: "HH-SECOND",
+      label: "Second synthetic household",
+      is_active: false,
+      housing_unit: "other-unit",
+      housing_label: "Other house",
+      location: null,
+    },
+  ]);
+  page("/gis");
+  expect(await screen.findByText("Linked housing units")).toBeTruthy();
+  fireEvent.change(
+    screen.getByLabelText("Find household, housing unit, or location"),
+    { target: { value: "test-unit" } },
+  );
+  expect(
+    screen.getByRole("button", { name: "Synthetic household" }),
+  ).toBeTruthy();
+  expect(
+    screen.queryByRole("button", { name: "Second synthetic household" }),
+  ).toBeNull();
+  fireEvent.change(
+    screen.getByLabelText("Find household, housing unit, or location"),
+    { target: { value: "" } },
+  );
+  fireEvent.change(screen.getByLabelText("Household status"), {
+    target: { value: "inactive" },
+  });
+  expect(
+    screen.getByRole("button", { name: "Second synthetic household" }),
+  ).toBeTruthy();
+  expect(
+    screen.queryByRole("button", { name: "Synthetic household" }),
+  ).toBeNull();
+  expect(screen.getByText(/Purok filtering will be available/)).toBeTruthy();
 });

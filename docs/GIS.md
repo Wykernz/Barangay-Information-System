@@ -1,5 +1,14 @@
 # Payahan household map
 
+UI update (2026-11-22): the staff map shows coverage for distinct housing units
+linked to accessible households. Its directory can search household and housing
+labels/references, house numbers, source text, and recorded coordinates. Active
+and inactive filters use the household flag; the unmapped filter treats rejected
+location revisions as unmapped. Counts stay blank while the directory loads or
+fails. This response does not include vacant units or a reviewed purok field,
+so those filters and totals are not inferred. Existing marker selection,
+household navigation, directions, and location capture are unchanged.
+
 Publication handoff (2026-11-20): user authorized committing this increment and
 pushing to the verified fork `adrianjoseph840-ship-it/Barangay-Information-System`,
 branch `feature/adrian-setup`. Final frontend suite: 101 passed in 19 files;

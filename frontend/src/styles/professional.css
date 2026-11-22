@@ -1,12 +1,12 @@
 /* Shared visual system. All fonts and icons are served locally. */
 :root {
-  --ui-ink: #172b3a;
-  --ui-muted: #617282;
-  --ui-line: #dfe7ec;
-  --ui-canvas: #f3f6f8;
-  --ui-accent: #0f6b63;
-  --ui-accent-hover: #0b554f;
-  --ui-soft: #edf6f3;
+  --ui-ink: #142c3e;
+  --ui-muted: #64748b;
+  --ui-line: #dfe7eb;
+  --ui-canvas: #f4f7f9;
+  --ui-accent: #0d6b5f;
+  --ui-accent-hover: #0a574d;
+  --ui-soft: #e6f4ef;
   font-family: "Segoe UI", system-ui, sans-serif;
   color: var(--ui-ink);
   background: var(--ui-canvas);
@@ -47,7 +47,7 @@ button:disabled {
   grid-template-columns: 244px minmax(0, 1fr);
 }
 .staff-shell aside {
-  background: #122c34;
+  background: #102f35;
   padding: 28px 16px 20px;
 }
 .staff-shell .brand {
@@ -899,4 +899,16 @@ button:disabled {
     transition: none !important;
     animation: none !important;
   }
+}
+.registry-pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding-top: 16px;
+  color: var(--ui-muted);
+  font-size: 12px;
+}
+.registry-pagination button {
+  padding: 8px 12px;
 }
