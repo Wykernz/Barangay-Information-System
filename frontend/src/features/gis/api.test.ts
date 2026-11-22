@@ -62,6 +62,23 @@ test("directory reads all pages so deep links do not lose later households", asy
     params: { page: 2 },
   });
 });
+test("household registry requests one server page with its pagination metadata", async () => {
+  const get = vi.spyOn(api, "get").mockResolvedValue({
+    data: {
+      count: 28,
+      results: [{ id: "page-two" }],
+      next: null,
+      previous: "page-one",
+    },
+  });
+  await expect(gisApi.householdPage(2)).resolves.toEqual({
+    count: 28,
+    results: [{ id: "page-two" }],
+    next: null,
+    previous: "page-one",
+  });
+  expect(get).toHaveBeenCalledWith("gis/households/", { params: { page: 2 } });
+});
 test("server rejection remains an error and cannot be reported as saved", async () => {
   vi.spyOn(api, "get").mockResolvedValue({ data: {} });
   vi.spyOn(api, "post").mockRejectedValue(Error("Forbidden"));

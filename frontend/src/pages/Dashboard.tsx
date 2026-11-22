@@ -1,276 +1,239 @@
-import { Link } from "react-router-dom";
-import { useDemo } from "../demo/store";
+import { useQuery } from "@tanstack/react-query";
 import {
-  AGE_GROUPS,
-  ageGroups,
-  isSenior,
-} from "../features/profiling/ageGroups";
-import { Users, ClipboardCheck, UserPlus, ArrowUpRight } from "lucide-react";
-import BarangayLogo from "../components/BarangayLogo";
+  ArrowRight,
+  Building2,
+  HeartHandshake,
+  House,
+  MapPinned,
+  RefreshCw,
+  ShieldCheck,
+  UserPlus,
+  Users,
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import { api } from "../api";
 import "./dashboard.css";
 
-export default function Dashboard() {
-  const { records, history } = useDemo();
-  const active = records.residents.filter((row) => row.archived !== "true");
-  const residents = active.filter(
-    (row) => row.residencyClassification === "Resident",
-  );
-  const today = new Date().toLocaleDateString("en-CA", {
-    timeZone: "Asia/Manila",
-  });
-  const verified = records.residents.filter(
-    (row) => row.status === "Verified",
-  ).length;
-  const categoryLinks: Record<string, string> = {
-    Residents: "/residents?classification=Resident",
-    "Non-residents": "/residents?classification=Non-resident",
-    "Male residents": "/residents?category=male",
-    "Female residents": "/residents?category=female",
-    "LGBT residents (self-reported)": "/residents?category=lgbt",
-    "Senior residents": "/residents?category=senior",
-    "PWD residents (reported)": "/residents?category=pwd",
-    "Active households": "/households?category=active-households",
-  };
+type Overview = {
+  as_of: string;
+  registered_persons: number;
+  verified_residents: number;
+  active_households: number;
+  housing_units: number;
+  occupied_units: number;
+  mapped_units: number | null;
+  age_groups: Record<string, number>;
+  residency: Record<string, number>;
+  sex: Record<string, number>;
+};
+
+function Distribution({
+  title,
+  values,
+}: {
+  title: string;
+  values: Record<string, number>;
+}) {
+  const total = Object.values(values).reduce((sum, value) => sum + value, 0);
   return (
-    <div className="profiling-overview">
-      <div className="page-heading">
-        <div className="overview-heading-brand">
-          <BarangayLogo size={76} />
-          <div>
-            <p className="eyebrow">BARANGAY OPERATIONS</p>
-            <h1>Workspace overview</h1>
-            <p className="muted">Your community records, at a glance.</p>
-          </div>
-        </div>
-        <Link className="button-link" to="/residents">
-          <UserPlus size={16} aria-hidden="true" />
-          Register resident
-        </Link>
-      </div>
-      <div className="overview-columns">
-        <section
-          className="overview-summary"
-          aria-labelledby="resident-summary"
-        >
-          <h2 id="resident-summary">Community at a glance</h2>
-          <div className="stats-grid">
-            {[
-              ["Registered persons", active.length, "/residents"],
-              ["Residents", residents.length, "/residents"],
-              [
-                "Non-residents",
-                active.filter(
-                  (row) => row.residencyClassification === "Non-resident",
-                ).length,
-                "/residents",
-              ],
-              [
-                "Male residents",
-                residents.filter((row) => row.sex === "Male").length,
-                "/residents",
-              ],
-              [
-                "Female residents",
-                residents.filter((row) => row.sex === "Female").length,
-                "/residents",
-              ],
-              [
-                "LGBT residents (self-reported)",
-                residents.filter((row) => row.lgbtIdentification === "Yes")
-                  .length,
-                "/residents",
-              ],
-              [
-                "Senior residents",
-                residents.filter((row) => isSenior(row.birthdate, today))
-                  .length,
-                "/residents",
-              ],
-              [
-                "PWD residents (reported)",
-                residents.filter((row) => row.pwdStatus === "Yes").length,
-                "/residents",
-              ],
-              [
-                "Active households",
-                records.households.filter((row) => row.status === "Active")
-                  .length,
-                "/households",
-              ],
-              ["Housing units", records.housing.length, "/housing"],
-            ].map(([label, count, to]) => (
-              <Link
-                className="stat-card"
-                to={categoryLinks[String(label)] ?? String(to)}
-                key={label}
-              >
-                <Users size={25} aria-hidden="true" />
-                <span>{label}</span>
-                <strong>{count}</strong>
-                <small>View registry →</small>
-              </Link>
-            ))}
-          </div>
-        </section>
-        <section className="overview-register">
-          <div className="overview-identity">
-            <BarangayLogo />
+    <section className="overview-panel" aria-label={title}>
+      <h2>{title}</h2>
+      <div className="overview-bars">
+        {Object.entries(values).map(([label, count]) => (
+          <div className="overview-bar" key={label}>
             <div>
-              <h2>Barangay profiling</h2>
-              <p>Resident & household management</p>
+              <span>{label}</span>
+              <strong>{count}</strong>
+            </div>
+            <div className="overview-track" aria-hidden="true">
+              <span
+                style={{ width: `${total ? (count / total) * 100 : 0}%` }}
+              />
             </div>
           </div>
-          <div className="overview-table-heading">
-            <h2>Recently registered profiles</h2>
-            <Link to="/residents">
-              View registry <ArrowUpRight size={14} aria-hidden="true" />
-            </Link>
-          </div>
-          <div className="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Residency</th>
-                  <th>Verification</th>
-                </tr>
-              </thead>
-              <tbody>
-                {active
-                  .slice(-8)
-                  .reverse()
-                  .map((person) => (
-                    <tr key={person.id}>
-                      <td>
-                        <Link to={`/residents/${person.id}`}>
-                          {person.surname
-                            ? `${person.surname}, ${person.firstName}`
-                            : person.name}
-                        </Link>
-                      </td>
-                      <td>
-                        {person.residencyClassification ?? "Not classified"}
-                      </td>
-                      <td>
-                        <span
-                          className={`badge${person.status === "Verified" ? " positive" : ""}`}
-                        >
-                          {person.status ?? "Not recorded"}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                {!active.length && (
-                  <tr>
-                    <td colSpan={3}>No registered profiles yet.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          <div className="overview-register-footer">
-            <ClipboardCheck size={18} aria-hidden="true" />
-            {verified} verified profiles · {active.length} active registered
-            persons
-          </div>
-        </section>
+        ))}
       </div>
-      <div className="dashboard-grid">
-        <section
-          className="panel overview-age-summary"
-          aria-labelledby="age-summary-title"
-        >
-          <h2 id="age-summary-title">Resident age groups</h2>
+    </section>
+  );
+}
+
+export default function Dashboard() {
+  const query = useQuery({
+    queryKey: ["staff-overview"],
+    queryFn: async () => (await api.get<Overview>("overview/")).data,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+  const data = query.data;
+  const stats = data
+    ? [
+        {
+          label: "Registered persons",
+          value: data.registered_persons,
+          to: "/residents",
+          icon: Users,
+          note: "Active profiles",
+        },
+        {
+          label: "Verified residents",
+          value: data.verified_residents,
+          to: "/residents",
+          icon: ShieldCheck,
+          note: "Verified resident classification",
+        },
+        {
+          label: "Active households",
+          value: data.active_households,
+          to: "/households",
+          icon: House,
+          note: "Active household records",
+        },
+        {
+          label: "Housing units",
+          value: data.housing_units,
+          to: "/housing",
+          icon: Building2,
+          note: "Active housing units",
+        },
+      ]
+    : [];
+  return (
+    <div className="community-overview">
+      <nav className="overview-breadcrumb" aria-label="Breadcrumb">
+        <span>Workspace</span>
+        <ArrowRight size={13} aria-hidden="true" />
+        <span aria-current="page">Overview</span>
+      </nav>
+      <div className="overview-header">
+        <div>
+          <p className="eyebrow">BARANGAY PAYAHAN</p>
+          <h1>Community Overview</h1>
           <p className="muted">
-            Active residents only, calculated from birthdate. Groups are
-            mutually exclusive. Ages 75+ await classification.
+            Community demographics, household records, and housing information.
           </p>
-          <dl className="overview-age-grid">
-            {AGE_GROUPS.map(({ label }) => label).map((group) => (
-              <div key={group}>
-                <dt>
-                  <Link to={`/residents?category=${encodeURIComponent(group)}`}>
-                    {group}
-                  </Link>
-                </dt>
-                <dd>
-                  {
-                    residents.filter((person) =>
-                      ageGroups(person.birthdate, today).includes(group),
-                    ).length
-                  }
-                </dd>
-              </div>
+          <p className="overview-date">
+            {data
+              ? `Reporting date: ${new Date(`${data.as_of}T00:00:00`).toLocaleDateString("en-PH", { dateStyle: "long" })}`
+              : "Database summary"}
+          </p>
+        </div>
+        <div className="overview-header-actions">
+          <button
+            className="secondary"
+            onClick={() => query.refetch()}
+            disabled={query.isFetching}
+          >
+            <RefreshCw size={16} aria-hidden="true" />{" "}
+            {query.isFetching ? "Refreshing…" : "Refresh"}
+          </button>
+          <Link className="button-link" to="/residents">
+            <UserPlus size={16} aria-hidden="true" /> Register resident
+          </Link>
+        </div>
+      </div>
+      {query.isPending && (
+        <p className="overview-state" role="status">
+          Loading database summary…
+        </p>
+      )}
+      {query.isError && (
+        <div className="overview-state" role="alert">
+          <strong>Summary unavailable</strong>
+          <p>
+            Could not load database statistics. Check your connection and
+            permissions, then try again.
+          </p>
+          <button onClick={() => query.refetch()}>Retry</button>
+        </div>
+      )}
+      {data && (
+        <>
+          <section
+            aria-label="Primary statistics"
+            className="overview-stat-grid"
+          >
+            {stats.map(({ label, value, to, icon: Icon, note }) => (
+              <Link className="overview-stat" to={to} key={label}>
+                <Icon size={22} aria-hidden="true" />
+                <span>{label}</span>
+                <strong>{value.toLocaleString("en-PH")}</strong>
+                <small>{note}</small>
+              </Link>
             ))}
-          </dl>
-        </section>
-        <section className="panel">
-          <h2>Health records</h2>
-          <p>
-            Residents with health records: unavailable until the protected
-            database summary is connected.
-          </p>
-          <p>
-            LGBT identification is independent of sex. Blank or declined answers
-            are not counted as No. Demographic groups overlap.
-          </p>
-        </section>
-        <section className="panel">
-          <div className="section-heading">
-            <h2>Data quality</h2>
-            <Link to="/residents">Review profiles →</Link>
-          </div>
-          <p>Resident verification</p>
-          <div className="progress-track">
-            <div
-              style={{
-                width: `${records.residents.length ? (verified / records.residents.length) * 100 : 0}%`,
-              }}
+            <div className="overview-stat unavailable">
+              <Users size={22} aria-hidden="true" />
+              <span>Registered families</span>
+              <strong>—</strong>
+              <small>Database family registry pending</small>
+            </div>
+            <div className="overview-stat unavailable">
+              <HeartHandshake size={22} aria-hidden="true" />
+              <span>Active 4Ps households</span>
+              <strong>—</strong>
+              <small>Verified program data pending</small>
+            </div>
+          </section>
+          <div className="overview-analytics">
+            <Distribution
+              title="Population by age group"
+              values={data.age_groups}
             />
-          </div>
-          <p className="muted">
-            {verified} of {records.residents.length} profiles verified
-          </p>
-          <div className="quality-row">
-            <span>Unmapped housing units</span>
-            <strong>
-              {
-                records.housing.filter((row) => row.status === "Unmapped")
-                  .length
-              }
-            </strong>
-          </div>
-        </section>
-        <section className="panel">
-          <h2>Quick access</h2>
-          <div className="quick-links">
-            <Link to="/households">Household directory →</Link>
-            <Link to="/gis">Housing map →</Link>
-            <Link to="/reports">Reports & summaries →</Link>
-          </div>
-        </section>
-        <section className="panel">
-          <h2>Recent activity</h2>
-          {history.length ? (
-            history.slice(0, 5).map((item) => (
-              <div className="activity-row" key={item.id}>
+            <Distribution
+              title="Residency classification"
+              values={data.residency}
+            />
+            <Distribution title="Sex distribution" values={data.sex} />
+            <section className="overview-panel">
+              <h2>Housing overview</h2>
+              <dl className="overview-housing">
                 <div>
-                  <strong>{item.description}</strong>
-                  <p>
-                    {new Date(item.time).toLocaleString("en-PH", {
-                      timeZone: "Asia/Manila",
-                    })}
-                  </p>
+                  <dt>Active units</dt>
+                  <dd>{data.housing_units}</dd>
                 </div>
-              </div>
-            ))
-          ) : (
-            <p className="muted">
-              No changes this session. Update a record to see its activity here.
-            </p>
-          )}
+                <div>
+                  <dt>Units with current occupancy</dt>
+                  <dd>{data.occupied_units}</dd>
+                </div>
+                <div>
+                  <dt>Mapped units</dt>
+                  <dd>{data.mapped_units ?? "Unavailable"}</dd>
+                </div>
+              </dl>
+              <Link to="/gis">
+                View housing map <ArrowRight size={15} aria-hidden="true" />
+              </Link>
+            </section>
+          </div>
+        </>
+      )}
+      <div className="overview-analytics">
+        <section className="overview-panel">
+          <h2>Social protection</h2>
+          <p className="muted">
+            4Ps totals will appear when verified beneficiary records and
+            permissions are available. No household is classified from missing
+            data.
+          </p>
+        </section>
+        <section className="overview-panel">
+          <h2>Recent activity</h2>
+          <p className="muted">
+            An authorized database audit feed is not connected to this page yet.
+          </p>
         </section>
       </div>
+      <section className="overview-panel overview-actions">
+        <h2>Quick actions</h2>
+        <div>
+          <Link to="/residents">Register resident</Link>
+          <Link to="/households">Households</Link>
+          <Link to="/housing">Housing units</Link>
+          <Link to="/gis">
+            <MapPinned size={16} aria-hidden="true" /> Housing map
+          </Link>
+          <Link to="/reports">Reports</Link>
+        </div>
+      </section>
     </div>
   );
 }

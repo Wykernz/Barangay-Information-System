@@ -1,5 +1,25 @@
 # Staff frontend review
 
+The 2026-11-22 overview refresh reads aggregate resident, household, housing,
+occupancy, and optional GIS counts from `/api/v1/overview/`, with server-side
+registry permissions. Family and 4Ps figures are shown as unavailable until
+their database workflows exist; recent database audit activity is also pending.
+The shared sidebar now groups only working routes, and the refreshed teal tokens
+apply across the existing staff shell. Session sample records remain labeled in
+profiling and are excluded from overview totals.
+The Residents registry adds purok and record-status filters, and registry tables
+paginate ten visible rows per page without altering stored records.
+The Housing Map now shows distinct linked-unit coverage, searches household and
+housing-unit references, labels, house numbers, and recorded coordinates, and
+filters its directory by household active status. The map keeps its existing
+provider, marker, directions, and location-save behavior. Purok filtering
+awaits a reviewed database field and is not inferred from map position.
+The Household Registry now uses the authenticated, paginated database map API,
+with reference search, status and map-location filters, View and Map actions,
+and a matching database-backed detail page. Only API-supported values are shown;
+head, member, family, and purok fields remain unavailable. Counts that would
+require a dedicated aggregate endpoint are not estimated from the loaded page.
+
 The full-page resident create/edit form follows the user-supplied Modern BIMS Person Profile
 Form reference: wide navy heading, left photo card, grouped blue information
 sections, and bottom Cancel/Save controls. It stacks on small screens and retains

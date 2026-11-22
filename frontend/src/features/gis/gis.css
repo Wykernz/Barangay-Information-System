@@ -1,15 +1,66 @@
 .geographic-map {
-  height: 520px;
+  height: min(72vh, 720px);
   min-height: 340px;
   width: 100%;
   z-index: 0;
   border-radius: 12px;
   background: #e5e9e6;
 }
+.gis-page-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.gis-page-heading h1 {
+  margin: 0 0 5px;
+}
+.gis-page-heading p:last-child {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+.gis-page-heading > span {
+  color: #64748b;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.gis-workspace-panel {
+  padding: 20px;
+}
+.gis-coverage {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.gis-coverage > div {
+  display: grid;
+  gap: 4px;
+  padding: 13px 15px;
+  border: 1px solid #dfe7eb;
+  border-radius: 8px;
+  background: #f8fbfa;
+}
+.gis-coverage strong {
+  color: #102f35;
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+.gis-coverage span {
+  color: #64748b;
+  font-size: 11px;
+}
+.gis-filter-note {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+}
 .gis-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
-  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
+  gap: 16px;
 }
 .gis-sidebar {
   max-height: 650px;
@@ -87,10 +138,369 @@
   text-align: left;
 }
 @media (max-width: 900px) {
+  .gis-coverage {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .gis-layout {
     grid-template-columns: 1fr;
   }
   .gis-sidebar {
     max-height: none;
+  }
+}
+@media (max-width: 520px) {
+  .gis-page-heading {
+    align-items: start;
+    flex-direction: column;
+  }
+  .gis-page-heading > span {
+    white-space: normal;
+  }
+  .gis-coverage {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .geographic-map {
+    height: 420px;
+  }
+}
+
+.household-registry {
+  display: grid;
+  gap: 18px;
+}
+.household-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.household-stat-grid > div {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  align-items: center;
+  gap: 5px 10px;
+  padding: 16px;
+  border: 1px solid #dfe7eb;
+  border-radius: 10px;
+  background: #fff;
+}
+.household-stat-grid svg {
+  grid-row: span 2;
+  color: #0d6b5f;
+}
+.household-stat-grid span {
+  color: #64748b;
+  font-size: 12px;
+}
+.household-stat-grid strong {
+  color: #102f35;
+  font-size: 23px;
+}
+.household-directory-panel {
+  padding: 22px;
+}
+.household-directory-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.household-directory-heading h2 {
+  margin: 0 0 4px;
+}
+.household-directory-heading p {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+}
+.household-directory-heading > span {
+  color: #64748b;
+  font-size: 12px;
+}
+.household-filter-bar {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(160px, 210px) minmax(
+      160px,
+      210px
+    );
+  align-items: end;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.household-filter-bar label {
+  display: grid;
+  gap: 6px;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+}
+.household-search > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #ccd8df;
+  border-radius: 7px;
+  padding-left: 10px;
+  color: #64748b;
+}
+.household-search input {
+  width: 100%;
+  border: 0;
+  min-width: 0;
+}
+.household-search input:focus-visible {
+  outline-offset: 1px;
+}
+.household-filter-note {
+  color: #64748b;
+  font-size: 11px;
+  margin: -5px 0 14px;
+}
+.household-table-scroll {
+  overflow: auto;
+  border: 1px solid #dfe7eb;
+  border-radius: 8px;
+}
+.household-table-scroll table {
+  width: 100%;
+  min-width: 1060px;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.household-table-scroll th {
+  padding: 12px;
+  text-align: left;
+  white-space: nowrap;
+  background: #f4f7f9;
+  color: #64748b;
+  border-bottom: 1px solid #dfe7eb;
+}
+.household-table-scroll td {
+  padding: 12px;
+  border-bottom: 1px solid #edf1f3;
+  color: #334155;
+  vertical-align: middle;
+}
+.household-table-scroll td:first-child small,
+.household-table-scroll td:nth-child(6) small {
+  display: block;
+  margin-top: 3px;
+  color: #64748b;
+}
+.household-table-scroll td a {
+  color: #0d6b5f;
+  font-weight: 600;
+  text-decoration: none;
+}
+.household-status {
+  display: inline-flex;
+  padding: 4px 9px;
+  border-radius: 20px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 11px;
+}
+.household-status.is-active {
+  background: #e6f4ef;
+  color: #0d6b5f;
+}
+.household-row-actions {
+  display: flex;
+  gap: 10px;
+}
+.household-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 14px;
+  color: #64748b;
+  font-size: 12px;
+}
+.household-empty {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  padding: 42px 18px;
+  color: #64748b;
+}
+.household-empty svg {
+  color: #0d6b5f;
+}
+.household-empty strong {
+  color: #102f35;
+}
+.household-detail-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.household-detail-heading a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  text-decoration: none;
+}
+.household-detail-heading > span {
+  color: #64748b;
+  font-size: 10px;
+  letter-spacing: 0.09em;
+}
+.household-detail-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.household-detail-title h1 {
+  margin: 0 0 4px;
+}
+.household-detail-title p:last-child {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+.household-detail-content {
+  display: grid;
+  gap: 14px;
+}
+.household-detail-summary,
+.household-detail-card {
+  padding: 20px;
+  border: 1px solid #dfe7eb;
+  border-radius: 11px;
+  background: #fff;
+}
+.household-detail-summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.household-detail-icon {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 10px;
+  background: #e6f4ef;
+  color: #0d6b5f;
+}
+.household-detail-summary > div:nth-child(2) {
+  display: grid;
+  gap: 3px;
+}
+.household-detail-summary span,
+.household-detail-summary small,
+.household-location-info span,
+.household-unavailable-grid span {
+  color: #64748b;
+  font-size: 11px;
+}
+.household-detail-summary strong {
+  color: #102f35;
+  font-size: 17px;
+}
+.household-summary-actions {
+  margin-left: auto;
+}
+.household-detail-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 15px;
+  color: #102f35;
+  font-size: 16px;
+}
+.household-detail-card h2 svg {
+  color: #0d6b5f;
+}
+.household-detail-grid,
+.household-location-info,
+.household-unavailable-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0 0 18px;
+}
+.household-detail-grid dt {
+  margin-bottom: 4px;
+  color: #64748b;
+  font-size: 11px;
+}
+.household-detail-grid dd {
+  margin: 0;
+  color: #142c3e;
+  font-weight: 600;
+  font-size: 13px;
+}
+.household-location-info > div,
+.household-unavailable-grid > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.household-location-info strong,
+.household-unavailable-grid strong {
+  overflow-wrap: anywhere;
+  color: #142c3e;
+  font-size: 12px;
+}
+.household-detail-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.household-detail-card > a:last-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #0d6b5f;
+  font-size: 12px;
+  text-decoration: none;
+}
+@media (max-width: 900px) {
+  .household-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .household-filter-bar {
+    grid-template-columns: 1fr 1fr;
+  }
+  .household-filter-bar .household-search {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 520px) {
+  .household-stat-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .household-filter-bar {
+    grid-template-columns: 1fr;
+  }
+  .household-filter-bar .household-search {
+    grid-column: auto;
+  }
+  .household-detail-heading > span {
+    display: none;
+  }
+  .household-detail-title {
+    align-items: flex-start;
+  }
+  .household-detail-summary {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .household-summary-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+  .household-detail-grid,
+  .household-location-info,
+  .household-unavailable-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 }

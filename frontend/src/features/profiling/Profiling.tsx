@@ -70,6 +70,9 @@ export function ProfilingPage({ module }: { module: string }) {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [classificationFilter, setClassificationFilter] = useState("");
+  const [purokFilter, setPurokFilter] = useState("");
+  const [recordStatusFilter, setRecordStatusFilter] = useState("");
+  const [page, setPage] = useState(1);
   const [buildingUseFilter, setBuildingUseFilter] = useState("");
   useEffect(() => {
     const value = params.get("classification");
@@ -115,10 +118,25 @@ export function ProfilingPage({ module }: { module: string }) {
       (module !== "residents" ||
         !classificationFilter ||
         row.residencyClassification === classificationFilter) &&
+      (module !== "residents" || !purokFilter || row.purok === purokFilter) &&
+      (module !== "residents" ||
+        !recordStatusFilter ||
+        (row.recordStatus || "Not recorded") === recordStatusFilter) &&
       `${display(row)} ${row.middleName ?? ""} ${row.id} ${row.personId ?? ""}`
         .toLowerCase()
         .includes(search.toLowerCase()),
   );
+  const pageCount = Math.max(1, Math.ceil(visibleRows.length / 10));
+  const currentPage = Math.min(page, pageCount);
+  const pageRows = visibleRows.slice((currentPage - 1) * 10, currentPage * 10);
+  const puroks = [
+    ...new Set(records.residents.map((row) => row.purok).filter(Boolean)),
+  ].sort();
+  const recordStatuses = [
+    ...new Set(
+      records.residents.map((row) => row.recordStatus || "Not recorded"),
+    ),
+  ].sort();
   const returnHousehold = params.get("household");
   const returnFamily = params.get("family");
   const unitFor = (householdId: string) =>
@@ -1011,6 +1029,44 @@ export function ProfilingPage({ module }: { module: string }) {
                 </select>
               </label>
             )}
+            {module === "residents" && (
+              <>
+                <label>
+                  Filter by purok
+                  <select
+                    value={purokFilter}
+                    onChange={(event) => {
+                      setPurokFilter(event.target.value);
+                      setPage(1);
+                    }}
+                  >
+                    <option value="">All puroks</option>
+                    {puroks.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Filter by record status
+                  <select
+                    value={recordStatusFilter}
+                    onChange={(event) => {
+                      setRecordStatusFilter(event.target.value);
+                      setPage(1);
+                    }}
+                  >
+                    <option value="">All statuses</option>
+                    {recordStatuses.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </>
+            )}
             {module === "housing" && (
               <label>
                 Filter by building use
@@ -1073,7 +1129,7 @@ export function ProfilingPage({ module }: { module: string }) {
                 </tr>
               </thead>
               <tbody>
-                {visibleRows.map((row) => {
+                {pageRows.map((row) => {
                   const member = memberships.find(
                     (item) => item.residentId === row.id,
                   );
@@ -1165,6 +1221,29 @@ export function ProfilingPage({ module }: { module: string }) {
               </tbody>
             </table>
           </div>
+          {pageCount > 1 && (
+            <nav className="registry-pagination" aria-label="Registry pages">
+              <button
+                className="secondary"
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setPage(currentPage - 1)}
+              >
+                Previous
+              </button>
+              <span>
+                Page {currentPage} of {pageCount}
+              </span>
+              <button
+                className="secondary"
+                type="button"
+                disabled={currentPage === pageCount}
+                onClick={() => setPage(currentPage + 1)}
+              >
+                Next
+              </button>
+            </nav>
+          )}
           {!visibleRows.length && (
             <p className="profile-empty">
               No matching records. Try another search or show archived records.

@@ -11,6 +11,7 @@ from accounts.health_records import HealthAssessmentViewSet
 from accounts.health_views import health_workspace
 from accounts.serializers import StaffSessionSerializer
 from accounts.views import csrf, sign_in, sign_out
+from common.overview import overview
 from households import map_views
 from households.views import (
     HouseholdMembershipViewSet,
@@ -47,6 +48,7 @@ if settings.GIS_ENABLED:
     router.register("housing-locations", HousingLocationViewSet, basename="housing-location")
 
 urlpatterns = [
+    path("api/v1/overview/", overview),
     path("api/v1/gis/config/", map_views.configuration),
     path("api/v1/gis/tiles/<str:style>/<int:z>/<int:x>/<str:filename>", map_views.local_tile),
     path("api/v1/gis/households/", map_views.household_directory),
