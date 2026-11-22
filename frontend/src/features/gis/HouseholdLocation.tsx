@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   ArrowLeft,
   ArrowRight,
   Building2,
   House,
   MapPinned,
+  Plus,
   Search,
   UsersRound,
 } from "lucide-react";
@@ -17,6 +18,7 @@ import {
 } from "./api";
 import HouseNumberEditor from "./HouseNumberEditor";
 import Directions from "./Directions";
+import { api } from "../../api";
 
 export function DatabaseHouseholdDirectory() {
   const [rows, setRows] = useState<MapHousehold[]>([]);
@@ -29,6 +31,8 @@ export function DatabaseHouseholdDirectory() {
   const [totalCount, setTotalCount] = useState(0);
   const [nextPage, setNextPage] = useState<string | null>(null);
   const [previousPage, setPreviousPage] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [refresh, setRefresh] = useState(0);
   useEffect(() => {
     let active = true;
     setLoading(true);
@@ -55,7 +59,7 @@ export function DatabaseHouseholdDirectory() {
     return () => {
       active = false;
     };
-  }, [page]);
+  }, [page, refresh]);
   const filtered = useMemo(() => {
     const needle = search.trim().toLowerCase();
     return rows.filter((row) => {
@@ -127,6 +131,24 @@ export function DatabaseHouseholdDirectory() {
           </div>
           <span>{loading || error ? "—" : `${totalCount} records`}</span>
         </div>
+        <div className="household-create-action">
+          <button
+            type="button"
+            onClick={() => setCreateOpen((value) => !value)}
+          >
+            <Plus size={16} /> Add household
+          </button>
+        </div>
+        {createOpen && (
+          <CreateHousehold
+            onCancel={() => setCreateOpen(false)}
+            onCreated={() => {
+              setCreateOpen(false);
+              setPage(1);
+              setRefresh((value) => value + 1);
+            }}
+          />
+        )}
         <div className="household-filter-bar">
           <label className="household-search">
             <span>Search households</span>
@@ -284,6 +306,78 @@ export function DatabaseHouseholdDirectory() {
         )}
       </section>
     </section>
+  );
+}
+
+function CreateHousehold({
+  onCancel,
+  onCreated,
+}: {
+  onCancel: () => void;
+  onCreated: () => void;
+}) {
+  const [label, setLabel] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (saving) return;
+    setSaving(true);
+    setError("");
+    try {
+      await api.get("auth/csrf/");
+      await api.post("households/", { label: label.trim(), is_active: true });
+      onCreated();
+    } catch (failure) {
+      const status = (failure as { response?: { status?: number } }).response
+        ?.status;
+      setError(
+        status === 403
+          ? "You do not have permission to create households."
+          : status === 400
+            ? "Check the household name and try again."
+            : "The household was not saved. Check your connection and try again.",
+      );
+      setSaving(false);
+    }
+  }
+  return (
+    <form className="panel household-create-form" onSubmit={submit}>
+      <div>
+        <h3>Register a household</h3>
+        <p>
+          The system creates a reference. Household members and housing
+          occupancy are managed separately.
+        </p>
+      </div>
+      <label>
+        Household name or label
+        <input
+          required
+          maxLength={150}
+          value={label}
+          onChange={(event) => setLabel(event.target.value)}
+        />
+      </label>
+      {error && (
+        <p role="alert" className="notice">
+          {error}
+        </p>
+      )}
+      <div className="housing-form-actions">
+        <button
+          type="button"
+          className="secondary"
+          onClick={onCancel}
+          disabled={saving}
+        >
+          Cancel
+        </button>
+        <button type="submit" disabled={saving}>
+          {saving ? "Saving…" : "Save household"}
+        </button>
+      </div>
+    </form>
   );
 }
 

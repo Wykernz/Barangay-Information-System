@@ -62,7 +62,13 @@ const sorted = (rows: RecordRow[]) =>
   [...rows].sort((a, b) => display(a).localeCompare(display(b)));
 
 /** Profiling has its own routes and state; the generic editor remains untouched. */
-export function ProfilingPage({ module }: { module: string }) {
+export function ProfilingPage({
+  module,
+  databaseOnly = false,
+}: {
+  module: string;
+  databaseOnly?: boolean;
+}) {
   const { records, save, saveResident, residentLoadError } = useDemo();
   const { state, change } = useProfiling();
   const { id } = useParams();
@@ -102,14 +108,29 @@ export function ProfilingPage({ module }: { module: string }) {
   const [showArchived, setShowArchived] = useState(false);
   const [unit, setUnit] = useState("");
   const [moving, setMoving] = useState(false);
-  const current = records[module].find((row) => row.id === id);
+  const foundRecord = records[module].find((row) => row.id === id);
+  const current =
+    module === "residents" &&
+    databaseOnly &&
+    foundRecord?._storage !== "database"
+      ? undefined
+      : foundRecord;
   const memberships = state.memberships.filter((item) => !item.end);
   const householdMembers = memberships.filter(
     (item) => item.householdId === id,
   );
+  const databaseResidents = records.residents.filter(
+    (row) => row._storage === "database",
+  );
+  const directoryResidents = databaseOnly
+    ? databaseResidents
+    : records.residents;
   // Use one filtered collection for rows and empty states, including archive visibility.
   const visibleRows = sorted(records[module]).filter(
     (row) =>
+      (module !== "residents" ||
+        !databaseOnly ||
+        row._storage === "database") &&
       (showArchived || row.archived !== "true") &&
       matchesCategory(row, params.get("category") ?? "", today()) &&
       (module !== "housing" ||
@@ -130,11 +151,11 @@ export function ProfilingPage({ module }: { module: string }) {
   const currentPage = Math.min(page, pageCount);
   const pageRows = visibleRows.slice((currentPage - 1) * 10, currentPage * 10);
   const puroks = [
-    ...new Set(records.residents.map((row) => row.purok).filter(Boolean)),
+    ...new Set(directoryResidents.map((row) => row.purok).filter(Boolean)),
   ].sort();
   const recordStatuses = [
     ...new Set(
-      records.residents.map((row) => row.recordStatus || "Not recorded"),
+      directoryResidents.map((row) => row.recordStatus || "Not recorded"),
     ),
   ].sort();
   const returnHousehold = params.get("household");
@@ -964,10 +985,10 @@ export function ProfilingPage({ module }: { module: string }) {
         <p role="alert">Record not found. Return to the directory.</p>
       )}
       {message && <ProfileFeedback message={message} />}
-      {module === "residents" && !id && saveResident && (
+      {module === "residents" && databaseOnly && !id && saveResident && (
         <p className="notice">
-          New resident profiles are saved to the database. Profiles labeled
-          “Local sample” are session only.
+          This directory shows database resident records. Session-only
+          presentation samples are excluded.
         </p>
       )}
       {module === "residents" && residentLoadError && (
@@ -986,7 +1007,12 @@ export function ProfilingPage({ module }: { module: string }) {
               </p>
             </div>
             <span className="profile-count">
-              {records[module].filter((row) => row.archived !== "true").length}{" "}
+              {
+                (module === "residents" && databaseOnly
+                  ? databaseResidents
+                  : records[module]
+                ).filter((row) => row.archived !== "true").length
+              }{" "}
               active records
             </span>
           </div>

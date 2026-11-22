@@ -3,6 +3,8 @@ import {
   Activity,
   ArrowUpRight,
   ChartNoAxesCombined,
+  ClipboardList,
+  HeartHandshake,
   HeartPulse,
   House,
   LayoutDashboard,
@@ -28,6 +30,7 @@ import ActivityLog from "./features/audit/ActivityLog";
 import { DemoProvider, useDemo } from "./demo/store";
 import { catalog } from "./demo/catalog";
 import RecordPage from "./components/RecordPage";
+import ModuleReadiness from "./components/ModuleReadiness";
 import Dashboard from "./pages/Dashboard";
 import MapPage from "./pages/MapPage";
 import Reports from "./pages/Reports";
@@ -52,6 +55,8 @@ function HouseholdProfileRoute({ module }: { module: string }) {
     return <HousingUnitDetail />;
   }
   if (module === "housing" && !id) return <HousingUnitDirectory />;
+  if (module === "residents")
+    return <ProfilingPage module={module} databaseOnly />;
   return (
     <>
       {module === "households" && !id ? (
@@ -125,13 +130,21 @@ export default function Workspace({
 }) {
   const [menu, setMenu] = useState(false);
   const links: [string, string, LucideIcon, string?][] = [
-    ["/", "Overview", LayoutDashboard, "Workspace"],
+    ["/", "Overview", LayoutDashboard, "WORKSPACE"],
     ["/health", "Health", HeartPulse],
-    ["/residents", "Residents", Users, "Community records"],
+    ["/residents", "Residents", Users, "COMMUNITY RECORDS"],
     ["/households", "Households", UsersRound],
+    ["/families", "Families", UsersRound],
     ["/housing", "Housing units", House],
     ["/gis", "Housing map", MapPinned],
-    ["/reports", "Reports", ChartNoAxesCombined, "Management"],
+    [
+      "/social-assistance",
+      "Social assistance",
+      HeartHandshake,
+      "PROGRAMS & SERVICES",
+    ],
+    ["/forms", "Barangay forms", ClipboardList],
+    ["/reports", "Reports", ChartNoAxesCombined, "MANAGEMENT"],
     ["/audit", "Activity log", Activity],
     ["/settings", "Settings", Settings2],
   ];
@@ -282,6 +295,18 @@ export default function Workspace({
                   ))}
                 <Route path="/gis" element={<MapPage />} />
                 <Route path="/health" element={<HealthWorkspace />} />
+                <Route
+                  path="/families"
+                  element={<ModuleReadiness module="families" />}
+                />
+                <Route
+                  path="/social-assistance"
+                  element={<ModuleReadiness module="social-assistance" />}
+                />
+                <Route
+                  path="/forms"
+                  element={<ModuleReadiness module="forms" />}
+                />
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/audit" element={<Audit />} />
                 <Route path="/settings" element={<Settings />} />

@@ -917,6 +917,37 @@ button:disabled {
   display: grid;
   gap: 20px;
 }
+.household-create-action {
+  display: flex;
+  justify-content: flex-end;
+  margin: -4px 0 12px;
+}
+.household-create-form {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.household-create-form h3 {
+  margin: 0 0 5px;
+}
+.household-create-form p {
+  margin: 0;
+  color: var(--ui-muted);
+  font-size: 13px;
+}
+.household-create-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--ui-muted);
+  font-size: 12px;
+}
+.household-create-form input {
+  min-height: 40px;
+  border: 1px solid var(--ui-line);
+  border-radius: 9px;
+  padding: 8px 10px;
+  color: var(--ui-ink);
+}
 .housing-stat-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1204,6 +1235,112 @@ button:disabled {
   color: var(--ui-muted);
   font-size: 12px;
 }
+.readiness-page {
+  display: grid;
+  gap: 20px;
+}
+.readiness-page .housing-page-heading > div {
+  max-width: 740px;
+}
+.readiness-page .housing-page-heading p:last-child {
+  margin-top: 7px;
+}
+.readiness-badge {
+  align-self: center;
+  border: 1px solid #ead7a2;
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: #fff9e8;
+  color: #805b15;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.readiness-card {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  max-width: 900px;
+}
+.readiness-icon {
+  display: grid;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--ui-soft);
+  color: var(--ui-accent);
+}
+.readiness-card h2 {
+  margin: 0 0 7px;
+  font-size: 17px;
+}
+.readiness-card p {
+  margin: 0;
+  color: var(--ui-muted);
+}
+.readiness-card ul {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding-left: 20px;
+  color: var(--ui-ink);
+}
+.resident-detail-with-tabs {
+  display: grid;
+  grid-template-columns: minmax(190px, 240px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+.resident-detail-with-tabs > .resident-view-photo {
+  position: sticky;
+  top: 20px;
+}
+.resident-detail-tab-content {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+.resident-detail-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--ui-line);
+}
+.resident-detail-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ui-muted);
+  font-size: 12px;
+}
+.resident-detail-tabs button.is-selected {
+  border-color: var(--ui-line);
+  background: #fff;
+  color: var(--ui-accent);
+  font-weight: 650;
+}
+.resident-membership-list {
+  display: grid;
+}
+.resident-membership-list article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 0;
+  border-top: 1px solid var(--ui-line);
+}
+.resident-membership-list span {
+  color: var(--ui-muted);
+  font-size: 12px;
+}
 .audit-table-panel td small,
 .overview-activity-row small {
   display: block;
@@ -1243,6 +1380,21 @@ button:disabled {
   .housing-linked-list article {
     align-items: stretch;
     flex-direction: column;
+  }
+  .readiness-page .housing-page-heading {
+    align-items: flex-start;
+  }
+  .readiness-card {
+    padding: 16px;
+  }
+  .resident-detail-with-tabs {
+    grid-template-columns: 1fr;
+  }
+  .resident-detail-with-tabs > .resident-view-photo {
+    position: static;
+  }
+  .resident-membership-list article {
+    grid-template-columns: 1fr;
   }
   .housing-create-fields,
   .housing-detail-grid {

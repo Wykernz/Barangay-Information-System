@@ -75,7 +75,7 @@ export function DemoProvider({
       .catch(() => {
         if (!controller.signal.aborted)
           setResidentLoadError(
-            "Database residents could not be loaded. Reload to retry; local profiles below are session only.",
+            "Database residents could not be loaded. Reload to retry. Session-only samples are excluded from this directory.",
           );
       });
     return () => controller.abort();

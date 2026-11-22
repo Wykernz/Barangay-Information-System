@@ -334,3 +334,14 @@ Activity Log reads a new read-only projection of server audit events. Only
 Barangay Administrators receive its view permission; metadata is excluded.
 Family, 4Ps, and purok analytics remain unavailable until source APIs and
 approved definitions are established.
+
+2026-11-22 community-record UI continuation: the routed Residents directory
+shows database records only; session-only sample profiles remain available to
+isolated preview components/tests but are excluded from the staff registry.
+Household creation uses the existing Household endpoint and leaves membership,
+family, and occupancy assignment as separate workflows. Families, Social
+Assistance, and Barangay Forms routes are setup-status scaffolds only because
+their authoritative domain records/templates and required approvals are absent.
+Database resident detail tabs read household membership and audit history only
+through their protected APIs; family details remain unavailable and health
+details stay inside the separately authorized Health workspace.

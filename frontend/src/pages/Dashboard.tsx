@@ -124,7 +124,8 @@ export default function Dashboard() {
           <p className="eyebrow">BARANGAY PAYAHAN</p>
           <h1>Community Overview</h1>
           <p className="muted">
-            Community demographics, household records, and housing information.
+            Community demographics, household records, housing, and social
+            assistance monitoring.
           </p>
           <p className="overview-date">
             {data
@@ -229,6 +230,9 @@ export default function Dashboard() {
             permissions are available. No household is classified from missing
             data.
           </p>
+          <Link to="/social-assistance">
+            Open Social Assistance setup <ArrowRight size={15} />
+          </Link>
         </section>
         <section className="overview-panel">
           <h2>Recent activity</h2>
@@ -277,11 +281,14 @@ export default function Dashboard() {
         <h2>Quick actions</h2>
         <div>
           <Link to="/residents">Register resident</Link>
-          <Link to="/households">Households</Link>
-          <Link to="/housing">Housing units</Link>
+          <Link to="/households">Add household</Link>
+          <Link to="/families">Family registry setup</Link>
+          <Link to="/housing">Add housing unit</Link>
           <Link to="/gis">
             <MapPinned size={16} aria-hidden="true" /> Housing map
           </Link>
+          <Link to="/social-assistance">Social assistance setup</Link>
+          <Link to="/forms">Barangay forms setup</Link>
           <Link to="/reports">Reports</Link>
         </div>
       </section>

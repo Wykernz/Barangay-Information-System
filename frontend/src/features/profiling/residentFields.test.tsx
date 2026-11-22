@@ -27,7 +27,7 @@ afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
 });
-function page(path = "/residents") {
+function page(path = "/residents", databaseOnly = false) {
   render(
     <MemoryRouter initialEntries={[path]}>
       <DemoProvider profilingFixtures persistResidents>
@@ -35,11 +35,15 @@ function page(path = "/residents") {
           <Routes>
             <Route
               path="/residents"
-              element={<ProfilingPage module="residents" />}
+              element={
+                <ProfilingPage module="residents" databaseOnly={databaseOnly} />
+              }
             />
             <Route
               path="/residents/:id"
-              element={<ProfilingPage module="residents" />}
+              element={
+                <ProfilingPage module="residents" databaseOnly={databaseOnly} />
+              }
             />
           </Routes>
         </ProfilingProvider>
@@ -47,6 +51,34 @@ function page(path = "/residents") {
     </MemoryRouter>,
   );
 }
+
+test("the staff residents directory hides session-only sample records", async () => {
+  vi.mocked(api.get).mockResolvedValue({
+    data: {
+      results: [
+        {
+          id: "saved-person",
+          reference: "RES-SAVED",
+          given_name: "Real",
+          family_name: "Record",
+          created_at: "2026-11-22T00:00:00Z",
+          verification_status: "unverified",
+        },
+      ],
+      next: null,
+    },
+  });
+  page("/residents", true);
+  expect(await screen.findByText("RES-SAVED")).toBeTruthy();
+  expect(screen.queryByText("Bayonon, Adrian Joseph")).toBeNull();
+});
+
+test("the staff resident route rejects direct links to session-only sample profiles", async () => {
+  page("/residents/DEMO-R001", true);
+  expect(
+    await screen.findByText("Record not found. Return to the directory."),
+  ).toBeTruthy();
+});
 function complete() {
   fireEvent.click(screen.getByRole("button", { name: "Add resident" }));
   fireEvent.change(screen.getByLabelText("First name"), {
@@ -163,5 +195,8 @@ test("reopening a database resident loads its persisted fields", async () => {
   page("/residents/saved-id");
   expect(await screen.findByText("Database record")).toBeTruthy();
   expect(screen.getByText("Synthetic nationality")).toBeTruthy();
+  fireEvent.click(
+    screen.getByRole("button", { name: "Residency Information" }),
+  );
   expect(screen.getByText("Moved out")).toBeTruthy();
 });

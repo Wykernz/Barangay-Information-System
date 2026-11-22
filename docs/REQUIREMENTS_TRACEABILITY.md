@@ -89,3 +89,14 @@ aggregate and exports aggregate-only CSV. A read-only audit endpoint and
 filterable Activity Log expose action/record identifiers to staff with explicit
 audit-view permission, without returning event metadata. Family and 4Ps counts
 and purok summaries still require source APIs and approved definitions.
+
+2026-11-22 community-record continuation: the staff Residents route excludes
+session-only samples while retaining existing database create/edit support.
+Household registry adds a database-backed create action without auto-assigning
+members or housing. Families, Social Assistance, and Barangay Forms navigation
+leads to setup-only scaffolds that identify missing authoritative models,
+verification, templates, and approvals; no synthetic operational records are
+shown.
+Database resident tabs show personal/residency data, API-backed memberships and
+audit history, explicit family unavailability, and a link to the independently
+authorized Health workspace.
