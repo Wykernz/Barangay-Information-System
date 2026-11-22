@@ -1,69 +1,123 @@
 import { useState } from "react";
-import { useDemo } from "../demo/store";
+import { Download, RefreshCw } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../api";
+
+type Overview = {
+  as_of: string;
+  registered_persons: number;
+  verified_residents: number;
+  active_households: number;
+  housing_units: number;
+  occupied_units: number;
+  mapped_units: number | null;
+};
 
 export default function Reports() {
-  const { records } = useDemo();
   const [notice, setNotice] = useState("");
-  const metrics: [string, number][] = [
-    ["Residents", records.residents.length],
-    [
-      "Active households",
-      records.households.filter((row) => row.status === "Active").length,
-    ],
-    ["Housing units", records.housing.length],
-    [
-      "Unverified residents",
-      records.residents.filter((row) => row.status === "Unverified").length,
-    ],
-  ];
+  const query = useQuery({
+    queryKey: ["report-overview"],
+    queryFn: async () => (await api.get<Overview>("overview/")).data,
+    retry: false,
+  });
+  const data = query.data;
+  const metrics: [string, number | string][] = data
+    ? [
+        ["Registered persons", data.registered_persons],
+        ["Verified residents", data.verified_residents],
+        ["Active households", data.active_households],
+        ["Active housing units", data.housing_units],
+        ["Occupied housing units", data.occupied_units],
+        ["Mapped housing units", data.mapped_units ?? "Unavailable"],
+      ]
+    : [];
   function download() {
-    // Only fixed aggregate names and numeric demo counts leave the browser.
-    const blob = new Blob(
-      [
-        "SYNTHETIC DEMO ONLY\nMetric,Count\n" +
-          metrics.map((row) => row.join(",")).join("\n"),
-      ],
-      { type: "text/csv;charset=utf-8" },
-    );
+    if (!data) return;
+    const csv = [
+      "Metric,Count",
+      ...metrics.map(
+        ([label, value]) =>
+          `"${label.replaceAll('"', '""')}","${String(value)}"`,
+      ),
+    ].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "bims-presentation-summary.csv";
+    link.download = "payahan-bims-operational-summary.csv";
     link.click();
     URL.revokeObjectURL(url);
     setNotice(
-      "Illustrative summary downloaded. No resident details were exported.",
+      "Database aggregate summary downloaded. No personal details were exported.",
     );
   }
   return (
     <>
       <div className="page-heading">
         <div>
-          <p className="eyebrow">REPORTING</p>
-          <h1>Reports & summaries</h1>
+          <p className="eyebrow">MANAGEMENT / REPORTING</p>
+          <h1>Reports &amp; summaries</h1>
           <p className="muted">
-            Review resident, household, and housing totals.
+            Review aggregate counts from authorized database records.
           </p>
+          {data && (
+            <p className="muted">
+              Reporting date:{" "}
+              {new Date(`${data.as_of}T00:00:00`).toLocaleDateString("en-PH", {
+                dateStyle: "long",
+              })}
+            </p>
+          )}
         </div>
-        <button onClick={download}>Download summary CSV</button>
+        <div className="report-actions">
+          <button
+            className="secondary"
+            onClick={() => query.refetch()}
+            disabled={query.isFetching}
+          >
+            <RefreshCw size={16} /> Refresh
+          </button>
+          <button onClick={download} disabled={!data}>
+            <Download size={16} /> Download summary CSV
+          </button>
+        </div>
       </div>
       {notice && (
         <p role="status" className="notice">
           {notice}
         </p>
       )}
-      <section className="panel">
-        <h2>Operational summary</h2>
-        {metrics.map(([label, value]) => (
-          <div className="quality-row" key={label}>
-            <span>{label}</span>
-            <strong>{value}</strong>
-          </div>
-        ))}
-        <p className="muted">
-          Summary reflects the records currently loaded in this workspace.
-        </p>
-      </section>
+      {query.isPending && <p role="status">Loading database report…</p>}
+      {query.isError && (
+        <div className="panel" role="alert">
+          <strong>Report unavailable</strong>
+          <p>
+            Database totals could not be loaded. Check registry permissions and
+            connection, then retry.
+          </p>
+          <button onClick={() => query.refetch()}>Retry</button>
+        </div>
+      )}
+      {data && (
+        <section className="panel">
+          <h2>Operational summary</h2>
+          {metrics.map(([label, value]) => (
+            <div className="quality-row" key={label}>
+              <span>{label}</span>
+              <strong>
+                {typeof value === "number"
+                  ? value.toLocaleString("en-PH")
+                  : value}
+              </strong>
+            </div>
+          ))}
+          <p className="muted">
+            Counts use the current overview endpoint. Family, 4Ps, purok, and
+            detailed exports are not available until their source records and
+            approved definitions are implemented.
+          </p>
+        </section>
+      )}
     </>
   );
 }

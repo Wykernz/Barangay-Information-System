@@ -77,3 +77,15 @@ directory uses server pagination, status/location filters, and links to detail
 and GIS. The existing API omits membership/family/head/purok and registry-wide
 active/occupancy aggregates; the UI marks these unavailable. Route and pagination
 behavior is covered by `navigation.test.tsx` and `api.test.ts`.
+
+2026-11-22 Housing registry increment (PRO-006..007, GIS-005): the Housing
+Units route now reads and creates actual HousingUnit records, displays only
+fields available in the current API, and summarizes effective HouseholdOccupancy
+records with links to available household and map views. Unsupported preview
+attributes remain unavailable; occupancy history remains preserved.
+
+2026-11-22 reporting/accountability UI: Reports reads the authorized overview
+aggregate and exports aggregate-only CSV; session-memory changes are no longer
+presented as the official Activity Log. Audit listing/search, family and 4Ps
+counts, and purok summaries still require their source endpoints and approved
+definitions.

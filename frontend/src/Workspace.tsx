@@ -20,6 +20,10 @@ import {
   DatabaseHouseholdDetail,
   DatabaseHouseholdDirectory,
 } from "./features/gis/HouseholdLocation";
+import {
+  HousingUnitDetail,
+  HousingUnitDirectory,
+} from "./features/housing/HousingRegistry";
 import { DemoProvider, useDemo } from "./demo/store";
 import { catalog } from "./demo/catalog";
 import RecordPage from "./components/RecordPage";
@@ -43,6 +47,10 @@ function HouseholdProfileRoute({ module }: { module: string }) {
   ) {
     return <DatabaseHouseholdDetail />;
   }
+  if (module === "housing" && id && /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id)) {
+    return <HousingUnitDetail />;
+  }
+  if (module === "housing" && !id) return <HousingUnitDirectory />;
   return (
     <>
       {module === "households" && !id ? (
@@ -55,30 +63,20 @@ function HouseholdProfileRoute({ module }: { module: string }) {
 }
 
 function Audit() {
-  const { history } = useDemo();
   return (
     <>
       <p className="eyebrow">ACCOUNTABILITY</p>
       <h1>Activity log</h1>
-      <p className="muted">Record changes made during the current session.</p>
+      <p className="muted">Authorized database audit events.</p>
       <section className="panel">
-        {history.length ? (
-          history.map((item) => (
-            <div className="quality-row" key={item.id}>
-              <span>{item.description}</span>
-              <time>
-                {new Date(item.time).toLocaleString("en-PH", {
-                  timeZone: "Asia/Manila",
-                })}
-              </time>
-            </div>
-          ))
-        ) : (
-          <div className="empty-state">
-            <h2>No changes yet</h2>
-            <p>Updates made during this session will appear here.</p>
-          </div>
-        )}
+        <div className="empty-state">
+          <h2>Audit feed unavailable</h2>
+          <p>
+            The audit records are stored by the server, but this workspace does
+            not yet have an authorized audit-list endpoint. No session-only
+            sample events are shown here.
+          </p>
+        </div>
       </section>
     </>
   );

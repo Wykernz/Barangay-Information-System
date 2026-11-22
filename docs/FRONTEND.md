@@ -183,3 +183,9 @@ Age-group validation (2026-11-19): npm.cmd run typecheck passed; npx.cmd vitest 
 Birthdate control update: one month/day/year row replaces the duplicate full-date picker. Year accepts direct typing without number spinners. Required, valid calendar-date and future-date checks remain enforced.
 
 Date-control validation: npm.cmd run typecheck and npx.cmd vite build --configLoader runner passed. Regression suite uses npx.cmd vitest run --configLoader runner, including birthdate validity and profile save/edit coverage. Changes remain local alongside existing unrelated work.
+
+
+Housing Units UI: /housing uses the existing database API for paginated records, house-number/address search, active status filtering, staff-authorized creation, and current household occupancy details. The UI intentionally omits preview-only building materials, utilities, and classifications absent from the persisted model. Older occupancy periods remain visible in the database but are not summarized as current.
+
+
+Reports now reads the authorized overview aggregate endpoint and exports aggregate counts only. The Activity Log does not present session-memory actions as official audit history; an authorized audit listing API is still needed. Housing overview cards use the database overview and housing-unit list; GIS totals are shown as unavailable when the permission or source is absent.

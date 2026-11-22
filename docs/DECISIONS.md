@@ -319,3 +319,18 @@ and security decisions require their specialist owner, not only the software tea
 2026-11-19 user requested a single birthdate control with directly editable year. Remove the duplicate native date picker; retain month/day selectors and a four-digit typed year with required, calendar and future-date validation. No stored dates or schema changes (PRO-002, NFR-ACC).
 
 2026-11-19 user authorized a professional UI/UX refresh of the existing staff interface (NFR-ACC / NFR-MNT). Use a consistent slate/teal palette, local system fonts, icon navigation with text labels, responsive summary cards and readable tables/forms. Preserve existing routes, validation, permissions and synthetic-data boundaries. No external assets or new runtime dependencies; visual choices are reversible implementation details.
+
+2026-11-22 Housing Units UI increment (PRO-006, PRO-007, GIS-005): use the
+existing HousingUnit and HouseholdOccupancy endpoints for the directory,
+creation form, and current assignment summary. Display only label, generated
+reference, house number, address, active status, and effective occupancy that
+the existing API stores. Materials, utilities, building classification, and
+other preview-only attributes remain unavailable until approved and modeled.
+No deletion or history rewrite is introduced.
+
+2026-11-22 reporting and accountability UI: Reports now uses the existing
+authorized database overview aggregate and offers only aggregate CSV export.
+Activity Log does not display session-memory actions as official audit events;
+the backend audit models do not yet have a staff list endpoint. Family, 4Ps,
+purok analytics, and audit search remain unavailable until source APIs and
+approved definitions/permissions are established.
