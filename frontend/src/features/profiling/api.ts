@@ -211,9 +211,13 @@ export const profilingApi = {
       created_occupancy: Occupancy;
     }>("post", `households/${path(householdId)}/occupancies/`, input),
   duplicates: (input: ResidentInput) =>
-    request<{ candidates: DuplicateCandidate[] }>(
+    request<{ candidates: DuplicateCandidate[]; truncated: boolean }>(
       "post",
       "residents/duplicate-check/",
-      input,
+      {
+        given_name: input.first_name,
+        family_name: input.surname,
+        birth_date: input.birthdate,
+      },
     ),
 };

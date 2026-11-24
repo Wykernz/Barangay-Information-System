@@ -3,12 +3,20 @@ from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
+from audit.services import record_event
 from common.permissions import ChangeModelPermissions, StrictModelPermissions
 
 from .models import FormDefinition, Resident
-from .serializers import FormDefinitionSerializer, ResidentSerializer
+from .serializers import (
+    FormDefinitionSerializer,
+    ResidentDuplicateCheckResponseSerializer,
+    ResidentDuplicateCheckSerializer,
+    ResidentSerializer,
+)
+from .services import find_resident_duplicate_candidates
 
 
 class FormDefinitionViewSet(viewsets.ModelViewSet):
@@ -111,3 +119,43 @@ class ResidentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return super().get_queryset()
+
+    @extend_schema(
+        request=ResidentDuplicateCheckSerializer,
+        responses=ResidentDuplicateCheckResponseSerializer,
+    )
+    @action(detail=False, methods=("post",), url_path="duplicate-check")
+    def duplicate_check(self, request):
+        if not request.user.has_perm("profiling.view_resident"):
+            raise PermissionDenied("Duplicate review also requires resident view permission.")
+        serializer = ResidentDuplicateCheckSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        candidates, truncated = find_resident_duplicate_candidates(**data)
+        birth_date = data.get("birth_date")
+        record_event(
+            action="profiling.resident.duplicate_check",
+            target=request.user,
+            actor=request.user,
+            metadata={"candidate_count": len(candidates), "truncated": truncated},
+        )
+        return Response(
+            {
+                "candidates": [
+                    {
+                        "resident_id": candidate.pk,
+                        "reference": candidate.reference,
+                        "display_name": candidate.display_name,
+                        "reasons": [
+                            "Name and birthdate match."
+                            if birth_date and candidate.birth_date == birth_date
+                            else "Name matches; birthdate is not recorded for comparison."
+                            if birth_date
+                            else "Name matches; compare profile details manually."
+                        ],
+                    }
+                    for candidate in candidates
+                ],
+                "truncated": truncated,
+            }
+        )

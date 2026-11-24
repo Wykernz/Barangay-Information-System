@@ -1,8 +1,11 @@
 import datetime
+from datetime import date
 from decimal import Decimal, InvalidOperation
 from typing import Iterable
 
-from .models import FormField
+from django.db.models import Case, IntegerField, Q, Value, When
+
+from .models import FormField, Resident
 
 
 class ProfileValidationError(ValueError):
@@ -67,3 +70,26 @@ def validate_profile_values(fields: Iterable[FormField], values: object) -> dict
     if errors:
         raise ProfileValidationError(errors)
     return values
+
+
+def find_resident_duplicate_candidates(
+    *, given_name: str, family_name: str, birth_date: date | None = None, limit: int = 20
+) -> tuple[list[Resident], bool]:
+    """Return exact-name candidates for staff review; never change canonical records."""
+    candidates = Resident.objects.filter(
+        given_name__iexact=given_name.strip(),
+        family_name__iexact=family_name.strip(),
+    )
+    if birth_date is not None:
+        candidates = candidates.filter(Q(birth_date=birth_date) | Q(birth_date__isnull=True))
+        candidates = candidates.annotate(
+            duplicate_rank=Case(
+                When(birth_date=birth_date, then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField(),
+            )
+        ).order_by("duplicate_rank", "id")
+    else:
+        candidates = candidates.order_by("id")
+    page = list(candidates[: limit + 1])
+    return page[:limit], len(page) > limit

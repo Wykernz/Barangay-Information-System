@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.db.models import Count, Q
 from django.utils import timezone
 from rest_framework import viewsets
@@ -24,7 +25,7 @@ class RecordedByViewSet(viewsets.ModelViewSet):
 class HouseholdViewSet(RecordedByViewSet):
     serializer_class = HouseholdSerializer
     filterset_fields = ("is_active",)
-    search_fields = ("reference", "label")
+    search_fields = ("reference", "label", "address_text", "purok_sitio")
     ordering_fields = ("label", "created_at", "updated_at")
     ordering = ("label",)
 
@@ -42,12 +43,26 @@ class HousingUnitViewSet(RecordedByViewSet):
     serializer_class = HousingUnitSerializer
     queryset = HousingUnit.objects.all()
     filterset_fields = ("is_active",)
-    search_fields = ("reference", "label", "address_text")
+    search_fields = ("reference", "label", "house_number", "address_text", "property_type")
     ordering_fields = ("label", "created_at", "updated_at")
     ordering = ("label",)
 
 
-class HouseholdMembershipViewSet(RecordedByViewSet):
+class HistoricalPeriodViewSet(RecordedByViewSet):
+    """Serialize period edits so validation sees the latest committed end date."""
+
+    @transaction.atomic
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.action in ("update", "partial_update"):
+            return queryset.select_for_update(of=("self",))
+        return queryset
+
+
+class HouseholdMembershipViewSet(HistoricalPeriodViewSet):
     serializer_class = HouseholdMembershipSerializer
     queryset = HouseholdMembership.objects.select_related("resident", "household")
     filterset_fields = ("resident", "household", "relationship", "is_head", "valid_to")
@@ -55,7 +70,7 @@ class HouseholdMembershipViewSet(RecordedByViewSet):
     ordering = ("-valid_from",)
 
 
-class HouseholdOccupancyViewSet(RecordedByViewSet):
+class HouseholdOccupancyViewSet(HistoricalPeriodViewSet):
     serializer_class = HouseholdOccupancySerializer
     queryset = HouseholdOccupancy.objects.select_related("household", "housing_unit")
     filterset_fields = ("household", "housing_unit", "valid_to")

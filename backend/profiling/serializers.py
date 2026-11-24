@@ -130,6 +130,34 @@ class ResidentClassificationField(serializers.ChoiceField):
         )
 
 
+class ResidentDuplicateCheckSerializer(serializers.Serializer):
+    given_name = serializers.CharField(max_length=150, trim_whitespace=True)
+    family_name = serializers.CharField(max_length=150, trim_whitespace=True)
+    birth_date = serializers.DateField(required=False, allow_null=True)
+
+    def validate_given_name(self, value):
+        if not value:
+            raise serializers.ValidationError("Enter a first name.")
+        return value
+
+    def validate_family_name(self, value):
+        if not value:
+            raise serializers.ValidationError("Enter a surname.")
+        return value
+
+
+class ResidentDuplicateCandidateSerializer(serializers.Serializer):
+    resident_id = serializers.UUIDField()
+    reference = serializers.CharField()
+    display_name = serializers.CharField()
+    reasons = serializers.ListField(child=serializers.CharField())
+
+
+class ResidentDuplicateCheckResponseSerializer(serializers.Serializer):
+    candidates = ResidentDuplicateCandidateSerializer(many=True)
+    truncated = serializers.BooleanField()
+
+
 class ResidentSerializer(serializers.ModelSerializer):
     age = serializers.SerializerMethodField()
     photo = serializers.FileField(write_only=True, required=False)

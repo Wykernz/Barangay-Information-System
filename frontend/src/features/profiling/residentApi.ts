@@ -84,6 +84,14 @@ export async function persistResident(
 }
 
 export function residentError(error: unknown): string {
+  if (axios.isAxiosError(error) && error.response?.status === 404)
+    return "The resident API route is missing from the backend serving this page. Restart Django from the current project checkout or deploy the matching backend version. No resident was saved.";
+  if (axios.isAxiosError(error) && error.response?.status === 401)
+    return "Your staff session expired. Sign in again, then retry saving the resident.";
+  if (axios.isAxiosError(error) && error.response?.status === 403)
+    return "Your account is not permitted to add or edit resident records. Ask an administrator to assign the Barangay Administrator role.";
+  if (axios.isAxiosError(error) && !error.response)
+    return "The BIMS backend could not be reached. Start Django and check the frontend API proxy. No resident was saved.";
   if (
     axios.isAxiosError(error) &&
     error.response?.data &&

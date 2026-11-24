@@ -199,6 +199,15 @@ export function ProfilingPage({
                 field.options?.[0] ?? "",
               ]),
             ),
+            ...(module === "residents"
+              ? {
+                  sex: "Not recorded",
+                  purok: "Not recorded",
+                  residencyClassification: "Not recorded",
+                  residencyStatus: "Not recorded",
+                  civilStatus: "Not recorded",
+                }
+              : {}),
           },
     );
     // Existing synthetic names are split only as initial form values; staff can correct them.
@@ -245,27 +254,18 @@ export function ProfilingPage({
     }
     if (
       module === "residents" &&
-      !["Resident", "Non-resident"].includes(
-        draft.residencyClassification ?? "",
-      )
-    ) {
-      setError("Choose Resident or Non-resident.");
-      return;
-    }
-    if (
-      module === "residents" &&
       (!draft.firstName?.trim() ||
         !draft.surname?.trim() ||
-        !draft.birthdate ||
-        draft.birthdate > today())
+        (isRequiredBirthdate(draft) && !draft.birthdate) ||
+        (!!draft.birthdate && draft.birthdate > today()))
     ) {
       setError(
-        "Enter first name, surname, and a birthdate that is not in the future.",
+        "Enter first name and surname, and provide a valid birthdate for a new resident.",
       );
       return;
     }
     const missing = fields.filter((field) => {
-      if ("optional" in field && field.optional) return false;
+      if (!isRequiredField(field, draft)) return false;
       const value =
         draft[field.key] ?? ("options" in field ? field.options?.[0] : "");
       return !value?.trim() || value === "Choose classification";
@@ -512,6 +512,7 @@ export function ProfilingPage({
           {
             key: "residencyStatus",
             label: "Residency status",
+            optional: true,
             options: [
               "Not recorded",
               "Permanent resident",
@@ -523,6 +524,7 @@ export function ProfilingPage({
           {
             key: "recordStatus",
             label: "Record status",
+            optional: true,
             options: ["Not recorded", "Active", "Moved out", "Deceased"],
           },
           {
@@ -538,7 +540,8 @@ export function ProfilingPage({
           {
             key: "residencyClassification",
             label: "Residency classification",
-            options: ["Choose classification", "Resident", "Non-resident"],
+            optional: true,
+            options: ["Not recorded", "Resident", "Non-resident"],
           },
           ...catalog.residents.fields
             .filter((field) => field.key !== "name")
@@ -546,13 +549,17 @@ export function ProfilingPage({
               field.key === "purok"
                 ? {
                     ...field,
+                    optional: true,
                     options: ["Purok 1", "Purok 2", "Purok 3", "Not recorded"],
                   }
-                : field,
+                : field.key === "birthdate"
+                  ? field
+                  : { ...field, optional: true },
             ),
           {
             key: "civilStatus",
             label: "Civil status",
+            optional: true,
             options: [
               "Not recorded",
               "Single",
@@ -653,27 +660,44 @@ export function ProfilingPage({
               ]
             : []),
         ];
+  function isExistingResident(draft: RecordRow) {
+    return (
+      draft._storage === "database" ||
+      records.residents.some((resident) => resident.id === draft.id)
+    );
+  }
+  function isRequiredBirthdate(draft: RecordRow) {
+    const saved = records.residents.find((resident) => resident.id === draft.id);
+    return (
+      !isExistingResident(draft) || Boolean(saved?.birthdate || draft.birthdate)
+    );
+  }
+  function isRequiredField(field: (typeof fields)[number], draft: RecordRow) {
+    if (module !== "residents")
+      return !("optional" in field && field.optional);
+    if (["firstName", "surname"].includes(field.key)) return true;
+    if (field.key === "birthdate") return isRequiredBirthdate(draft);
+    return false;
+  }
   function renderProfileField(field: (typeof fields)[number]) {
     if (!draft) return null;
+    const required = isRequiredField(field, draft);
     return (
       <label
         key={field.key}
-        className={`person-field person-field--${field.key}${!("optional" in field && field.optional) ? " person-field-required" : ""}`}
+        className={`person-field person-field--${field.key}${required ? " person-field-required" : ""}`}
       >
         <span className="person-field-label">{field.label}</span>
         {"options" in field && field.options ? (
           <select
-            required={!("optional" in field && field.optional)}
+            required={required}
             aria-label={field.label}
-            value={
-              draft[field.key] ??
-              (field.key === "residencyClassification" ? "" : field.options[0])
-            }
+            value={draft[field.key] ?? field.options[0]}
             aria-describedby={
-              field.key === "residencyClassification"
-                ? "residency-requirement"
-                : field.key === "buildingUse"
-                  ? "building-use-help"
+              field.key === "buildingUse"
+                ? "building-use-help"
+                : field.key === "residencyClassification"
+                  ? "residency-requirement"
                   : undefined
             }
             onChange={(event) =>
@@ -696,11 +720,12 @@ export function ProfilingPage({
           <BirthdateInput
             value={draft.birthdate ?? ""}
             max={today()}
+            required={required}
             onChange={(value) => setDraft({ ...draft, birthdate: value })}
           />
         ) : (
           <input
-            required={!("optional" in field && field.optional)}
+            required={required}
             type={"type" in field ? field.type : "text"}
             maxLength={
               (
@@ -734,7 +759,8 @@ export function ProfilingPage({
         )}
         {field.key === "residencyClassification" && (
           <small id="residency-requirement">
-            Required. Choose Resident or Non-resident before saving.
+            Choose Resident or Non-resident when known. Otherwise leave this as
+            Not recorded.
           </small>
         )}
       </label>

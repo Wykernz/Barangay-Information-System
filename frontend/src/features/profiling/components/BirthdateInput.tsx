@@ -4,10 +4,12 @@ export function BirthdateInput({
   value,
   max,
   onChange,
+  required = true,
 }: {
   value: string;
   max: string;
   onChange: (value: string) => void;
+  required?: boolean;
 }) {
   const [parts, setParts] = useState(() => value.split("-"));
   const [year = "", month = "", day = ""] = parts;
@@ -33,7 +35,7 @@ export function BirthdateInput({
       <span className="birthdate-parts">
         <select
           aria-label="Birth month"
-          required
+          required={required}
           value={month}
           onChange={(event) => choose(1, event.target.value)}
         >
@@ -46,7 +48,7 @@ export function BirthdateInput({
         </select>
         <select
           aria-label="Birth day"
-          required
+          required={required}
           value={day}
           onChange={(event) => choose(2, event.target.value)}
         >
@@ -63,7 +65,7 @@ export function BirthdateInput({
           inputMode="numeric"
           pattern="[0-9]{4}"
           maxLength={4}
-          required
+          required={required}
           placeholder="Year"
           value={year}
           ref={(input) => {

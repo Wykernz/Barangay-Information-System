@@ -194,36 +194,31 @@ test("resident create and edit save profile fields", () => {
   );
 });
 
-test.each(["Resident", "Non-resident"])(
-  "registration requires an explicit classification before saving %s",
-  (classification) => {
-    page("/residents", "residents");
-    fireEvent.click(screen.getByRole("button", { name: "Add resident" }));
-    const select = screen.getByLabelText(
-      "Residency classification",
-    ) as HTMLSelectElement;
-    expect(select.required).toBe(true);
-    expect(select.value).toBe("");
-    for (const [label, value] of [
-      ["First name", "Synthetic"],
-      ["Surname", "Required"],
-      ["Birth month", "01"],
-      ["Birth day", "01"],
-      ["Birth year", "2000"],
-    ]) {
-      fireEvent.change(screen.getByLabelText(label), { target: { value } });
-    }
-    fireEvent.submit(select.closest("form")!);
-    expect(
-      within(screen.getByRole("main", { name: "Register resident" })).getByRole("alert").textContent,
-    ).toBe("Choose Resident or Non-resident.");
-    expect(screen.getByRole("main", { name: "Register resident" })).toBeTruthy();
-    fireEvent.change(select, { target: { value: classification } });
-    fireEvent.click(screen.getByRole("button", { name: "Save profile" }));
-    expect(screen.queryByRole("main", { name: "Register resident" })).toBeNull();
-    expect(screen.getByText(classification)).toBeTruthy();
-  },
-);
+test("registration preserves an unknown residency classification without blocking save", () => {
+  page("/residents", "residents");
+  fireEvent.click(screen.getByRole("button", { name: "Add resident" }));
+  const select = screen.getByLabelText(
+    "Residency classification",
+  ) as HTMLSelectElement;
+  expect(select.required).toBe(false);
+  expect(select.value).toBe("Not recorded");
+  for (const [label, value] of [
+    ["First name", "Synthetic"],
+    ["Surname", "Unknown"],
+    ["Birth month", "01"],
+    ["Birth day", "01"],
+    ["Birth year", "2000"],
+  ]) {
+    fireEvent.change(screen.getByLabelText(label), { target: { value } });
+  }
+  fireEvent.click(screen.getByRole("button", { name: "Save profile" }));
+  expect(screen.queryByRole("main", { name: "Register resident" })).toBeNull();
+  expect(
+    within(screen.getByRole("region", { name: "Residency Information" })).getAllByText(
+      "Not recorded",
+    ).length,
+  ).toBeGreaterThan(0);
+});
 test("archive search shows an empty state and restore does not reopen membership", () => {
   page("/residents", "residents");
   fireEvent.change(screen.getByLabelText("Search residents"), {

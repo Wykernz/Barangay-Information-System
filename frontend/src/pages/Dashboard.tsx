@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
@@ -35,6 +36,22 @@ type RecentAudit = {
   target_id: string;
 };
 type AuditPage = { results: RecentAudit[] };
+
+function overviewFailure(error: unknown): string {
+  if (!axios.isAxiosError(error))
+    return "The overview could not be loaded. Refresh the page or contact your system administrator.";
+  if (!error.response)
+    return "The BIMS API could not be reached. Check that the backend is running and your connection is available.";
+  if (error.response.status === 401)
+    return "Your staff session has expired. Sign in again to load the overview.";
+  if (error.response.status === 403)
+    return "This account does not have permission to view resident, household, and housing summaries. Sign in with a Barangay Administrator account or ask an administrator to review the account role.";
+  if (error.response.status === 404)
+    return "This Django server does not have the overview API route. Restart it from the current Barangay-Information-System checkout; if this is a hosted deployment, deploy the matching backend version.";
+  if (error.response.status >= 500)
+    return `The BIMS server returned an error while loading the overview (HTTP ${error.response.status}). Ask the system administrator to check the backend logs.`;
+  return `The overview request failed (HTTP ${error.response.status}). Refresh the page or contact your system administrator.`;
+}
 
 function Distribution({
   title,
@@ -155,10 +172,7 @@ export default function Dashboard() {
       {query.isError && (
         <div className="overview-state" role="alert">
           <strong>Summary unavailable</strong>
-          <p>
-            Could not load database statistics. Check your connection and
-            permissions, then try again.
-          </p>
+          <p>{overviewFailure(query.error)}</p>
           <button onClick={() => query.refetch()}>Retry</button>
         </div>
       )}

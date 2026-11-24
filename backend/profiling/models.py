@@ -3,6 +3,7 @@ import secrets
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 
 from common.models import RecordedByModel
@@ -164,10 +165,31 @@ class Resident(RecordedByModel):
         indexes = [
             models.Index(fields=("family_name", "given_name"), name="resident_name_search"),
             models.Index(fields=("verification_status",), name="resident_verification"),
+            models.Index(fields=("residency_classification",), name="resident_residency"),
+            models.Index(fields=("is_active",), name="resident_active"),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(residency_classification__isnull=True)
+                | Q(residency_classification__in=("RESIDENT", "NON_RESIDENT")),
+                name="resident_classification_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(
+                    verification_status__in=(
+                        "UNVERIFIED",
+                        "PENDING",
+                        "VERIFIED",
+                        "NEEDS_REVIEW",
+                    )
+                ),
+                name="resident_verification_valid",
+            ),
         ]
         permissions = [
             ("view_sensitive_profile", "Can view fields marked sensitive"),
             ("change_sensitive_profile", "Can change fields marked sensitive"),
+            ("verify_resident", "Can change resident verification status"),
         ]
 
     @property

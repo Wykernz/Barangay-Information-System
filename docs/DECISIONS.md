@@ -345,3 +345,20 @@ their authoritative domain records/templates and required approvals are absent.
 Database resident detail tabs read household membership and audit history only
 through their protected APIs; family details remain unavailable and health
 details stay inside the separately authorized Health workspace.
+
+2026-11-23 resident entry usability correction (PRO-001..003): require only
+first name and surname, plus birthdate for a new profile because age and age
+groups are derived from it. Existing records with no recorded birthdate remain
+editable. Classification, sex, civil status, contact details, nationality,
+residency status, photo, and other descriptive fields may remain blank or Not
+recorded; never block saving solely because one is unknown. Explain overview
+API failures by authentication, authorization, network, or server status so
+staff can identify the next step. No change to server authorization or stored
+record semantics.
+# Household history safeguard (2026-11-23)
+
+Under PRO-006, existing membership and occupancy segments retain their original
+participants, relationship, head flag, and start date. PATCH may close an open
+segment by supplying valid_to; it may not rewrite or reopen a closed segment.
+Changes to participants or head status require a new dated segment. This does
+not impose a single-membership or single-head policy; those decisions remain open.

@@ -42,14 +42,14 @@ class AddCompatibleLegacyField(migrations.AddField):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('profiling', '0001_initial'),
+        ('profiling', '0003_resident_resident_classification_valid_and_more'),
     ]
 
     operations = [
-        AddCompatibleLegacyField(
+        migrations.AlterField(
             model_name='resident', name='is_active', field=models.BooleanField(default=True),
         ),
-        AddCompatibleLegacyField(
+        migrations.AlterField(
             model_name='resident', name='archived_at', field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
@@ -97,7 +97,7 @@ class Migration(migrations.Migration):
             name='record_status',
             field=models.CharField(choices=[('Not recorded', 'Not recorded'), ('Active', 'Active'), ('Moved out', 'Moved out'), ('Deceased', 'Deceased')], default='Not recorded', max_length=20),
         ),
-        AddCompatibleLegacyField(
+        migrations.AlterField(
             model_name='resident',
             name='residency_classification',
             field=models.CharField(choices=[('Resident', 'Resident'), ('Non-resident', 'Non-resident'), ('Not recorded', 'Not recorded')], default='Not recorded', max_length=20, null=True),

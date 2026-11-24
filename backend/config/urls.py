@@ -7,11 +7,11 @@ from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter
 
 from accounts.access import health_only
-from audit.views import AuditEventViewSet
 from accounts.health_records import HealthAssessmentViewSet
 from accounts.health_views import health_workspace
 from accounts.serializers import StaffSessionSerializer
 from accounts.views import csrf, sign_in, sign_out
+from audit.views import AuditEventViewSet
 from common.overview import overview
 from households import map_views
 from households.views import (

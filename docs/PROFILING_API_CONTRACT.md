@@ -1,14 +1,16 @@
-# Proposed profiling integration contract
+# Profiling API integration contract
 
-Status: coordination draft for the backend developer. Current backend routes are
-authentication/session/schema only. No profiling API is called or implemented.
-Future integration must reuse the centralized Axios client in frontend/src/api.ts.
+Status: partial. Django provides authenticated resident CRUD, verification/photo,
+household and housing registries, effective-dated membership/occupancy records,
+duplicate-review candidate search, and separate GIS endpoints. The adapter below
+remains an unused proposal for versioned history transitions. Use the centralized
+Axios client in `frontend/src/api.ts` for new calls.
 
 ## Frontend adapter prepared
 
-`frontend/src/features/profiling/api.ts` now defines proposed wire types and API
-functions using the shared Axios client. It is not imported by active screens.
-The API is still a coordination draft; no live backend compatibility is claimed.
+`frontend/src/features/profiling/api.ts` defines a proposed, not active adapter.
+Some resource paths and version fields are not implemented by the current backend;
+do not connect screens to it until the remaining contracts are reconciled.
 TypeScript declarations are not runtime response validation.
 
 The adapter acquires CSRF before mutations, preserves field errors and rejects
@@ -20,7 +22,7 @@ Wire fields use snake_case. Resident inputs exclude client-generated IDs; list
 responses use count/next/previous/results. Transfer returns ended_membership,
 created_membership and household_versions. Head selection proposes a paginated
 membership response; occupancy change returns ended_occupancy/created_occupancy.
-Confirm these exact field names before implementing the backend or enabling UI calls.
+Confirm and reconcile these field names before enabling these proposed UI calls.
 
 Enablement sequence: agree contract → implement permission/transaction-tested
 backend endpoints → validate real response schemas → map wire types to frontend
@@ -41,7 +43,7 @@ All paths below are proposed under /api/v1/:
 | residents/ | GET/POST | Search/paginate and create with server ID |
 | residents/{id}/ | GET/PATCH | Authorized general profile |
 | residents/{id}/memberships/ | GET | History |
-| residents/duplicate-check/ | POST | Manual review candidates; no auto-merge |
+| residents/duplicate-check/ | POST | Implemented: exact name and optional birthdate candidates, manual review only; requires add and view permission |
 | households/ | GET/POST | Directory/create |
 | households/{id}/ | GET/PATCH | Summary/update attributes |
 | households/{id}/memberships/ | GET/POST | Members/assignment |
@@ -66,7 +68,13 @@ conflicting operation. Never expose sensitive fields in unauthorized responses.
 
 Server responsibilities: scoped permissions, transactions, FK/date validation,
 audit actor/time/reason, concurrency, eligible heads, and manual duplicate review.
-Single current membership/head is a demo assumption pending policy approval.
+Single current membership/head remains a policy decision; the API does not invent
+that constraint. Generic membership/occupancy endpoints do not yet provide
+transactional transfer, head reassignment, or explicit end actions. Existing
+periods accept PATCH of valid_to to close an open segment. Other historical
+fields are immutable; closed segments cannot be rewritten or reopened. Period
+updates lock the segment within a transaction before validation to prevent
+concurrent closure requests from overwriting an already recorded end date.
 Head changes must preserve dated history; water/sanitation ownership between
 unit attributes and survey observations needs agreement. Coordinates belong to
 verified housing-unit locations, not households or residents. No cascade deletion.
