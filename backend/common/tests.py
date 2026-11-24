@@ -3,7 +3,12 @@ from django.utils import timezone
 from rest_framework.test import APIClient
 
 from accounts.models import User
-from households.models import Household, HouseholdOccupancy, HousingUnit
+from households.models import (
+    Household,
+    HouseholdMembership,
+    HouseholdOccupancy,
+    HousingUnit,
+)
 from profiling.models import FormDefinition, Resident
 
 
@@ -26,6 +31,7 @@ class OverviewTests(TestCase):
             residency_classification="RESIDENT",
             verification_status="VERIFIED",
             sex="Female",
+            birth_date=timezone.localdate().replace(year=timezone.localdate().year - 20),
             created_by=self.user,
         )
         Resident.objects.create(
@@ -35,11 +41,22 @@ class OverviewTests(TestCase):
             is_archived=True,
             created_by=self.user,
         )
-        household = Household.objects.create(label="Synthetic household", created_by=self.user)
+        household = Household.objects.create(
+            label="Synthetic household",
+            water_source="LEVEL_III",
+            sanitation_type="FLUSH_SEPTIC",
+            created_by=self.user,
+        )
         unit = HousingUnit.objects.create(label="Synthetic unit", created_by=self.user)
         HouseholdOccupancy.objects.create(
             household=household,
             housing_unit=unit,
+            valid_from=timezone.localdate(),
+            created_by=self.user,
+        )
+        HouseholdMembership.objects.create(
+            household=household,
+            resident=Resident.objects.get(given_name="Synthetic"),
             valid_from=timezone.localdate(),
             created_by=self.user,
         )
@@ -51,6 +68,16 @@ class OverviewTests(TestCase):
         self.assertEqual(response.data["active_households"], 1)
         self.assertEqual(response.data["housing_units"], 1)
         self.assertEqual(response.data["occupied_units"], 1)
+        self.assertEqual(response.data["age_groups"]["Young Adults (18-24)"], 1)
+        self.assertEqual(response.data["household_sizes"]["1"], 1)
+        self.assertEqual(response.data["water_sources"]["Level III"], 1)
+        self.assertEqual(
+            response.data["sanitation"]["Flush-type toilet with septic tank"], 1
+        )
+        self.assertEqual(response.data["data_quality"]["Residents missing birthdate"], 0)
+        self.assertEqual(
+            response.data["data_quality"]["Housing units without current occupancy"], 0
+        )
         self.assertNotIn("families", response.data)
         self.assertNotIn("four_ps", response.data)
 

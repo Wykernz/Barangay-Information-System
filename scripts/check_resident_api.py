@@ -41,6 +41,14 @@ def main() -> None:
 
         before = client.get("/api/v1/overview/")
         assert before.status_code == 200, f"Overview failed: HTTP {before.status_code}."
+        for metric in (
+            "age_groups",
+            "household_sizes",
+            "water_sources",
+            "sanitation",
+            "data_quality",
+        ):
+            assert metric in before.data, f"Overview is missing {metric}."
 
         created = client.post(
             "/api/v1/residents/",

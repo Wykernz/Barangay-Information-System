@@ -362,3 +362,16 @@ participants, relationship, head flag, and start date. PATCH may close an open
 segment by supplying valid_to; it may not rewrite or reopen a closed segment.
 Changes to participants or head status require a new dated segment. This does
 not impose a single-membership or single-head policy; those decisions remain open.
+
+## Overview analytics increment (2026-11-24)
+
+User approved database-backed analytics on the staff Overview under ANA-001..003.
+Use the previously approved age bands and label ages 75+ as classification
+pending rather than inventing a final category. Household-size bands are 0, 1,
+2-3, 4-5, and 6+ current members as of the reporting date. Water and sanitation
+use the stored controlled-vocabulary labels and count missing values explicitly.
+Data-quality indicators show missing birthdates, verification/classification
+backlogs, missing household water/sanitation values, and housing units without a
+current occupancy. These are authorized operational aggregates, not legal,
+health, hazard, or beneficiary determinations. Record-level drill-down and
+sensitive small-cell publication remain outside this increment.

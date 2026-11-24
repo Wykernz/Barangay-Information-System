@@ -24,6 +24,10 @@ type Overview = {
   occupied_units: number;
   mapped_units: number | null;
   age_groups: Record<string, number>;
+  household_sizes: Record<string, number>;
+  water_sources: Record<string, number>;
+  sanitation: Record<string, number>;
+  data_quality: Record<string, number>;
   residency: Record<string, number>;
   sex: Record<string, number>;
 };
@@ -213,6 +217,22 @@ export default function Dashboard() {
               values={data.residency}
             />
             <Distribution title="Sex distribution" values={data.sex} />
+            <Distribution
+              title="Household-size distribution"
+              values={data.household_sizes}
+            />
+            <Distribution
+              title="Household water sources"
+              values={data.water_sources}
+            />
+            <Distribution
+              title="Household sanitation"
+              values={data.sanitation}
+            />
+            <Distribution
+              title="Missing and unverified data"
+              values={data.data_quality}
+            />
             <section className="overview-panel">
               <h2>Housing overview</h2>
               <dl className="overview-housing">

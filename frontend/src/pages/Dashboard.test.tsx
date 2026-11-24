@@ -24,7 +24,26 @@ test("overview uses database aggregates and labels unsupported statistics", asyn
         housing_units: 5,
         occupied_units: 3,
         mapped_units: null,
-        age_groups: { "0-14": 2, "60+": 1 },
+        age_groups: {
+          "Early Childhood (0-5)": 2,
+          "Senior Citizens (60-74)": 1,
+          "75+ (classification pending)": 0,
+        },
+        household_sizes: { "0": 1, "1": 1, "2-3": 2, "4-5": 0, "6+": 0 },
+        water_sources: { "Level I": 1, "Level III": 2, "Not recorded": 1 },
+        sanitation: {
+          "Flush-type toilet with septic tank": 2,
+          "None": 0,
+          "Not recorded": 2,
+        },
+        data_quality: {
+          "Residents missing birthdate": 1,
+          "Residents awaiting verification": 5,
+          "Residents missing residency classification": 2,
+          "Households missing water source": 1,
+          "Households missing sanitation": 2,
+          "Housing units without current occupancy": 2,
+        },
         residency: {
           Resident: 8,
           "Non-resident": 2,
@@ -53,6 +72,13 @@ test("overview uses database aggregates and labels unsupported statistics", asyn
   );
   expect(screen.getByText("Database family registry pending")).toBeTruthy();
   expect(screen.getByText("Verified program data pending")).toBeTruthy();
+  expect(
+    screen.getByRole("region", { name: "Household-size distribution" }),
+  ).toBeTruthy();
+  expect(
+    screen.getByRole("region", { name: "Missing and unverified data" }),
+  ).toBeTruthy();
+  expect(screen.getByText("75+ (classification pending)")).toBeTruthy();
   expect(
     screen.getByRole("link", { name: /View housing map/ }).getAttribute("href"),
   ).toBe("/gis");
