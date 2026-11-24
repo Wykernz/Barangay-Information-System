@@ -390,14 +390,14 @@ current occupancy. These are authorized operational aggregates, not legal,
 health, hazard, or beneficiary determinations. Record-level drill-down and
 sensitive small-cell publication remain outside this increment.
 
-## Printable field-definition forms (2026-11-24)
+## Printable KP forms (2026-11-24)
 
-User requested that forms open and print individually. The Forms route may render
-each existing authorized profile-form definition as a separate blank A4
-data-collection sheet and invoke the browser print dialog for that sheet. Field
-labels, help text, order, choices, required flags, and sensitive-handling labels
-come from the stored definition; the UI must not invent certificate wording.
-Draft and archived versions remain visibly watermarked. These sheets are not
-issued barangay certificates, clearances, legal instruments, or issuance records.
-Official document templates, signatories, numbering, fees, issuance history, and
-authorization rules remain pending explicit approval.
+The earlier generic printable field-definition interpretation is superseded. The
+user supplied `KP-FORM-NEW.docx` and clarified that the Forms route must reproduce
+that document. Preserve its wording, barangay identity, logos, signatures/blank
+lines, and page layout by exporting the source through Microsoft Word to PDF.
+Expose each KP form separately so staff can open, download, and print one form at
+a time. KP Form No. 9 retains its two source pages as one printable document.
+This approval covers faithful display of the supplied packet; it does not add
+case issuance records, automatic field population, fees, signing authority, or
+new legal workflow assumptions.

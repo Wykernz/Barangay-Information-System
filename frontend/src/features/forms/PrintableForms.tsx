@@ -1,131 +1,248 @@
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, FileText, Printer } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
+import { useMemo, useState } from "react";
 import {
-  getProfileForm,
-  listProfileForms,
-  profileFormError,
-  type FormDefinition,
-  type FormField,
-} from "../../planner/api";
+  ArrowLeft,
+  ExternalLink,
+  FileDown,
+  FileText,
+  Printer,
+} from "lucide-react";
+import { Link, useParams } from "react-router-dom";
 import "./printable-forms.css";
 
-const moduleLabels: Record<FormDefinition["module"], string> = {
-  residents: "Resident profiling",
-  households: "Household profiling",
-  housing: "Housing-unit profiling",
-  surveys: "Survey",
-  gis: "GIS field collection",
+type KpForm = {
+  slug: string;
+  number: string;
+  title: string;
+  file: string;
+  pages?: number;
 };
 
-async function loadAllForms() {
-  const forms: FormDefinition[] = [];
-  let next: string | null = "profile-forms/";
-  while (next) {
-    const page = await listProfileForms(next);
-    forms.push(...page.results);
-    next = page.next;
-  }
-  return forms;
-}
+const asset = (name: string) => `/forms/kp/${name}`;
+
+export const kpForms: KpForm[] = [
+  {
+    slug: "kp-01",
+    number: "KP Form No. 1",
+    title: "Notice to Constitute the Lupon",
+    file: asset("kp-page-01.pdf"),
+  },
+  {
+    slug: "kp-02",
+    number: "KP Form No. 2",
+    title: "Appointment",
+    file: asset("kp-page-02.pdf"),
+  },
+  {
+    slug: "kp-03",
+    number: "KP Form No. 3",
+    title: "Notice of Appointment",
+    file: asset("kp-page-03.pdf"),
+  },
+  {
+    slug: "kp-04",
+    number: "KP Form No. 4",
+    title: "List of Appointed Lupon Members",
+    file: asset("kp-page-04.pdf"),
+  },
+  {
+    slug: "kp-05",
+    number: "KP Form No. 5",
+    title: "Oath of Office",
+    file: asset("kp-page-05.pdf"),
+  },
+  {
+    slug: "kp-06",
+    number: "KP Form No. 6",
+    title: "Withdrawal of Appointment",
+    file: asset("kp-page-06.pdf"),
+  },
+  {
+    slug: "kp-07",
+    number: "KP Form No. 7",
+    title: "Complaint",
+    file: asset("kp-page-07.pdf"),
+  },
+  {
+    slug: "kp-08",
+    number: "KP Form No. 8",
+    title: "Notice of Hearing — Mediation Proceedings",
+    file: asset("kp-page-08.pdf"),
+  },
+  {
+    slug: "kp-09",
+    number: "KP Form No. 9",
+    title: "Summons and Officer’s Return",
+    file: asset("kp-form-09.pdf"),
+    pages: 2,
+  },
+  {
+    slug: "kp-10",
+    number: "KP Form No. 10",
+    title: "Notice for Constitution of Pangkat",
+    file: asset("kp-page-11.pdf"),
+  },
+  {
+    slug: "kp-11",
+    number: "KP Form No. 11",
+    title: "Notice of Selection as Pangkat Member",
+    file: asset("kp-page-12.pdf"),
+  },
+  {
+    slug: "kp-12",
+    number: "KP Form No. 12",
+    title: "Notice of Hearing",
+    file: asset("kp-page-13.pdf"),
+  },
+  {
+    slug: "kp-13",
+    number: "KP Form No. 13",
+    title: "Subpoena",
+    file: asset("kp-page-14.pdf"),
+  },
+  {
+    slug: "kp-14",
+    number: "KP Form No. 14",
+    title: "Agreement for Arbitration",
+    file: asset("kp-page-15.pdf"),
+  },
+  {
+    slug: "kp-15",
+    number: "KP Form No. 15",
+    title: "Arbitration Award",
+    file: asset("kp-page-16.pdf"),
+  },
+  {
+    slug: "kp-16",
+    number: "KP Form No. 16",
+    title: "Amicable Settlement",
+    file: asset("kp-page-17.pdf"),
+  },
+  {
+    slug: "kp-17",
+    number: "KP Form No. 17",
+    title: "Repudiation",
+    file: asset("kp-page-18.pdf"),
+  },
+  {
+    slug: "kp-18",
+    number: "KP Form No. 18",
+    title: "Notice of Hearing",
+    file: asset("kp-page-19.pdf"),
+  },
+  {
+    slug: "kp-19",
+    number: "KP Form No. 19",
+    title: "Notice of Hearing — Failure to Appear",
+    file: asset("kp-page-20.pdf"),
+  },
+  {
+    slug: "kp-20",
+    number: "KP Form No. 20",
+    title: "Certification to File Action",
+    file: asset("kp-page-21.pdf"),
+  },
+  {
+    slug: "kp-20-a",
+    number: "KP Form No. 20-A",
+    title: "Certification to File Action",
+    file: asset("kp-page-22.pdf"),
+  },
+  {
+    slug: "kp-20-b",
+    number: "KP Form No. 20-B",
+    title: "Certification to File Action",
+    file: asset("kp-page-23.pdf"),
+  },
+  {
+    slug: "kp-21",
+    number: "Revised KP Form No. 21",
+    title: "Certification to Bar Action",
+    file: asset("kp-page-24.pdf"),
+  },
+  {
+    slug: "kp-22",
+    number: "KP Form No. 22",
+    title: "Certification to Bar Counterclaim",
+    file: asset("kp-page-25.pdf"),
+  },
+  {
+    slug: "kp-23",
+    number: "KP Form No. 23",
+    title: "Motion for Execution",
+    file: asset("kp-page-26.pdf"),
+  },
+  {
+    slug: "kp-24",
+    number: "KP Form No. 24",
+    title: "Notice of Hearing — Motion for Execution",
+    file: asset("kp-page-27.pdf"),
+  },
+  {
+    slug: "kp-25",
+    number: "KP Form No. 25",
+    title: "Notice of Execution",
+    file: asset("kp-page-28.pdf"),
+  },
+];
 
 export function PrintableFormDirectory() {
-  const [forms, setForms] = useState<FormDefinition[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [module, setModule] = useState("all");
-
-  useEffect(() => {
-    let active = true;
-    loadAllForms()
-      .then((rows) => {
-        if (active) setForms(rows);
-      })
-      .catch((failure) => {
-        if (active) setError(profileFormError(failure, "load"));
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const visible = useMemo(
-    () => forms.filter((form) => module === "all" || form.module === module),
-    [forms, module],
-  );
+  const [search, setSearch] = useState("");
+  const visible = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    return kpForms.filter((form) =>
+      `${form.number} ${form.title}`.toLowerCase().includes(needle),
+    );
+  }, [search]);
 
   return (
     <section className="printable-form-directory">
       <header className="housing-page-heading">
         <div>
           <p className="eyebrow">PROGRAMS &amp; SERVICES / FORMS</p>
-          <h1>Printable forms</h1>
+          <h1>Katarungang Pambarangay forms</h1>
           <p>
-            Open and print one field-definition form at a time. These are blank
-            data-collection sheets, not issued certificates or clearances.
+            Forms reproduced from the supplied KP-FORM-NEW Word document. Open
+            one form at a time to view, download, or print its original layout.
           </p>
         </div>
       </header>
-
       <section className="panel printable-form-catalog">
         <div className="printable-form-toolbar">
           <div>
-            <h2>Available form definitions</h2>
+            <h2>KP form packet</h2>
             <p>
-              Draft and archived versions are labeled on their print preview.
+              {kpForms.length} individual forms · original document wording and
+              layout
             </p>
           </div>
           <label>
-            Module
-            <select
-              value={module}
-              onChange={(event) => setModule(event.target.value)}
-            >
-              <option value="all">All modules</option>
-              {Object.entries(moduleLabels).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
+            Search forms
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Form number or title"
+            />
           </label>
         </div>
-        {loading && <p role="status">Loading printable forms…</p>}
-        {error && (
-          <p className="notice" role="alert">
-            {error}
-          </p>
-        )}
-        {!loading && !error && !visible.length && (
-          <div className="printable-form-empty">
-            <FileText size={26} />
-            <strong>No form definitions are available.</strong>
-            <span>
-              Create an approved field definition before printing a blank form.
-            </span>
-          </div>
+        {!visible.length && (
+          <p className="notice">No KP forms match that search.</p>
         )}
         <div className="printable-form-grid">
           {visible.map((form) => (
-            <article key={form.id}>
+            <article key={form.slug}>
               <div className="printable-form-card-icon">
                 <FileText size={20} />
               </div>
               <div>
-                <span>{moduleLabels[form.module]}</span>
-                <h3>{form.name}</h3>
+                <span>{form.number}</span>
+                <h3>{form.title}</h3>
                 <p>
-                  Version {form.version} · {form.fields.length} fields
+                  {form.pages ?? 1} printable{" "}
+                  {form.pages === 2 ? "pages" : "page"}
                 </p>
               </div>
-              <span className={`form-status is-${form.status}`}>
-                {form.status}
-              </span>
-              <Link className="button-link" to={`/forms/${form.id}`}>
-                Open printable form
+              <Link className="button-link" to={`/forms/${form.slug}`}>
+                Open form
               </Link>
             </article>
           ))}
@@ -135,135 +252,65 @@ export function PrintableFormDirectory() {
   );
 }
 
-function BlankField({ field }: { field: FormField }) {
-  const choices = field.options ?? [];
-  if (["choice", "multi_choice", "boolean"].includes(field.data_type)) {
-    const options = field.data_type === "boolean" ? ["Yes", "No"] : choices;
-    return (
-      <div className="print-choice-list">
-        {options.map((option) => (
-          <span key={option}>
-            <i aria-hidden="true" /> {option}
-          </span>
-        ))}
-        {!options.length && <span className="print-write-line" />}
-      </div>
-    );
-  }
-  if (field.data_type === "long_text") {
-    return (
-      <div className="print-long-lines" aria-hidden="true">
-        <i />
-        <i />
-        <i />
-      </div>
-    );
-  }
-  return <span className="print-write-line" aria-hidden="true" />;
-}
-
 export function PrintableFormDetail() {
   const { id = "" } = useParams();
-  const [form, setForm] = useState<FormDefinition | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    let active = true;
-    getProfileForm(id)
-      .then((value) => {
-        if (active) setForm(value);
-      })
-      .catch((failure) => {
-        if (active) setError(profileFormError(failure, "load"));
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [id]);
-
-  const fields = useMemo(
-    () =>
-      [...(form?.fields ?? [])].sort(
-        (left, right) => left.position - right.position,
-      ),
-    [form],
-  );
-
+  const form = kpForms.find((candidate) => candidate.slug === id);
+  if (!form) {
+    return (
+      <section className="panel">
+        <h1>KP form not found</h1>
+        <Link to="/forms">Return to KP forms</Link>
+      </section>
+    );
+  }
   return (
-    <section className="printable-form-preview">
-      <div className="print-preview-actions no-print">
-        <Link to="/forms">
-          <ArrowLeft size={16} /> Back to printable forms
-        </Link>
-        <button type="button" disabled={!form} onClick={() => window.print()}>
-          <Printer size={16} /> Print this form
-        </button>
+    <section className="kp-form-viewer">
+      <div className="kp-form-heading">
+        <div>
+          <Link to="/forms">
+            <ArrowLeft size={16} /> Back to KP forms
+          </Link>
+          <p className="eyebrow">{form.number}</p>
+          <h1>{form.title}</h1>
+          <p>Exact PDF export from KP-FORM-NEW.docx.</p>
+        </div>
+        <div className="kp-form-actions">
+          <a className="secondary button-link" href={form.file} download>
+            <FileDown size={16} /> Download PDF
+          </a>
+          <a
+            className="button-link"
+            href={form.file}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Printer size={16} /> Open PDF to print
+          </a>
+        </div>
       </div>
-      {loading && <p role="status">Loading printable form…</p>}
-      {error && (
-        <p className="notice" role="alert">
-          {error}
+      <p className="kp-print-help">
+        The PDF opens one selected KP form only. In the PDF viewer, choose the
+        printer icon or press Ctrl+P. KP Form No. 9 includes both of its pages.
+      </p>
+      <object
+        className="kp-pdf-preview"
+        data={`${form.file}#view=FitH&toolbar=1&navpanes=0`}
+        type="application/pdf"
+        aria-label={`${form.number} ${form.title} preview`}
+      >
+        <p>
+          PDF preview is unavailable in this browser.{" "}
+          <a href={form.file}>Open the PDF</a>.
         </p>
-      )}
-      {form && (
-        <article
-          className="print-sheet"
-          aria-label={`${form.name} printable form`}
-        >
-          {form.status !== "active" && (
-            <div className="print-watermark">{form.status}</div>
-          )}
-          <header className="print-sheet-header">
-            <p>Barangay Information Management System</p>
-            <h1>{form.name}</h1>
-            <span>
-              {moduleLabels[form.module]} · Version {form.version}
-            </span>
-          </header>
-          <section className="print-form-metadata">
-            <label>
-              Record/reference number <span />
-            </label>
-            <label>
-              Date accomplished <span />
-            </label>
-            <label>
-              Recorded by <span />
-            </label>
-          </section>
-          <section className="print-field-list">
-            {fields.map((field, index) => (
-              <div
-                className={`print-field is-${field.data_type}`}
-                key={field.id ?? field.key}
-              >
-                <div className="print-field-label">
-                  <b>
-                    {index + 1}. {field.label}
-                  </b>
-                  {field.required && <em>Required</em>}
-                  {field.sensitive && (
-                    <em>Sensitive — authorized handling only</em>
-                  )}
-                  {field.help_text && <small>{field.help_text}</small>}
-                </div>
-                <BlankField field={field} />
-              </div>
-            ))}
-          </section>
-          {!fields.length && (
-            <p className="print-no-fields">This definition has no fields.</p>
-          )}
-          <footer className="print-sheet-footer">
-            Blank field-definition sheet · Not an issued certificate, clearance,
-            or official boundary record
-          </footer>
-        </article>
-      )}
+      </object>
+      <a
+        className="kp-mobile-open button-link"
+        href={form.file}
+        target="_blank"
+        rel="noreferrer"
+      >
+        <ExternalLink size={16} /> Open form in PDF viewer
+      </a>
     </section>
   );
 }
