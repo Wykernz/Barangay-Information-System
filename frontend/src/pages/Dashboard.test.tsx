@@ -84,3 +84,38 @@ test("overview uses database aggregates and labels unsupported statistics", asyn
   ).toBe("/gis");
   expect(api.get).toHaveBeenCalledWith("overview/");
 });
+
+test("legacy overview responses do not crash when newer analytics are absent", async () => {
+  vi.mocked(api.get).mockImplementation(async (url) => {
+    if (url === "audit/events/") return { data: { results: [] } } as never;
+    return {
+      data: {
+        as_of: "2026-11-22",
+        registered_persons: 2,
+        verified_residents: 1,
+        active_households: 1,
+        housing_units: 1,
+        occupied_units: 0,
+        mapped_units: null,
+        age_groups: { "0-14": 1, "Not recorded": 1 },
+        residency: { Resident: 1, "Pending classification": 1 },
+        sex: { Female: 1, "Other or not recorded": 1 },
+      },
+    } as never;
+  });
+  render(
+    <QueryClientProvider
+      client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+    >
+      <MemoryRouter>
+        <Dashboard />
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+  expect((await screen.findAllByText("2")).length).toBeGreaterThan(0);
+  expect(
+    screen.getAllByText(
+      "This analytics group is unavailable from the current backend version.",
+    ),
+  ).toHaveLength(4);
+});

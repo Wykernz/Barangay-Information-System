@@ -24,10 +24,10 @@ type Overview = {
   occupied_units: number;
   mapped_units: number | null;
   age_groups: Record<string, number>;
-  household_sizes: Record<string, number>;
-  water_sources: Record<string, number>;
-  sanitation: Record<string, number>;
-  data_quality: Record<string, number>;
+  household_sizes?: Record<string, number>;
+  water_sources?: Record<string, number>;
+  sanitation?: Record<string, number>;
+  data_quality?: Record<string, number>;
   residency: Record<string, number>;
   sex: Record<string, number>;
 };
@@ -62,14 +62,20 @@ function Distribution({
   values,
 }: {
   title: string;
-  values: Record<string, number>;
+  values?: Record<string, number>;
 }) {
-  const total = Object.values(values).reduce((sum, value) => sum + value, 0);
+  const entries = Object.entries(values ?? {});
+  const total = entries.reduce((sum, [, value]) => sum + value, 0);
   return (
     <section className="overview-panel" aria-label={title}>
       <h2>{title}</h2>
+      {!entries.length && (
+        <p className="muted" role="status">
+          This analytics group is unavailable from the current backend version.
+        </p>
+      )}
       <div className="overview-bars">
-        {Object.entries(values).map(([label, count]) => (
+        {entries.map(([label, count]) => (
           <div className="overview-bar" key={label}>
             <div>
               <span>{label}</span>
