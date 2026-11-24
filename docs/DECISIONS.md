@@ -389,3 +389,15 @@ backlogs, missing household water/sanitation values, and housing units without a
 current occupancy. These are authorized operational aggregates, not legal,
 health, hazard, or beneficiary determinations. Record-level drill-down and
 sensitive small-cell publication remain outside this increment.
+
+## Printable field-definition forms (2026-11-24)
+
+User requested that forms open and print individually. The Forms route may render
+each existing authorized profile-form definition as a separate blank A4
+data-collection sheet and invoke the browser print dialog for that sheet. Field
+labels, help text, order, choices, required flags, and sensitive-handling labels
+come from the stored definition; the UI must not invent certificate wording.
+Draft and archived versions remain visibly watermarked. These sheets are not
+issued barangay certificates, clearances, legal instruments, or issuance records.
+Official document templates, signatories, numbering, fees, issuance history, and
+authorization rules remain pending explicit approval.

@@ -31,6 +31,10 @@ import { DemoProvider, useDemo } from "./demo/store";
 import { catalog } from "./demo/catalog";
 import RecordPage from "./components/RecordPage";
 import ModuleReadiness from "./components/ModuleReadiness";
+import {
+  PrintableFormDetail,
+  PrintableFormDirectory,
+} from "./features/forms/PrintableForms";
 import Dashboard from "./pages/Dashboard";
 import MapPage from "./pages/MapPage";
 import Reports from "./pages/Reports";
@@ -303,10 +307,8 @@ export default function Workspace({
                   path="/social-assistance"
                   element={<ModuleReadiness module="social-assistance" />}
                 />
-                <Route
-                  path="/forms"
-                  element={<ModuleReadiness module="forms" />}
-                />
+                <Route path="/forms" element={<PrintableFormDirectory />} />
+                <Route path="/forms/:id" element={<PrintableFormDetail />} />
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/audit" element={<Audit />} />
                 <Route path="/settings" element={<Settings />} />
