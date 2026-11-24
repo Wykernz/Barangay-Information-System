@@ -363,6 +363,20 @@ segment by supplying valid_to; it may not rewrite or reopen a closed segment.
 Changes to participants or head status require a new dated segment. This does
 not impose a single-membership or single-head policy; those decisions remain open.
 
+## Household assignment workflow (2026-11-24)
+
+User approved persistent database workflows for assigning and transferring a
+resident between households and for moving a household between physical housing
+units. Approved workflow actions allow one open household-membership segment per
+resident and one open housing-occupancy segment per household. A transfer or move
+uses an inclusive effective period: the previous segment ends on the day before
+the new segment starts. The transaction must either close and create both records
+or change neither. Generic membership and occupancy creation is disabled so staff
+cannot bypass these transitions. Existing legacy conflicts are not rewritten;
+multiple open occupancy records require administrative review. Household-head and
+co-head eligibility and replacement rules remain unresolved under OPN-006, so
+this increment does not provide a dedicated head-change workflow.
+
 ## Overview analytics increment (2026-11-24)
 
 User approved database-backed analytics on the staff Overview under ANA-001..003.

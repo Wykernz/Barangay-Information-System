@@ -100,33 +100,79 @@ def main() -> None:
             "/api/v1/households/", {"label": "Synthetic history check"}, format="json"
         )
         assert household.status_code == 201, household.data
+        destination = client.post(
+            "/api/v1/households/", {"label": "Synthetic transfer target"}, format="json"
+        )
+        assert destination.status_code == 201, destination.data
         housing = client.post(
             "/api/v1/housing-units/", {"label": "Synthetic housing check"}, format="json"
         )
         assert housing.status_code == 201, housing.data
-        for endpoint, fields in (
-            ("household-memberships", {"resident": record_id}),
-            ("household-occupancies", {"housing_unit": housing.data["id"]}),
+        destination_unit = client.post(
+            "/api/v1/housing-units/", {"label": "Synthetic move target"}, format="json"
+        )
+        assert destination_unit.status_code == 201, destination_unit.data
+        membership = client.post(
+            f"/api/v1/households/{household.data['id']}/members/",
+            {
+                "resident": record_id,
+                "relationship": "Member",
+                "effective_date": "2026-01-01",
+            },
+            format="json",
+        )
+        assert membership.status_code == 201, membership.data
+        transferred = client.post(
+            f"/api/v1/household-memberships/{membership.data['id']}/transfer/",
+            {
+                "destination_household": destination.data["id"],
+                "relationship": "Member",
+                "effective_date": "2026-02-01",
+            },
+            format="json",
+        )
+        assert transferred.status_code == 200, transferred.data
+        assert transferred.data["ended_membership"]["valid_to"] == "2026-01-31"
+        assert transferred.data["created_membership"]["valid_from"] == "2026-02-01"
+        moved = client.post(
+            f"/api/v1/households/{destination.data['id']}/move/",
+            {"housing_unit": housing.data["id"], "effective_date": "2026-02-01"},
+            format="json",
+        )
+        assert moved.status_code == 200, moved.data
+        moved_again = client.post(
+            f"/api/v1/households/{destination.data['id']}/move/",
+            {
+                "housing_unit": destination_unit.data["id"],
+                "effective_date": "2026-03-01",
+            },
+            format="json",
+        )
+        assert moved_again.status_code == 200, moved_again.data
+        assert moved_again.data["ended_occupancy"]["valid_to"] == "2026-02-28"
+        for endpoint, period_id in (
+            (
+                "household-memberships",
+                transferred.data["created_membership"]["id"],
+            ),
+            (
+                "household-occupancies",
+                moved_again.data["created_occupancy"]["id"],
+            ),
         ):
-            period = client.post(
-                f"/api/v1/{endpoint}/",
-                {**fields, "household": household.data["id"], "valid_from": "2026-01-01"},
-                format="json",
-            )
-            assert period.status_code == 201, period.data
-            url = f"/api/v1/{endpoint}/{period.data['id']}/"
+            url = f"/api/v1/{endpoint}/{period_id}/"
             rewrite = client.patch(url, {"valid_from": "2025-01-01"}, format="json")
             assert rewrite.status_code == 400, rewrite.data
-            closed = client.patch(url, {"valid_to": "2026-02-01"}, format="json")
+            closed = client.patch(url, {"valid_to": "2026-04-01"}, format="json")
             assert closed.status_code == 200, closed.data
             reopened = client.patch(url, {"valid_to": None}, format="json")
             assert reopened.status_code == 400, reopened.data
-            changed = client.patch(url, {"valid_to": "2026-03-01"}, format="json")
+            changed = client.patch(url, {"valid_to": "2026-05-01"}, format="json")
             assert changed.status_code == 400, changed.data
             preserved = client.get(url)
             assert preserved.status_code == 200, preserved.data
-            assert preserved.data["valid_from"] == "2026-01-01"
-            assert preserved.data["valid_to"] == "2026-02-01"
+            assert preserved.data["valid_from"] in ("2026-02-01", "2026-03-01")
+            assert preserved.data["valid_to"] == "2026-04-01"
         transaction.set_rollback(True)
 
     assert record_id and not User.objects.filter(username=user.username).exists()

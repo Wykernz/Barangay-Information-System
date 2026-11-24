@@ -1,7 +1,7 @@
 # Profiling API integration contract
 
 Status: partial. Django provides authenticated resident CRUD, verification/photo,
-household and housing registries, effective-dated membership/occupancy records,
+household and housing registries, transactional effective-dated membership/occupancy workflows,
 duplicate-review candidate search, and separate GIS endpoints. The adapter below
 remains an unused proposal for versioned history transitions. Use the centralized
 Axios client in `frontend/src/api.ts` for new calls.
@@ -46,19 +46,23 @@ All paths below are proposed under /api/v1/:
 | residents/duplicate-check/ | POST | Implemented: exact name and optional birthdate candidates, manual review only; requires add and view permission |
 | households/ | GET/POST | Directory/create |
 | households/{id}/ | GET/PATCH | Summary/update attributes |
-| households/{id}/memberships/ | GET/POST | Members/assignment |
-| memberships/{id}/transfer/ | POST | Atomic end/create membership |
-| memberships/{id}/end/ | POST | Effective-dated unassignment |
+| households/{id}/members/ | POST | Assign a resident with an effective date |
+| household-memberships/?household={id} | GET | Filtered membership history |
+| household-memberships/{id}/transfer/ | POST | Atomic end/create membership |
+| household-memberships/{id}/end/ | POST | Effective-dated unassignment |
 | households/{id}/head-assignments/ | POST | Eligible head change with history |
 | housing-units/ | GET/POST | Unit registry/create |
 | housing-units/{id}/ | GET/PATCH | Unit profile |
-| households/{id}/occupancies/ | GET/POST | Occupancy history/change |
+| household-occupancies/?household={id} | GET | Filtered occupancy history |
+| households/{id}/move/ | POST | Atomic end/create housing assignment |
 | households/{id}/surveys/ | GET/POST | Versioned observations |
 
-Example transfer request: `{ "destination_household_id": "uuid",
-"effective_date": "2026-11-15", "relationship": "member", "reason": "transfer",
-"expected_version": 3 }`. Return ended/new memberships and updated versions.
-Failure must leave both households unchanged.
+Implemented transfer request: `{ "destination_household": "uuid",
+"effective_date": "2026-11-15", "relationship": "Member",
+"occupancy_type": "FAMILY_MEMBER", "is_head": false }`. It returns
+`ended_membership` and `created_membership`. A household move accepts
+`housing_unit` and `effective_date`, returning `ended_occupancy` and
+`created_occupancy`. Failure leaves all involved records unchanged.
 
 Resident create accepts structured name, birthdate and approved demographic codes;
 returns UUID/reference/version and authorized fields. Household details return
@@ -67,11 +71,12 @@ head, derived count, member and occupancy links. Lists use count/next/previous/r
 conflicting operation. Never expose sensitive fields in unauthorized responses.
 
 Server responsibilities: scoped permissions, transactions, FK/date validation,
-audit actor/time/reason, concurrency, eligible heads, and manual duplicate review.
-Single current membership/head remains a policy decision; the API does not invent
-that constraint. Generic membership/occupancy endpoints do not yet provide
-transactional transfer, head reassignment, or explicit end actions. Existing
-periods accept PATCH of valid_to to close an open segment. Other historical
+audit actor/time, concurrency, eligible heads, and manual duplicate review.
+The approved workflow enforces one open membership per resident and one open
+occupancy per household, while a single-head/co-head policy remains unresolved.
+Generic membership/occupancy POST is disabled; use the transactional assignment,
+transfer, end, and move actions. Existing periods accept PATCH of valid_to to
+close an open segment. Other historical
 fields are immutable; closed segments cannot be rewritten or reopened. Period
 updates lock the segment within a transaction before validation to prevent
 concurrent closure requests from overwriting an already recorded end date.

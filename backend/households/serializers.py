@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from profiling.models import Resident
+
 from .models import Household, HouseholdMembership, HouseholdOccupancy, HousingUnit
 
 
@@ -107,3 +109,50 @@ class HouseholdOccupancySerializer(EffectivePeriodSerializer):
             "updated_at",
         )
         read_only_fields = ("id", "created_at", "updated_at")
+
+
+class MembershipAssignmentSerializer(serializers.Serializer):
+    resident = serializers.PrimaryKeyRelatedField(
+        queryset=Resident.objects.filter(is_archived=False)
+    )
+    relationship = serializers.CharField(max_length=100, required=False, allow_blank=True)
+    occupancy_type = serializers.ChoiceField(
+        choices=HouseholdMembership._meta.get_field("occupancy_type").choices,
+        default="FAMILY_MEMBER",
+    )
+    is_head = serializers.BooleanField(default=False)
+    effective_date = serializers.DateField()
+
+
+class MembershipTransferSerializer(serializers.Serializer):
+    destination_household = serializers.PrimaryKeyRelatedField(
+        queryset=Household.objects.filter(is_active=True)
+    )
+    relationship = serializers.CharField(max_length=100, required=False, allow_blank=True)
+    occupancy_type = serializers.ChoiceField(
+        choices=HouseholdMembership._meta.get_field("occupancy_type").choices,
+        default="FAMILY_MEMBER",
+    )
+    is_head = serializers.BooleanField(default=False)
+    effective_date = serializers.DateField()
+
+
+class EffectiveDateSerializer(serializers.Serializer):
+    effective_date = serializers.DateField()
+
+
+class HouseholdMoveSerializer(serializers.Serializer):
+    housing_unit = serializers.PrimaryKeyRelatedField(
+        queryset=HousingUnit.objects.filter(is_active=True)
+    )
+    effective_date = serializers.DateField()
+
+
+class MembershipTransferResultSerializer(serializers.Serializer):
+    ended_membership = HouseholdMembershipSerializer()
+    created_membership = HouseholdMembershipSerializer()
+
+
+class HouseholdMoveResultSerializer(serializers.Serializer):
+    ended_occupancy = HouseholdOccupancySerializer(allow_null=True)
+    created_occupancy = HouseholdOccupancySerializer()
