@@ -18,6 +18,12 @@ permission/conflict/network failures without sample-data fallback. Archive/resto
 is proposed as PATCH `{archived, expected_version}` on a detail endpoint, not DELETE.
 Backend must explicitly agree to these semantics and enforce dependency guards.
 
+The database household detail screen is now connected directly to the implemented
+workflow actions documented below. It lists current and historical membership and
+housing assignments, assigns existing residents, transfers or ends memberships,
+and moves households between physical units. It does not use the proposed adapter
+or fall back to preview/session records.
+
 Wire fields use snake_case. Resident inputs exclude client-generated IDs; list
 responses use count/next/previous/results. Transfer returns ended_membership,
 created_membership and household_versions. Head selection proposes a paginated

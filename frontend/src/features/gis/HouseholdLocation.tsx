@@ -18,6 +18,7 @@ import {
 } from "./api";
 import HouseNumberEditor from "./HouseNumberEditor";
 import Directions from "./Directions";
+import HouseholdAssignments from "./HouseholdAssignments";
 import { api } from "../../api";
 
 type HouseholdSummary = {
@@ -423,6 +424,7 @@ export function DatabaseHouseholdDetail() {
   const [row, setRow] = useState<MapHousehold | null>(null);
   const [canNumber, setCanNumber] = useState(false);
   const [error, setError] = useState("");
+  const [refresh, setRefresh] = useState(0);
   useEffect(() => {
     let active = true;
     setRow(null);
@@ -447,7 +449,7 @@ export function DatabaseHouseholdDetail() {
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, refresh]);
   return (
     <>
       <div className="household-detail-heading">
@@ -489,6 +491,10 @@ export function DatabaseHouseholdDetail() {
               </Link>
             </div>
           </section>
+          <HouseholdAssignments
+            householdId={row.id}
+            onChanged={() => setRefresh((value) => value + 1)}
+          />
           <section className="household-detail-card">
             <h2>
               <Building2 size={19} aria-hidden="true" /> Housing information
@@ -583,21 +589,13 @@ export function DatabaseHouseholdDetail() {
           </section>
           <section className="household-detail-card">
             <h2>
-              <UsersRound size={19} aria-hidden="true" /> Household composition
+              <UsersRound size={19} aria-hidden="true" /> Family grouping
             </h2>
             <p>
-              Member and family details are not included in the current
-              household directory API.
+              Resident assignments are managed above. Family groups remain
+              unavailable until their authoritative workflow is approved.
             </p>
             <div className="household-unavailable-grid">
-              <div>
-                <span>Household head</span>
-                <strong>Unavailable</strong>
-              </div>
-              <div>
-                <span>Members</span>
-                <strong>Unavailable</strong>
-              </div>
               <div>
                 <span>Families</span>
                 <strong>Unavailable</strong>
